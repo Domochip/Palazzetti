@@ -112,7 +112,7 @@ int Palazzetti::fumisOpenSerial()
     selectSerialTimeoutms = 2300;
     int res = SERIALCOM_OpenComport(0x9600);
 
-    if (res >= 0 && (dword_46CAC0 != 1 || (res = SERIALCOM_Flush()) > 0))
+    if (res >= 0 && (dword_46CAC0 != 1 || (res = SERIALCOM_Flush()) >= 0))
     {
         dword_42F218 = 0;
         dword_42F214 = 1;
