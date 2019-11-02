@@ -38,28 +38,35 @@ int Palazzetti::SERIALCOM_ReceiveBuf(void *buf, size_t count)
 
 int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 {
-    int res = m_writeSerial(buf, count);
+    size_t bytesSent = 0;
+    size_t totalBytesWritten = 0;
+
+    while (totalBytesWritten < count)
+    {
+        bytesSent = m_writeSerial((void *)((uint8_t *)buf + totalBytesWritten), count - totalBytesWritten);
+        totalBytesWritten += bytesSent;
+    }
+
     m_drainSerial();
 
     if (!dword_46DAF4 && !dword_46DB08)
     {
-        int bytesReaded = 0;
-        int bytesLeftToRead = count;
-        uint16_t currentPosInBuffer = 0;
-        while (bytesReaded < bytesLeftToRead)
+        size_t bytesReaded = 0;
+        size_t totalBytesReaded = 0;
+
+        while (totalBytesReaded < count)
         {
-            if (m_selectSerial(selectSerialTimeoutms) < 1)
+            if (m_selectSerial(selectSerialTimeoutms) <= 0)
                 return -1;
 
-            bytesReaded = m_readSerial((void *)((uint8_t *)buf + currentPosInBuffer), bytesLeftToRead);
+            bytesReaded = m_readSerial((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
             if (bytesReaded < 0)
                 return bytesReaded;
-            bytesLeftToRead -= bytesReaded;
-            currentPosInBuffer += bytesReaded;
+            totalBytesReaded += bytesReaded;
         }
     }
 
-    return res;
+    return bytesSent;
 }
 
 int Palazzetti::iChkSum(byte *datasToCheck)
