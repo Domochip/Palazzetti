@@ -193,7 +193,7 @@ class Palazzetti
     int iUpdateStaticData();
     int iCloseUART();
     int iGetSetPointAtech();
-    int iSetSetPointAtech(int16_t setPoint);
+    int iSetSetPointAtech(uint16_t setPoint);
     int iReadTemperatureAtech();
     int iSwitchOnAtech();
     int iSwitchOffAtech();

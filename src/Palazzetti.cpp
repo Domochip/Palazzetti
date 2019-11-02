@@ -741,8 +741,8 @@ int Palazzetti::iUpdateStaticDataAtech()
         pdword_46DC58 = pdword_46DC4C[0x33];
         if (!dword_46DC48)
         {
-            pdword_46DC54 = (uint8_t)((double)int8_t(pdword_46DC54) / 5.0);
-            pdword_46DC58 = (uint8_t)((double)int8_t(pdword_46DC58) / 5.0);
+            pdword_46DC54 = (uint8_t)((double)pdword_46DC54 / 5.0);
+            pdword_46DC58 = (uint8_t)((double)pdword_46DC58 / 5.0);
         }
         else if (dword_46DC48 == 2)
         {
@@ -824,7 +824,7 @@ int Palazzetti::iGetSetPointAtech()
     return 0;
 }
 
-int Palazzetti::iSetSetPointAtech(int16_t setPoint)
+int Palazzetti::iSetSetPointAtech(uint16_t setPoint)
 {
     int res; //var_10
 
@@ -866,7 +866,7 @@ int Palazzetti::iReadTemperatureAtech()
     int res;     //var_1C
     byte buf[8]; //var_14
     uint16_t conv = 0;
-    res = fumisComReadBuff(0x200A, &buf, 8);
+    res = fumisComReadBuff(0x200A, buf, 8);
     if (res < 0)
         return res;
     conv = buf[1];
