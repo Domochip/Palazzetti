@@ -938,6 +938,89 @@ int Palazzetti::iGetPelletQtUsedAtech()
     return 0;
 }
 
+int Palazzetti::iGetRoomFanAtech()
+{
+    uint16_t var_C;
+    int res = fumisComReadByte(0x2036, &var_C);
+    if (res < 0)
+        return res;
+    dword_46DBA0 = var_C;
+
+    res = fumisComReadWord(0x2004, &var_C);
+    if (res < 0)
+        return res;
+
+    if (byte_46DC63 == 4)
+    {
+        dword_46DBA4 = var_C & 1;
+        dword_46DBA8 = ((var_C & 2) != 0);
+    }
+    else if (byte_46DC63 == 5)
+    {
+        dword_46DBA4 = var_C & 0xFF;
+        dword_46DBA8 = var_C >> 8;
+    }
+    else if (byte_46DC63 == 3)
+    {
+        dword_46DBA4 = 0;
+        dword_46DBA8 = var_C;
+    }
+    else
+    {
+        dword_46DBA4 = 0;
+        dword_46DBA8 = 0;
+    }
+
+    return 0;
+}
+
+int Palazzetti::iReadFansAtech()
+{
+    byte buf[8];
+    int res = fumisComReadBuff(0x2024, buf, 8);
+    if (res < 0)
+    {
+        dword_46DB94 = 0xFFFF;
+        dword_46DB98 = 0xFFFF;
+        dword_46DB9C = 0xFFFF;
+        return res;
+    }
+    dword_46DB94 = buf[1];
+    dword_46DB94 <<= 8;
+    dword_46DB94 += buf[0];
+
+    dword_46DB98 = buf[3];
+    dword_46DB98 <<= 8;
+    dword_46DB98 += buf[2];
+
+    dword_46DB9C = buf[5];
+    dword_46DB9C <<= 8;
+    dword_46DB9C += buf[4];
+
+    res = iGetRoomFanAtech();
+    if (res < 0)
+    {
+        dword_46DB94 = 0xFFFF;
+        dword_46DB98 = 0xFFFF;
+        dword_46DB9C = 0xFFFF;
+        return res;
+    }
+
+    return 0;
+}
+
+uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFan, bool decode)
+{
+    if (roomFan == 0)
+        return 7;
+    if (roomFan == 7)
+        return 0;
+    if (roomFan == 6)
+        return 6;
+
+    return roomFan;
+}
+
 //------------------------------------------
 //Public part
 
@@ -1054,6 +1137,38 @@ bool Palazzetti::getPelletQtUsed(uint16_t *PQT)
         return false;
     if (PQT)
         *PQT = dword_46DBFC;
+    return true;
+}
+
+bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iReadFansAtech() < 0)
+        return false;
+
+    if (F1V)
+        *F1V = dword_46DB94;
+    if (F2V)
+        *F2V = dword_46DB98;
+    if (F1RPM)
+        *F1RPM = dword_46DB9C;
+    if (F2L)
+        *F2L = transcodeRoomFanSpeed(dword_46DBA0, true);
+
+    if (F2LF)
+    {
+        uint16_t tmp = transcodeRoomFanSpeed(dword_46DBA0, true);
+        if (tmp < 6)
+            *F2LF = 0;
+        else
+            *F2LF = tmp - 5;
+    }
+
     return true;
 }
 

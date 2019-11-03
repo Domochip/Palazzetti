@@ -45,6 +45,8 @@ class Palazzetti
     uint16_t dword_46DB98 = 0; //F2V
     uint16_t dword_46DB9C = 0; //F1RPM
     uint16_t dword_46DBA0 = 0; //F2L (transcode needed)
+    uint16_t dword_46DBA4 = 0;
+    uint16_t dword_46DBA8 = 0;
 
     uint16_t dword_46DBB8 = 0; //DP_TARGET
     uint16_t dword_46DBBC = 0; //DP_PRESS
@@ -198,6 +200,9 @@ class Palazzetti
     int iSwitchOnAtech();
     int iSwitchOffAtech();
     int iGetPelletQtUsedAtech();
+    int iGetRoomFanAtech();
+    int iReadFansAtech();
+    uint16_t transcodeRoomFanSpeed(uint16_t roomFan, bool decode);
 
     bool m_isInitialized;
     volatile bool m_isAlreadyBusy;
@@ -211,6 +216,7 @@ public:
     bool readTemperature(float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);
+    bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF);
     bool powerOff();
     bool powerOn();
     Palazzetti();
