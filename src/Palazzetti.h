@@ -213,7 +213,7 @@ public:
     bool isInitialized() { return m_isInitialized; };
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint);
-    bool readTemperature(float *T1, float *T2, float *T3, float *T4, float *T5);
+    bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);
     bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF);

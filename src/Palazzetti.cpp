@@ -1094,7 +1094,7 @@ bool Palazzetti::setSetpoint(byte setPoint)
     return iSetSetPointAtech(setPoint) >= 0;
 }
 
-bool Palazzetti::readTemperature(float *T1, float *T2, float *T3, float *T4, float *T5)
+bool Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5)
 {
     if (!initialize())
         return false;
