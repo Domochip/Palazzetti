@@ -1,0 +1,15 @@
+{
+    "name": "Palazzetti",
+    "keywords": "palazzetti, fumis, stove, CBox, ConnectionBox",
+    "description": "A communication library for fumis/palazzetti Alpha 65. It allows to read status, SetPoint, room temperature, fan speed, etc. and to power on/off stove, set setpoint, fan speed, etc. ",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Domochip/Palazzetti.git"
+    },
+    "version": "0.8",
+    "examples": "examples/*/*.cpp",
+    "frameworks": "arduino",
+    "platforms": [
+        "espressif"
+    ]
+}
