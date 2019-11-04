@@ -48,6 +48,11 @@ class Palazzetti
     uint16_t dword_46DBA4 = 0;
     uint16_t dword_46DBA8 = 0;
 
+    byte byte_46DBAC = 0; //PWR
+    //byte byte_46DBAD = 0; //RPWR (Micronova)
+
+    float dword_46DBB0 = 0; //FDR (FeederActiveTime)
+
     uint16_t dword_46DBB8 = 0; //DP_TARGET
     uint16_t dword_46DBBC = 0; //DP_PRESS
 
@@ -202,7 +207,10 @@ class Palazzetti
     int iGetPelletQtUsedAtech();
     int iGetRoomFanAtech();
     int iReadFansAtech();
-    uint16_t transcodeRoomFanSpeed(uint16_t roomFan, bool decode);
+    int iGetPowerAtech();
+    int iSetPowerAtech(uint16_t powerLevel);
+    uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
+    int iSetRoomFanAtech(uint16_t roomFanSpeed);
 
     bool m_isInitialized;
     volatile bool m_isAlreadyBusy;
@@ -217,6 +225,9 @@ public:
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);
     bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF);
+    bool getPower(byte *PWR, float *FDR);
+    bool setPower(byte powerLevel);
+    bool setRoomFan(byte roomFanSpeed);
     bool powerOff();
     bool powerOn();
     Palazzetti();

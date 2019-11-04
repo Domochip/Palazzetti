@@ -6,7 +6,7 @@
         "type": "git",
         "url": "https://github.com/Domochip/Palazzetti.git"
     },
-    "version": "0.8",
+    "version": "0.9",
     "examples": "examples/*/*.cpp",
     "frameworks": "arduino",
     "platforms": [

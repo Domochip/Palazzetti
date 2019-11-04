@@ -1009,16 +1009,71 @@ int Palazzetti::iReadFansAtech()
     return 0;
 }
 
-uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFan, bool decode)
+int Palazzetti::iGetPowerAtech()
 {
-    if (roomFan == 0)
+    uint16_t var_C;
+
+    int res = fumisComReadWord(0x202a, &var_C);
+    if (res < 0)
+        return res;
+
+    byte_46DBAC = var_C & 0xFF;
+
+    res = fumisComReadWord(wAddrFeederActiveTime, &var_C);
+    if (res < 0)
+        return res;
+
+    dword_46DBB0 = var_C;
+    dword_46DBB0 /= 10.0f;
+
+    return 0;
+}
+
+int Palazzetti::iSetPowerAtech(uint16_t powerLevel)
+{
+    if (powerLevel < 0 || powerLevel > 5)
+        return -1;
+
+    int res = fumisComWriteByte(0x202a, powerLevel);
+    if (res < 0)
+        return res;
+
+    byte_46DBAC = powerLevel;
+
+    return 0;
+}
+
+uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
+{
+    if (roomFanSpeed == 0)
         return 7;
-    if (roomFan == 7)
+    if (roomFanSpeed == 7)
         return 0;
-    if (roomFan == 6)
+    if (roomFanSpeed == 6)
         return 6;
 
-    return roomFan;
+    return roomFanSpeed;
+}
+
+int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
+{
+    if (roomFanSpeed < 0 || roomFanSpeed > 7)
+        return -1;
+
+    int res;
+
+    if (byte_46DC68 == 0 || byte_46DBAC < 4 || roomFanSpeed != 7 || (res = iSetPowerAtech(3)) >= 0)
+    {
+        res = fumisComWriteByte(0x2036, roomFanSpeed);
+        if (res < 0)
+            return res;
+        res = iGetRoomFanAtech();
+        if (res < 0)
+            return res;
+        dword_46DBA0 = roomFanSpeed;
+        return 0;
+    }
+    return res;
 }
 
 //------------------------------------------
@@ -1168,6 +1223,56 @@ bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint1
         else
             *F2LF = tmp - 5;
     }
+
+    return true;
+}
+
+bool Palazzetti::getPower(byte *PWR, float *FDR)
+{
+    if (!initialize())
+        return false;
+
+    if (iGetPowerAtech() < 0)
+        return false;
+
+    if (PWR)
+        *PWR = byte_46DBAC;
+    if (FDR)
+        *FDR = dword_46DBB0;
+
+    return true;
+}
+
+bool Palazzetti::setPower(byte powerLevel)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iSetPowerAtech(powerLevel) < 0)
+        return false;
+
+    if (byte_46DC68)
+    {
+        if (iGetRoomFanAtech() < 0)
+            return false;
+    }
+
+    return true;
+}
+
+bool Palazzetti::setRoomFan(byte roomFanSpeed)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0)) < 0)
+        return false;
 
     return true;
 }
