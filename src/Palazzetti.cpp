@@ -1076,6 +1076,54 @@ int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
     return res;
 }
 
+int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
+{
+    if (paramToRead > 0x69)
+        return -1;
+
+    int res = fumisComReadByte(paramToRead + 0x1C00, paramValue);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iSetParameterAtech(byte paramToWrite, byte paramValue)
+{
+    if (paramToWrite >= 0x6A)
+        return -1;
+
+    int res = fumisComWriteByte(paramToWrite + 0x1C00, paramValue);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue)
+{
+    if (hParamToRead > 0x6E)
+        return -1;
+
+    int res = fumisComReadWord((hParamToRead + 0xF00) * 2, hParamValue);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue)
+{
+    if (hParamToWrite >= 0x6E)
+        return -1;
+
+    int res = fumisComWriteWord((hParamToWrite + 0xF00) * 2, hParamValue);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
 //------------------------------------------
 //Public part
 
@@ -1273,6 +1321,68 @@ bool Palazzetti::setRoomFan(byte roomFanSpeed)
 
     if (iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0)) < 0)
         return false;
+
+    return true;
+}
+
+bool Palazzetti::getParameter(byte paramNumber, byte *paramValue)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    uint16_t tmpValue;
+
+    if (iGetParameterAtech(paramNumber, &tmpValue) < 0)
+        return false;
+
+    //convert uint16_t to byte
+    *paramValue = tmpValue;
+
+    return true;
+}
+bool Palazzetti::setParameter(byte paramNumber, byte paramValue)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iSetParameterAtech(paramNumber, paramValue) < 0)
+        return false;
+
+    return true;
+}
+bool Palazzetti::getHiddenParameter(byte hParamNumber, uint16_t *hParamValue)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 == 0x64) //if Micronova
+        return false;
+
+    if (iGetHiddenParameterAtech(hParamNumber, hParamValue) < 0)
+        return false;
+
+    return true;
+}
+bool Palazzetti::setHiddenParameter(byte hParamNumber, uint16_t hParamValue)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 >= 2) //if Micronova
+        return false;
+
+    if (iSetHiddenParameterAtech(hParamNumber, hParamValue) < 0)
+        return false;
+    else if(hParamNumber < byte_46DC44)
+    {
+        pdword_46DC40[hParamNumber] = hParamValue;
+    }
 
     return true;
 }

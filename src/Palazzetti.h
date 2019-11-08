@@ -211,6 +211,10 @@ class Palazzetti
     int iSetPowerAtech(uint16_t powerLevel);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
     int iSetRoomFanAtech(uint16_t roomFanSpeed);
+    int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
+    int iSetParameterAtech(byte paramToWrite, byte paramValue);
+    int iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
+    int iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue);
 
     bool m_isInitialized;
     volatile bool m_isAlreadyBusy;
@@ -228,6 +232,10 @@ public:
     bool getPower(byte *PWR, float *FDR);
     bool setPower(byte powerLevel);
     bool setRoomFan(byte roomFanSpeed);
+    bool getParameter(byte paramNumber,byte* paramValue);
+    bool setParameter(byte paramNumber,byte paramValue);
+    bool getHiddenParameter(byte hParamNumber,uint16_t* hParamValue);
+    bool setHiddenParameter(byte hParamNumber,uint16_t hParamValue);
     bool powerOff();
     bool powerOn();
     Palazzetti();
