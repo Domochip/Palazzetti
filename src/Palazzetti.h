@@ -45,8 +45,8 @@ class Palazzetti
     uint16_t dword_46DB98 = 0; //F2V
     uint16_t dword_46DB9C = 0; //F1RPM
     uint16_t dword_46DBA0 = 0; //F2L (transcode needed)
-    uint16_t dword_46DBA4 = 0;
-    uint16_t dword_46DBA8 = 0;
+    uint16_t dword_46DBA4 = 0; //F3L
+    uint16_t dword_46DBA8 = 0; //F4L
 
     byte byte_46DBAC = 0; //PWR
     //byte byte_46DBAD = 0; //RPWR (Micronova)
@@ -228,14 +228,14 @@ public:
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);
-    bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF);
+    bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L);
     bool getPower(byte *PWR, float *FDR);
     bool setPower(byte powerLevel);
     bool setRoomFan(byte roomFanSpeed);
-    bool getParameter(byte paramNumber,byte* paramValue);
-    bool setParameter(byte paramNumber,byte paramValue);
-    bool getHiddenParameter(byte hParamNumber,uint16_t* hParamValue);
-    bool setHiddenParameter(byte hParamNumber,uint16_t hParamValue);
+    bool getParameter(byte paramNumber, byte *paramValue);
+    bool setParameter(byte paramNumber, byte paramValue);
+    bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
+    bool setHiddenParameter(byte hParamNumber, uint16_t hParamValue);
     bool powerOff();
     bool powerOn();
     Palazzetti();

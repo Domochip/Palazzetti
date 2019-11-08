@@ -1243,7 +1243,7 @@ bool Palazzetti::getPelletQtUsed(uint16_t *PQT)
     return true;
 }
 
-bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF)
+bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L)
 {
     if (!initialize())
         return false;
@@ -1270,6 +1270,20 @@ bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint1
             *F2LF = 0;
         else
             *F2LF = tmp - 5;
+    }
+
+    if (isF3LF4LValid)
+    {
+        if (byte_46DC63 > 2)
+        {
+            *isF3LF4LValid = true;
+            if (F3L)
+                *F3L = dword_46DBA4;
+            if (F4L)
+                *F4L = dword_46DBA8;
+        }
+        else
+            *isF3LF4LValid = false;
     }
 
     return true;
@@ -1379,7 +1393,7 @@ bool Palazzetti::setHiddenParameter(byte hParamNumber, uint16_t hParamValue)
 
     if (iSetHiddenParameterAtech(hParamNumber, hParamValue) < 0)
         return false;
-    else if(hParamNumber < byte_46DC44)
+    else if (hParamNumber < byte_46DC44)
     {
         pdword_46DC40[hParamNumber] = hParamValue;
     }
