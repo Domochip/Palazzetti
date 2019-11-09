@@ -216,6 +216,7 @@ class Palazzetti
     int iSetRoomFan3Atech(uint16_t roomFan3Speed);
     int iSetRoomFan4Atech(uint16_t roomFan4Speed);
     int iSetSilentModeAtech(uint16_t silentMode);
+    int iGetCounters();
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
     int iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
@@ -240,6 +241,7 @@ public:
     bool setRoomFan3(byte roomFan3Speed);
     bool setRoomFan4(byte roomFan4Speed);
     bool setSilentMode(byte silentMode);
+    bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);

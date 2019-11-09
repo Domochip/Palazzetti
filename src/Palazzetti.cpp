@@ -1201,6 +1201,80 @@ int Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
     return 0;
 }
 
+int Palazzetti::iGetCounters()
+{
+
+    byte var_18[8];
+    int res = fumisComReadBuff(0x2066, var_18, 8);
+    if (res < 0)
+        return res;
+
+    pdword_46DC08_00 = var_18[1];
+    pdword_46DC08_00 <<= 8;
+    pdword_46DC08_00 += var_18[0];
+
+    pdword_46DC08_04 = var_18[3];
+    pdword_46DC08_04 <<= 8;
+    pdword_46DC08_04 += var_18[2];
+
+    pdword_46DC08_02 = var_18[5];
+    pdword_46DC08_02 <<= 8;
+    pdword_46DC08_02 += var_18[4];
+
+    res = fumisComReadBuff(0x206E, var_18, 8);
+    if (res < 0)
+        return res;
+
+    pdword_46DC08_08 = var_18[1];
+    pdword_46DC08_08 <<= 8;
+    pdword_46DC08_08 += var_18[0];
+
+    pdword_46DC08_06 = var_18[3];
+    pdword_46DC08_06 <<= 8;
+    pdword_46DC08_06 += var_18[2];
+
+    pdword_46DC08_0A = var_18[7];
+    pdword_46DC08_0A <<= 8;
+    pdword_46DC08_0A += var_18[6];
+
+    res = fumisComReadBuff(0x2076, var_18, 8);
+    if (res < 0)
+        return res;
+
+    pdword_46DC08_0C = var_18[1];
+    pdword_46DC08_0C <<= 8;
+    pdword_46DC08_0C += var_18[0];
+
+    pdword_46DC08_12 = var_18[5];
+    pdword_46DC08_12 <<= 8;
+    pdword_46DC08_12 += var_18[4];
+
+    pdword_46DC08_14 = var_18[7];
+    pdword_46DC08_14 <<= 8;
+    pdword_46DC08_14 += var_18[6];
+
+    res = fumisComReadBuff(0x2082, var_18, 8);
+    if (res < 0)
+        return res;
+
+    pdword_46DC08_0E = var_18[1];
+    pdword_46DC08_0E <<= 8;
+    pdword_46DC08_0E += var_18[0];
+
+    pdword_46DC08_10 = var_18[3];
+    pdword_46DC08_10 <<= 8;
+    pdword_46DC08_10 += var_18[2];
+
+    uint16_t var_10;
+
+    res = fumisComReadWord(0x2002, &var_10);
+    if (res < 0)
+        return res;
+    dword_46DBFC = var_10;
+
+    return 0;
+}
+
 int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
 {
     if (paramToRead > 0x69)
@@ -1506,6 +1580,45 @@ bool Palazzetti::setSilentMode(byte silentMode)
 
     if (iSetSilentModeAtech(silentMode) < 0)
         return false;
+
+    return true;
+}
+
+bool Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iGetCounters() < 0)
+        return false;
+
+    if (IGN)
+        *IGN = pdword_46DC08_00;
+    if (POWERTIMEh)
+        *POWERTIMEh = pdword_46DC08_02;
+    if (POWERTIMEm)
+        *POWERTIMEm = pdword_46DC08_04;
+    if (HEATTIMEh)
+        *HEATTIMEh = pdword_46DC08_06;
+    if (HEATTIMEm)
+        *HEATTIMEm = pdword_46DC08_08;
+    if (SERVICETIMEh)
+        *SERVICETIMEh = pdword_46DC08_0C;
+    if (SERVICETIMEm)
+        *SERVICETIMEm = pdword_46DC08_0A;
+    if (ONTIMEh)
+        *ONTIMEh = pdword_46DC08_10;
+    if (ONTIMEm)
+        *ONTIMEm = pdword_46DC08_0E;
+    if (OVERTMPERRORS)
+        *OVERTMPERRORS = pdword_46DC08_12;
+    if (IGNERRORS)
+        *IGNERRORS = pdword_46DC08_14;
+    if (PQT)
+        *PQT = dword_46DBFC;
 
     return true;
 }
