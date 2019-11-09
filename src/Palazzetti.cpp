@@ -861,6 +861,43 @@ int Palazzetti::iSetSetPointAtech(uint16_t setPoint)
     return 0;
 }
 
+int Palazzetti::iSetSetPointAtech(float setPoint)
+{
+    int res; //var_10
+
+    if (setPoint < pdword_46DC54)
+        setPoint = pdword_46DC54;
+
+    if (setPoint > pdword_46DC58)
+        setPoint = pdword_46DC58;
+
+    if (dword_46DC48 > 2)
+        return 0;
+    if (dword_46DC48 == 2)
+    {
+        res = fumisComWriteByte(0x1C54, setPoint);
+        if (res < 0)
+            return res;
+        dword_46DBDC = setPoint;
+    }
+    if (!dword_46DC48)
+    {
+        res = fumisComWriteByte(0x1C33, setPoint * 5);
+        if (res < 0)
+            return res;
+        dword_46DBDC = setPoint;
+    }
+    else
+    {
+        res = fumisComWriteByte(0x1C33, setPoint);
+        if (res < 0)
+            return res;
+        dword_46DBDC = setPoint;
+    }
+
+    return 0;
+}
+
 int Palazzetti::iReadTemperatureAtech()
 {
     int res;     //var_1C
@@ -1194,7 +1231,8 @@ bool Palazzetti::setSetpoint(byte setPoint)
 {
     if (!initialize())
         return false;
-    return iSetSetPointAtech(setPoint) >= 0;
+
+    return iSetSetPointAtech((uint16_t)setPoint) >= 0;
 }
 
 bool Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5)

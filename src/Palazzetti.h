@@ -201,6 +201,7 @@ class Palazzetti
     int iCloseUART();
     int iGetSetPointAtech();
     int iSetSetPointAtech(uint16_t setPoint);
+    int iSetSetPointAtech(float setPoint);
     int iReadTemperatureAtech();
     int iSwitchOnAtech();
     int iSwitchOffAtech();
