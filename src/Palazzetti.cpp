@@ -1183,6 +1183,24 @@ int Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
     return 0;
 }
 
+int Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
+{
+    if (silentMode > 0)
+    {
+        int res = iSetRoomFanAtech(7);
+        if (res < 0)
+            return res;
+        res = iSetRoomFan3Atech(0);
+        if (res < 0)
+            return res;
+        res = iSetRoomFan4Atech(0);
+        if (res < 0)
+            return res;
+    }
+
+    return 0;
+}
+
 int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
 {
     if (paramToRead > 0x69)
@@ -1473,6 +1491,20 @@ bool Palazzetti::setRoomFan4(byte roomFan4Speed)
         return false;
 
     if (iSetRoomFan3Atech(roomFan4Speed) < 0)
+        return false;
+
+    return true;
+}
+
+bool Palazzetti::setSilentMode(byte silentMode)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 >= 2)
+        return false;
+
+    if (iSetSilentModeAtech(silentMode) < 0)
         return false;
 
     return true;
