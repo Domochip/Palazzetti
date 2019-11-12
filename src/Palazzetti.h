@@ -246,6 +246,8 @@ public:
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
     bool setHiddenParameter(byte hParamNumber, uint16_t hParamValue);
+    bool getAllParameters(byte (&params)[0x6A]);
+    bool getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F]);
     bool powerOff();
     bool powerOn();
     Palazzetti();

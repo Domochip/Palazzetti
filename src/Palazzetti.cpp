@@ -675,7 +675,7 @@ int Palazzetti::iUpdateStaticDataAtech()
     pdword_46DC2C = pdword_46DC40[0x8C / 2];
     pdword_46DC30 = pdword_46DC40[0x8E / 2];
 
-    res = iGetStoveConfigurationAtech(); //TODO
+    res = iGetStoveConfigurationAtech();
     if (res < 0)
         return res;
 
@@ -1681,6 +1681,32 @@ bool Palazzetti::setHiddenParameter(byte hParamNumber, uint16_t hParamValue)
     {
         pdword_46DC40[hParamNumber] = hParamValue;
     }
+
+    return true;
+}
+
+bool Palazzetti::getAllParameters(byte (&params)[0x6A])
+{
+    if (!initialize())
+        return false;
+
+    if (iUpdateStaticDataAtech() < 0)
+        return false;
+
+    memcpy(params, pdword_46DC38, 0x6A * sizeof(byte));
+
+    return true;
+}
+
+bool Palazzetti::getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F])
+{
+    if (!initialize())
+        return false;
+
+    if (iUpdateStaticDataAtech() < 0)
+        return false;
+
+    memcpy(hiddenParams, pdword_46DC40, 0x6F * sizeof(uint16_t));
 
     return true;
 }
