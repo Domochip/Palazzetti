@@ -1564,7 +1564,7 @@ bool Palazzetti::setRoomFan4(byte roomFan4Speed)
     if (dword_46DB08 >= 2)
         return false;
 
-    if (iSetRoomFan3Atech(roomFan4Speed) < 0)
+    if (iSetRoomFan4Atech(roomFan4Speed) < 0)
         return false;
 
     return true;
