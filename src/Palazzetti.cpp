@@ -1289,6 +1289,24 @@ int Palazzetti::iGetCounters()
     return 0;
 }
 
+int Palazzetti::iGetDPressDataAtech()
+{
+    uint16_t buf; //var_10
+    int res = fumisComReadWord(0x2000, &buf);
+    if (res < 0)
+        return res;
+
+    dword_46DBB8 = buf;
+
+    res = fumisComReadWord(0x2020, &buf);
+    if (res < 0)
+        return res;
+
+    dword_46DBBC = buf;
+
+    return 0;
+}
+
 int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
 {
     if (paramToRead > 0x69)
@@ -1633,6 +1651,25 @@ bool Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWE
         *IGNERRORS = pdword_46DC08_14;
     if (PQT)
         *PQT = dword_46DBFC;
+
+    return true;
+}
+
+bool Palazzetti::getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 >= 2)
+        return false;
+
+    if (iGetDPressDataAtech() < 0)
+        return false;
+
+    if (DP_TARGET)
+        *DP_TARGET = dword_46DBB8;
+    if (DP_PRESS)
+        *DP_PRESS = dword_46DBBC;
 
     return true;
 }
