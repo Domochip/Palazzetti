@@ -178,6 +178,8 @@ class Palazzetti
     int SERIALCOM_Flush();
     int SERIALCOM_ReceiveBuf(void *buf, size_t count);
     int SERIALCOM_SendBuf(void *buf, size_t count);
+    int SERIALCOM_ReceiveByte(byte *buf);
+    void SERIALCOM_SendByte(byte *buf);
     int iChkSum(byte *datasToCheck);
     int parseRxBuffer(byte *rxBuffer);
     int fumisCloseSerial();

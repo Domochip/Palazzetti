@@ -69,6 +69,20 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
     return bytesSent;
 }
 
+int Palazzetti::SERIALCOM_ReceiveByte(byte *buf)
+{
+    int res = SERIALCOM_ReceiveBuf(buf, 1);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+void Palazzetti::SERIALCOM_SendByte(byte *buf)
+{
+    SERIALCOM_SendBuf(buf, 1);
+}
+
 int Palazzetti::iChkSum(byte *datasToCheck)
 {
     byte chk = 0; //var_10
