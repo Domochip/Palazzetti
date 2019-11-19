@@ -1307,6 +1307,20 @@ int Palazzetti::iGetDPressDataAtech()
     return 0;
 }
 
+int Palazzetti::iGetDateTimeAtech()
+{
+    byte buf[8]; //var_14
+    int res = fumisComReadBuff(0x204E, buf, 8);
+    if (res < 0)
+        return res;
+
+    sprintf(byte_46DBE0, "%d-%02d-%02d %02d:%02d:%02d", (uint16_t)buf[6] + 2000, buf[5], buf[4], buf[2], buf[1], buf[0]);
+
+    dword_46DBF4 = buf[3];
+
+    return 0;
+}
+
 int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
 {
     if (paramToRead > 0x69)
@@ -1670,6 +1684,25 @@ bool Palazzetti::getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS)
         *DP_TARGET = dword_46DBB8;
     if (DP_PRESS)
         *DP_PRESS = dword_46DBBC;
+
+    return true;
+}
+
+bool Palazzetti::getDateTime(char (&STOVE_DATETIME)[20], byte *STOVE_WDAY)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 < 0 || dword_46DB08 >= 2)
+        return false;
+
+    if (iGetDateTimeAtech() < 0)
+        return false;
+
+    strcpy(STOVE_DATETIME, byte_46DBE0);
+
+    if (STOVE_WDAY)
+        *STOVE_WDAY = dword_46DBF4;
 
     return true;
 }

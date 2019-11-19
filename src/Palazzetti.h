@@ -220,6 +220,7 @@ class Palazzetti
     int iSetSilentModeAtech(uint16_t silentMode);
     int iGetCounters();
     int iGetDPressDataAtech();
+    int iGetDateTimeAtech();
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
     int iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
@@ -246,6 +247,7 @@ public:
     bool setSilentMode(byte silentMode);
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
+    bool getDateTime(char (&STOVE_DATETIME)[20],byte *STOVE_WDAY);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
