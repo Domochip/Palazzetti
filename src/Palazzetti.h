@@ -226,13 +226,12 @@ class Palazzetti
     int iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
     int iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue);
 
-    bool m_isInitialized;
-    volatile bool m_isAlreadyBusy;
+    bool _isInitialized;
 
 public:
     bool initialize();
     bool initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep);
-    bool isInitialized() { return m_isInitialized; };
+    bool isInitialized() { return _isInitialized; };
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);

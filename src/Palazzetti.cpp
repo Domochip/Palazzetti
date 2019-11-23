@@ -1386,7 +1386,7 @@ bool Palazzetti::initialize()
         return false;
     }
 
-    if (m_isInitialized)
+    if (_isInitialized)
         return true;
 
     if (iChkMBType() < 0)
@@ -1405,7 +1405,7 @@ bool Palazzetti::initialize()
         iCloseUART();
         return false;
     }
-    m_isInitialized = true;
+    _isInitialized = true;
     return true;
 }
 
