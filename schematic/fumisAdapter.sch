@@ -30,7 +30,7 @@ U 1 1 5DBDCCBF
 P 5900 2050
 F 0 "J2" H 5980 2042 50  0000 L CNN
 F 1 "MCU UART" H 5980 1951 50  0000 L CNN
-F 2 "" H 5900 2050 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Angled_1x04_Pitch2.54mm" H 5900 2050 50  0001 C CNN
 F 3 "~" H 5900 2050 50  0001 C CNN
 	1    5900 2050
 	1    0    0    -1  
@@ -263,10 +263,10 @@ F 3 "~" H 2500 2250 50  0001 C CNN
 $EndComp
 NoConn ~ 1450 1700
 $Comp
-L Connector_Generic:Conn_01x03 J?
+L Connector_Generic:Conn_01x03 J3
 U 1 1 5E125751
 P 1250 3450
-F 0 "J?" V 1122 3262 50  0000 R CNN
+F 0 "J3" V 1122 3262 50  0000 R CNN
 F 1 "HalfMode" V 1213 3262 50  0000 R CNN
 F 2 "Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm" H 1250 3450 50  0001 C CNN
 F 3 "~" H 1250 3450 50  0001 C CNN
@@ -446,4 +446,6 @@ Wire Wire Line
 Connection ~ 3200 2250
 Wire Wire Line
 	3200 2250 3350 2250
+Text Notes 1800 3700 2    50   ~ 0
+Default Mode : no jumper\nLabtool mode : 2-3 jumper
 $EndSCHEMATC
