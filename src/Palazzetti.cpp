@@ -1347,6 +1347,50 @@ int Palazzetti::iGetDateTimeAtech()
     return 0;
 }
 
+int Palazzetti::iGetAllStatus()
+{
+    int res = 0;
+    res = iGetDateTimeAtech();
+    if (res < 0)
+        return res;
+    res = iGetStatusAtech();
+    if (res < 0)
+        return res;
+    res = iGetSetPointAtech();
+    if (res < 0)
+        return res;
+    res = iReadFansAtech();
+    if (res < 0)
+        return res;
+    res = iGetPowerAtech();
+    if (res < 0)
+        return res;
+    res = iGetDPressDataAtech();
+    if (res < 0)
+        return res;
+    // res = iReadIOATech();
+    if (res < 0)
+        return res;
+    res = iReadTemperatureAtech();
+    if (res < 0)
+        return res;
+    // res = iGetPumpRateAtech();
+    if (res < 0)
+        return res;
+    res = iGetPelletQtUsedAtech();
+    if (res < 0)
+        return res;
+    // res = iGetChronoDataAtech();
+    if (res < 0)
+        return res;
+
+    res = iUpdateStaticData();
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
 int Palazzetti::iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue)
 {
     if (paramToRead > 0x69)
@@ -1449,7 +1493,6 @@ bool Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATU
     return initialize();
 }
 
-// code based on iGetStaticData which normally build STDT json
 bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MOD, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
 {
     if (!initialize())
@@ -1514,6 +1557,109 @@ bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16
     if (NOMINALPWR)
         *NOMINALPWR = byte_46DC67;
     return true;
+}
+
+bool Palazzetti::getAllStatus(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5)
+{
+    if (!initialize())
+        return false;
+
+    if (iGetAllStatus() < 0)
+        return false;
+
+    if (MBTYPE)
+        *MBTYPE = dword_46DB08;
+    // MAC not needed
+    if (MOD)
+        *MOD = pdword_46DC20;
+    if (VER)
+        *VER = pdword_46DC24;
+    if (CORE)
+        *CORE = pdword_46DC28;
+    sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
+    sprintf(APLTS,byte_46DBE0);
+    if (APLWDAY)
+        *APLWDAY = dword_46DBF4;
+    // if (CHRSTATUS)
+    //     *CHRSTATUS = dword_46DBF8;
+    if (STATUS)
+        *STATUS = dword_46DBC0;
+    if (LSTATUS)
+        *LSTATUS = dword_46DBC4;
+    if (isMFSTATUSValid && MFSTATUS)
+    {
+        if (byte_46DC62 == 3 || byte_46DC62 == 4)
+        {
+            *isMFSTATUSValid = true;
+            *MFSTATUS = dword_46DBC8;
+        }
+        else
+            *isMFSTATUSValid = false;
+    }
+    if (SETP)
+        *SETP = dword_46DBDC;
+    // if (PUMP)
+    //     *PUMP = dword_46DBB4;
+    if (PQT)
+        *PQT = dword_46DBFC;
+    if (F1V)
+        *F1V = dword_46DB94;
+    if (F1RPM)
+        *F1RPM = dword_46DB9C;
+    if (F2L)
+        *F2L = transcodeRoomFanSpeed(dword_46DBA0, true);
+    if (F2LF)
+    {
+        uint16_t tmp = transcodeRoomFanSpeed(dword_46DBA0, true);
+        if (tmp < 6)
+            *F2LF = 0;
+        else
+            *F2LF = tmp - 5;
+    }
+    iGetFanLimits();
+    FANLMINMAX[0] = byte_46DC69;
+    FANLMINMAX[1] = byte_46DC6A;
+    FANLMINMAX[2] = byte_46DC6B;
+    FANLMINMAX[3] = byte_46DC6C;
+    FANLMINMAX[4] = byte_46DC6D;
+    FANLMINMAX[5] = byte_46DC6E;
+    if (F2V)
+        *F2V = dword_46DB98;
+    if (isF3LF4LValid)
+    {
+        if (byte_46DC63 > 2)
+        {
+            *isF3LF4LValid = true;
+            if (F3L)
+                *F3L = dword_46DBA4;
+            if (F4L)
+                *F4L = dword_46DBA8;
+        }
+        else
+            *isF3LF4LValid = false;
+    }
+    if (PWR)
+        *PWR = byte_46DBAC;
+    if (FDR)
+        *FDR = dword_46DBB0;
+    if (DPT)
+        *DPT = dword_46DBB8;
+    if (DP)
+        *DP = dword_46DBBC;
+    if (IN)
+        *IN = byte_46DB8B << 3 | byte_46DB8A << 2 | byte_46DB89 << 1 | byte_46DB88;
+    if (OUT)
+        *OUT = byte_46DB92 << 6 | byte_46DB91 << 5 | byte_46DB90 << 4 | byte_46DB8F << 3 | byte_46DB8E << 2 | byte_46DB8D << 1 | byte_46DB8C;
+    if (T1)
+        *T1 = dword_46DB74;
+    if (T2)
+        *T2 = dword_46DB78;
+    if (T3)
+        *T3 = dword_46DB7C;
+    if (T4)
+        *T4 = dword_46DB80;
+    if (T5)
+        *T5 = dword_46DB84;
 }
 
 bool Palazzetti::getSetPoint(float *setPoint)

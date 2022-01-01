@@ -101,9 +101,9 @@ class Palazzetti
     byte pdword_46DC38[0x6A]; //PARAMS
     // byte pdword_46DC38_4C = 0; //CONFIG
     // byte pdword_46DC38_5C = 0; //PELLETTYPE
-    // byte pdword_46DC38_62 = 0; //PSENSLMAX
-    // byte pdword_46DC38_63 = 0; //PSENSLTSH
-    // byte pdword_46DC38_64 = 0; //PSENSLMIN
+    // byte pdword_46DC38_62 = 0; //PSENSLMAX (Pellet Level max)
+    // byte pdword_46DC38_63 = 0; //PSENSLTSH (Pellet Level threshold)
+    // byte pdword_46DC38_64 = 0; //PSENSLMIN (Pellet Level min)
 
     byte byte_46DC3C = 0x6A; //setted up in iInit for sizing malloc
 
@@ -122,7 +122,7 @@ class Palazzetti
 
     byte pdword_46DC54 = 0;    //SPLMIN (SetPointLimitMin)
     byte pdword_46DC58 = 0;    //SPLMAX (SetPointLimitMax)
-    uint16_t dword_46DC5C = 0; //PSENSTYPE
+    uint16_t dword_46DC5C = 0; //PSENSTYPE (if 1 then Pellet level sensor)
 
     byte byte_46DC60 = 0; //UICONFIG
     byte byte_46DC61 = 0; //MAINTPROBE
@@ -133,12 +133,12 @@ class Palazzetti
     byte byte_46DC66 = 0; //AUTONOMYTYPE
     byte byte_46DC67 = 0; //NOMINALPWR
     byte byte_46DC68 = 0;
-    byte byte_46DC69 = 0;
-    byte byte_46DC6A = 0;
-    byte byte_46DC6B = 0;
-    byte byte_46DC6C = 0;
-    byte byte_46DC6D = 0;
-    byte byte_46DC6E = 0;
+    byte byte_46DC69 = 0; //FANLMINMAX[0]
+    byte byte_46DC6A = 0; //FANLMINMAX[1]
+    byte byte_46DC6B = 0; //FANLMINMAX[2]
+    byte byte_46DC6C = 0; //FANLMINMAX[3]
+    byte byte_46DC6D = 0; //FANLMINMAX[4]
+    byte byte_46DC6E = 0; //FANLMINMAX[5]
 
     char byte_46DC6F[19]; //Mac address setted up by iUpdateStaticData
 
@@ -224,6 +224,7 @@ class Palazzetti
     int iGetCounters();
     int iGetDPressDataAtech();
     int iGetDateTimeAtech();
+    int iGetAllStatus();
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
     int iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
@@ -236,6 +237,7 @@ public:
     bool initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep);
     bool isInitialized() { return _isInitialized; };
     bool getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MOD, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
+    bool getAllStatus(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
