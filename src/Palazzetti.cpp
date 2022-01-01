@@ -1350,42 +1350,47 @@ int Palazzetti::iGetDateTimeAtech()
     return 0;
 }
 
-int Palazzetti::iGetAllStatus()
+int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
-    res = iGetDateTimeAtech();
-    if (res < 0)
-        return res;
-    res = iGetStatusAtech();
-    if (res < 0)
-        return res;
-    res = iGetSetPointAtech();
-    if (res < 0)
-        return res;
-    res = iReadFansAtech();
-    if (res < 0)
-        return res;
-    res = iGetPowerAtech();
-    if (res < 0)
-        return res;
-    res = iGetDPressDataAtech();
-    if (res < 0)
-        return res;
-    // res = iReadIOATech();
-    if (res < 0)
-        return res;
-    res = iReadTemperatureAtech();
-    if (res < 0)
-        return res;
-    // res = iGetPumpRateAtech();
-    if (res < 0)
-        return res;
-    res = iGetPelletQtUsedAtech();
-    if (res < 0)
-        return res;
-    // res = iGetChronoDataAtech();
-    if (res < 0)
-        return res;
+
+    if (refreshStatus)
+    {
+        res = iGetDateTimeAtech();
+        if (res < 0)
+            return res;
+        res = iGetStatusAtech();
+        if (res < 0)
+            return res;
+        res = iGetSetPointAtech();
+        if (res < 0)
+            return res;
+        res = iReadFansAtech();
+        if (res < 0)
+            return res;
+        res = iGetPowerAtech();
+        if (res < 0)
+            return res;
+        res = iGetDPressDataAtech();
+        if (res < 0)
+            return res;
+        // res = iReadIOATech();
+        if (res < 0)
+            return res;
+        res = iReadTemperatureAtech();
+        if (res < 0)
+            return res;
+        // res = iGetPumpRateAtech();
+        if (res < 0)
+            return res;
+        res = iGetPelletQtUsedAtech();
+        if (res < 0)
+            return res;
+        // res = iGetChronoDataAtech();
+        if (res < 0)
+            return res;
+    }
+    
 
     if (!staticDataLoaded)
     {
@@ -1568,12 +1573,13 @@ bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16
     return true;
 }
 
-bool Palazzetti::getAllStatus(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5)
+//refreshStatus shoud be true if last call is over ~15sec
+bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5)
 {
     if (!initialize())
         return false;
 
-    if (iGetAllStatus() < 0)
+    if (iGetAllStatus(refreshStatus) < 0)
         return false;
 
     if (MBTYPE)
