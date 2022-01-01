@@ -1660,6 +1660,7 @@ bool Palazzetti::getAllStatus(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_
         *T4 = dword_46DB80;
     if (T5)
         *T5 = dword_46DB84;
+    return true;
 }
 
 bool Palazzetti::getSetPoint(float *setPoint)
