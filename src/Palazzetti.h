@@ -15,6 +15,7 @@ class Palazzetti
     uint16_t dword_46DAF4 = 0; //COM Port Number
 
     int dword_46DB08 = 0;      //MBTYPE
+    uint16_t dword_46DB10 = 0; //HWTYPE
     uint16_t dword_46DB0C = 0; //MBTYPE (Micronova)
 
     //dword_46DB14 and dword_46DB18 as struct timeval
@@ -90,10 +91,11 @@ class Palazzetti
 
     uint16_t pdword_46DC20 = 0; //MOD
     uint16_t pdword_46DC24 = 0; //VER
-    uint16_t pdword_46DC28 = 0;
+    uint16_t pdword_46DC28 = 0; //CORE
     uint16_t pdword_46DC2C = 0;
     uint16_t pdword_46DC30 = 0;
     uint16_t pdword_46DC34 = 0;
+    uint16_t _DSPFWVER = 0;
 
     //dword_46DC38 contains pointer to malloc(0x6A) (setted up in iInit)
     byte pdword_46DC38[0x6A]; //PARAMS
@@ -197,6 +199,7 @@ class Palazzetti
     int iChkMBType();
     int iInit();
     int iGetSNAtech();
+    int iGetMBTypeAtech();
     int iGetStoveConfigurationAtech();
     int iUpdateStaticDataAtech();
     int iUpdateStaticData();
@@ -232,6 +235,7 @@ public:
     bool initialize();
     bool initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep);
     bool isInitialized() { return _isInitialized; };
+    bool getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MOD, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);

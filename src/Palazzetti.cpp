@@ -492,13 +492,39 @@ int Palazzetti::iGetSNAtech()
     return 0;
 }
 
+int Palazzetti::iGetMBTypeAtech()
+{
+    uint16_t buf; //var_C
+    int res = 0;  //var_10
+    res = fumisComReadWord(0x204C, &buf);
+    if (res < 0)
+        return res;
+
+    dword_46DB10 = 6;
+    if ((buf & 4) == 0)
+    {
+        if ((buf & 0x8000) != 0)
+            dword_46DB10 = 7;
+    }
+    else
+        dword_46DB10 = 5;
+    return 0;
+}
+
 int Palazzetti::iGetStoveConfigurationAtech()
 {
+    uint16_t buf; //var_10
+    int res = 0;  //var_24
+    res = fumisComReadByte(0x2006, &buf);
+    if (res < 0)
+        return res;
+    _DSPFWVER = buf;
+
+    iGetMBTypeAtech();
+
     byte_46DC65 = 2;
     byte_46DC61 = 0;
 
-    uint16_t buf; //var_10
-    int res = 0;  //var_24
     res = fumisComReadWord(0x1ED4, &buf);
     if (res < 0)
         return res;
@@ -801,7 +827,7 @@ int Palazzetti::iUpdateStaticData()
     ////close etc/appliancelabel
     //Else
     ////run 'touch /etc/appliancelabel'
-    ////sendmsg 'GET STDT' which call again iUpdateStaticData()
+    ////sendmsg 'GET STDT'
 
     return 0;
 }
@@ -1421,6 +1447,73 @@ bool Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATU
     m_uSleep = uSleep;
 
     return initialize();
+}
+
+// code based on iGetStaticData which normally build STDT json
+bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MOD, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
+{
+    if (!initialize())
+        return false;
+
+    if (iUpdateStaticData() < 0)
+        return false;
+
+    //read LABEL : not needed
+    //get network infos by running nwdata.sh : not needed
+
+    // if (SN)
+    //     strcpy(SN, byte_46DB1C);
+    if (MBTYPE)
+        *MBTYPE = dword_46DB08;
+
+    //APLCONN : useless because overwritten by CBox lua code
+
+    if (MOD)
+        *MOD = pdword_46DC20;
+    if (VER)
+        *VER = pdword_46DC24;
+    if (CORE)
+        *CORE = pdword_46DC28;
+    sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
+    if (FLUID)
+        *FLUID = dword_46DC48;
+    if (SPLMIN)
+        *SPLMIN = pdword_46DC54;
+    if (SPLMAX)
+        *SPLMAX = pdword_46DC58;
+    if (UICONFIG)
+        *UICONFIG = byte_46DC60;
+    if (HWTYPE)
+        *HWTYPE = dword_46DB10;
+    if (DSPFWVER)
+        *DSPFWVER = _DSPFWVER;
+    if (CONFIG)
+        *CONFIG = pdword_46DC38[0x4C];
+    if (PELLETTYPE)
+        *PELLETTYPE = pdword_46DC38[0x5C];
+    if (PSENSTYPE)
+        *PSENSTYPE = dword_46DC5C;
+    if (PSENSLMAX)
+        *PSENSLMAX = pdword_46DC38[0x62];
+    if (PSENSLTSH)
+        *PSENSLTSH = pdword_46DC38[0x63];
+    if (PSENSLMIN)
+        *PSENSLMIN = pdword_46DC38[0x64];
+    if (MAINTPROBE)
+        *MAINTPROBE = byte_46DC61;
+    if (STOVETYPE)
+        *STOVETYPE = byte_46DC62;
+    if (FAN2TYPE)
+        *FAN2TYPE = byte_46DC63;
+    if (FAN2MOD)
+        *FAN2MOD = byte_46DC64;
+    if (CHRONOTYPE)
+        *CHRONOTYPE = 5; //hardcoded value
+    if (AUTONOMYTYPE)
+        *AUTONOMYTYPE = byte_46DC66;
+    if (NOMINALPWR)
+        *NOMINALPWR = byte_46DC67;
+    return true;
 }
 
 bool Palazzetti::getSetPoint(float *setPoint)
