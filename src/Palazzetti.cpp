@@ -827,7 +827,10 @@ int Palazzetti::iUpdateStaticData()
     ////close etc/appliancelabel
     //Else
     ////run 'touch /etc/appliancelabel'
-    ////sendmsg 'GET STDT'
+
+    staticDataLoaded = 1; //flag that indicates Static Data are loaded
+
+    //sendmsg 'GET STDT'
 
     return 0;
 }
@@ -1384,9 +1387,12 @@ int Palazzetti::iGetAllStatus()
     if (res < 0)
         return res;
 
-    res = iUpdateStaticData();
-    if (res < 0)
-        return res;
+    if (!staticDataLoaded)
+    {
+        res = iUpdateStaticData();
+        if (res < 0)
+            return res;
+    }
 
     return 0;
 }
@@ -1498,8 +1504,11 @@ bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16
     if (!initialize())
         return false;
 
-    if (iUpdateStaticData() < 0)
-        return false;
+    if (!staticDataLoaded)
+    {
+        if (iUpdateStaticData() < 0)
+            return false;
+    }
 
     //read LABEL : not needed
     //get network infos by running nwdata.sh : not needed

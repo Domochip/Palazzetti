@@ -85,6 +85,8 @@ class Palazzetti
     //space of 0x69 size reserved by malloc in iInit
     //dword_46DC0C contains pointer to malloc(0x69)
 
+    byte staticDataLoaded = 0; //46DC10 : indicates that Static Data are loaded
+
     uint16_t pdword_46DC14 = 0; //FWDATE(day)
     uint16_t pdword_46DC18 = 0; //FWDATE(month)
     uint16_t pdword_46DC1C = 0; //FWDATE(year)
