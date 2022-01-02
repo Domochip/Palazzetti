@@ -1350,6 +1350,29 @@ int Palazzetti::iGetDateTimeAtech()
     return 0;
 }
 
+int Palazzetti::iReadIOAtech()
+{
+    byte buf[8];
+    int res = fumisComReadBuff(0x203c, buf, 8);
+    if (res < 0)
+        return res;
+    
+    byte_46DB88 = (buf[0] & 0x01);
+    byte_46DB89 = (buf[0] & 0x02) >> 1;
+    byte_46DB8A = (buf[0] & 0x04) >> 2;
+    byte_46DB8B = (buf[0] & 0x08) >> 3;
+
+    byte_46DB8C = (buf[2] & 0x01);
+    byte_46DB8D = (buf[2] & 0x02) >> 1;
+    byte_46DB8E = (buf[2] & 0x04) >> 2;
+    byte_46DB8F = (buf[2] & 0x08) >> 3;
+    byte_46DB90 = (buf[2] & 0x10) >> 4; //0x16 : original implementation is wrong
+    byte_46DB91 = (buf[2] & 0x20) >> 5; //0x32
+    byte_46DB92 = (buf[2] & 0x40) >> 6; //0x64
+
+    return 0;
+}
+
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
@@ -1958,6 +1981,43 @@ bool Palazzetti::getDateTime(char (&STOVE_DATETIME)[20], byte *STOVE_WDAY)
 
     if (STOVE_WDAY)
         *STOVE_WDAY = dword_46DBF4;
+
+    return true;
+}
+
+bool Palazzetti::getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07)
+{
+    if (!initialize())
+        return false;
+
+    if (dword_46DB08 >= 2)
+        return false;
+
+    if (iReadIOAtech() < 0)
+        return false;
+
+    if (IN_I01)
+        *IN_I01 = byte_46DB88;
+    if (IN_I02)
+        *IN_I02 = byte_46DB89;
+    if (IN_I03)
+        *IN_I03 = byte_46DB8A;
+    if (IN_I04)
+        *IN_I04 = byte_46DB8B;
+    if (OUT_O01)
+        *OUT_O01 = byte_46DB8C;
+    if (OUT_O02)
+        *OUT_O02 = byte_46DB8D;
+    if (OUT_O03)
+        *OUT_O03 = byte_46DB8E;
+    if (OUT_O04)
+        *OUT_O04 = byte_46DB8F;
+    if (OUT_O05)
+        *OUT_O05 = byte_46DB90;
+    if (OUT_O06)
+        *OUT_O06 = byte_46DB91;
+    if (OUT_O07)
+        *OUT_O07 = byte_46DB92;
 
     return true;
 }

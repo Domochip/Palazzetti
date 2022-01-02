@@ -226,6 +226,7 @@ class Palazzetti
     int iGetCounters();
     int iGetDPressDataAtech();
     int iGetDateTimeAtech();
+    int iReadIOAtech();
     int iGetAllStatus(bool refreshStatus);
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
@@ -255,6 +256,7 @@ public:
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
     bool getDateTime(char (&STOVE_DATETIME)[20],byte *STOVE_WDAY);
+    bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
