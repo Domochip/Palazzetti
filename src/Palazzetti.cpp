@@ -394,34 +394,34 @@ int Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
 int Palazzetti::iGetStatusAtech()
 {
     int res = 0;
-    res = fumisComReadByte(0x201C, &dword_46DBC0);
+    res = fumisComReadByte(0x201C, &_STATUS);
     if (res < 0)
         return res;
 
-    dword_46DBC4 = dword_46DBC0;
+    _LSTATUS = _STATUS;
 
-    if (dword_46DBC0 >= 0xC9)
-        dword_46DBC4 = dword_46DBC0 + 0x3E8;
+    if (_STATUS >= 0xC9)
+        _LSTATUS = _STATUS + 0x3E8;
 
-    if (byte_46DC62 == 3 || byte_46DC62 == 4)
+    if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
-        res = fumisComReadWord(0x2008, &dword_46DBC8);
+        res = fumisComReadWord(0x2008, &_MFSTATUS);
         if (res < 0)
             return res;
-        if (dword_46DBC8 >= 2)
+        if (_MFSTATUS >= 2)
         {
-            dword_46DBC4 = dword_46DBC8 + 0x1F4;
-            if (dword_46DBC8 == 0x1FC)
-                dword_46DBC4 += 0x3e8;
+            _LSTATUS = _MFSTATUS + 0x1F4;
+            if (_MFSTATUS == 0x1FC)
+                _LSTATUS += 0x3e8;
         }
     }
 
-    if (dword_46DBC4 != 9)
+    if (_LSTATUS != 9)
         return 0;
 
-    if (byte_46DC62 != 2 || (byte_46DC60 != 1 && byte_46DC60 != 3 && byte_46DC60 != 4))
+    if (_STOVETYPE != 2 || (_UICONFIG != 1 && _UICONFIG != 3 && _UICONFIG != 4))
     {
-        dword_46DBC4 = 0x33;
+        _LSTATUS = 0x33;
     }
 
     return 0;
@@ -456,12 +456,12 @@ int Palazzetti::iInit()
     if (_MBTYPE < 2) //if Fumis MB
     {
         //dword_46DC04 = malloc(0xD0);
-        byte_46DC3C = 0x6A;
-        byte_46DC44 = 0x6F;
-        //dword_46DC38 = malloc(byte_46DC3C aka 0x6A);
-        //dword_46DC50 = malloc(byte_46DC3C aka 0x6A);
-        //dword_46DC4C = malloc(byte_46DC3C aka 0x6A);
-        //dword_46DC40 =  malloc(byte_46DC44<<1 aka 0xDE)
+        paramsBufferSize = 0x6A;
+        hparamsBufferSize = 0x6F;
+        //dword_46DC38 = malloc(paramsBufferSize aka 0x6A);
+        //dword_46DC50 = malloc(paramsBufferSize aka 0x6A);
+        //dword_46DC4C = malloc(paramsBufferSize aka 0x6A);
+        //dword_46DC40 =  malloc(hparamsBufferSize<<1 aka 0xDE)
         //dword_46DC08 = malloc(0x16)
         //bzero(dword_46DC08,0x16);
         //dword_46DC0C = malloc(0x69);
@@ -581,8 +581,8 @@ int Palazzetti::iGetStoveConfigurationAtech()
 
     iGetMBTypeAtech();
 
-    byte_46DC65 = 2;
-    byte_46DC61 = 0;
+    // byte_46DC65 = 2; //Not Used elsewhere
+    _MAINTPROBE = 0;
 
     res = fumisComReadWord(0x1ED4, &buf);
     if (res < 0)
@@ -592,14 +592,14 @@ int Palazzetti::iGetStoveConfigurationAtech()
     if (res < 0)
         return res;
 
-    byte_46DC67 = buf2[0];
+    _NOMINALPWR = buf2[0];
     if (buf2[1] & 2)
-        byte_46DC66 = 2;
+        _AUTONOMYTYPE = 2;
     else
-        byte_46DC66 = 1;
+        _AUTONOMYTYPE = 1;
 
-    byte var_1F = pdword_46DC38[0x4C];
-    byte_46DC60 = var_1F;
+    byte var_1F = _PARAMS[0x4C];
+    _UICONFIG = var_1F;
 
     res = fumisComReadBuff(((var_1F - 1) << 2) + 0x1E36, buf2, 8);
     if (res < 0)
@@ -607,60 +607,60 @@ int Palazzetti::iGetStoveConfigurationAtech()
 
     byte var_1E = ((buf2[0] & 0x20) > 0);
 
-    byte_46DC63 = 1;
-    byte_46DC61 = 0;
+    _FAN2TYPE = 1;
+    _MAINTPROBE = 0;
 
     if ((buf2[0] & 8) > 0)
     {
         if ((buf2[2] & 0x80) == 0)
-            byte_46DC63 = 2;
+            _FAN2TYPE = 2;
         else
         {
-            byte_46DC61 = 4;
+            _MAINTPROBE = 4;
             if ((buf & 0x8000) == 0)
             {
-                byte_46DC63 = 4;
+                _FAN2TYPE = 4;
                 uint16_t var_C;
                 res = fumisComReadWord(0x204C, &var_C);
                 if (res < 0)
                     return res;
                 if ((var_C & 0x8000) > 0)
-                    byte_46DC63 = 5;
+                    _FAN2TYPE = 5;
             }
             else
-                byte_46DC63 = 3;
+                _FAN2TYPE = 3;
         }
     }
 
-    byte_46DC68 = 0;
+    byte_47108A = 0;
 
-    if (pdword_46DC38[0x69] > 0 && pdword_46DC38[0x69] < 6)
-        byte_46DC68 = pdword_46DC38[0x69];
+    if (_PARAMS[0x69] > 0 && _PARAMS[0x69] < 6)
+        byte_47108A = _PARAMS[0x69];
 
-    byte_46DC69 = 1;
-    byte_46DC6A = 5;
-    byte_46DC6B = 0;
-    byte_46DC6C = 1;
-    byte_46DC6D = 0;
-    byte_46DC6E = 1;
-    byte_46DC64 = 1;
+    _FAN1LMIN = 1;
+    _FAN1LMAX = 5;
+    _FAN2LMIN = 0;
+    _FAN2LMAX = 1;
+    _FAN3LMIN = 0;
+    _FAN3LMAX = 1;
+    _FAN2MODE = 1;
 
-    if (pdword_46DC40[0x26 / 2] & 0x10)
-        byte_46DC69 = 0;
+    if (_HPARAMS[0x26 / 2] & 0x10)
+        _FAN1LMIN = 0;
 
-    if (((pdword_46DC40[0x38 / 2] + ((var_1F - 1) << 1)) & 0x800) == 0)
-        byte_46DC64 = 3;
+    if (((_HPARAMS[0x38 / 2] + ((var_1F - 1) << 1)) & 0x800) == 0)
+        _FAN2MODE = 3;
 
-    if (byte_46DC63 == 5 || byte_46DC63 == 3)
+    if (_FAN2TYPE == 5 || _FAN2TYPE == 3)
     {
-        byte_46DC6C = 5;
-        byte_46DC6E = 5;
+        _FAN2LMAX = 5;
+        _FAN3LMAX = 5;
     }
 
     if (var_1E)
-        byte_46DC62 = 2;
+        _STOVETYPE = 2;
     else
-        byte_46DC62 = 1;
+        _STOVETYPE = 1;
 
     if (var_1F < 3)
     {
@@ -675,45 +675,45 @@ int Palazzetti::iGetStoveConfigurationAtech()
 
         if (var_28)
         {
-            dword_46DC48 = 0;
+            _FLUID = 0;
             if (var_1E)
-                byte_46DC61 = 4;
+                _MAINTPROBE = 4;
         }
         else
-            dword_46DC48 = 1;
+            _FLUID = 1;
     }
     else
     {
         if (var_1F == 5)
         {
-            dword_46DC48 = 0;
-            byte_46DC62 = 2;
-            byte_46DC61 = 4;
-            byte_46DC63 = 2;
-            byte_46DC64 = 3;
+            _FLUID = 0;
+            _STOVETYPE = 2;
+            _MAINTPROBE = 4;
+            _FAN2TYPE = 2;
+            _FAN2MODE = 3;
         }
         else
         {
-            dword_46DC48 = 2;
-            byte_46DC62 = 2;
-            byte_46DC61 = 4;
+            _FLUID = 2;
+            _STOVETYPE = 2;
+            _MAINTPROBE = 4;
         }
     }
 
-    if (pdword_46DC20 >= 0x1F5 && pdword_46DC20 < 0x258)
+    if (_MOD >= 0x1F5 && _MOD < 0x258)
     {
-        if (byte_46DC62 == 1)
+        if (_STOVETYPE == 1)
         {
-            byte_46DC62 = 3;
-            byte_46DC61 = 4;
+            _STOVETYPE = 3;
+            _MAINTPROBE = 4;
         }
         else
         {
-            if (byte_46DC62 == 2)
+            if (_STOVETYPE == 2)
             {
-                byte_46DC62 = 4;
+                _STOVETYPE = 4;
                 if (var_1F == 2)
-                    byte_46DC61 = 4;
+                    _MAINTPROBE = 4;
             }
             else
                 return -1;
@@ -732,60 +732,60 @@ int Palazzetti::iUpdateStaticDataAtech()
     byte buf[8];                     //var_820
     int res = 0;                     //var_830
 
-    while (nbTotalBytesReaded < byte_46DC3C)
+    while (nbTotalBytesReaded < paramsBufferSize)
     {
         res = fumisComReadBuff(0x1C00 + nbTotalBytesReaded, buf, 8);
         if (res < 0)
             return res;
 
-        for (byte i = 0; i < 8 && nbTotalBytesReaded < byte_46DC3C; i++)
+        for (byte i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
         {
-            pdword_46DC38[nbTotalBytesReaded] = buf[i];
+            _PARAMS[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
     ///*read all params OK*/
 
     nbTotalBytesReaded = 0; //var_838
-    while (nbTotalBytesReaded < byte_46DC44)
+    while (nbTotalBytesReaded < hparamsBufferSize)
     {
         res = fumisComReadBuff((nbTotalBytesReaded + 0xF00) << 1, buf, 8);
         if (res < 0)
             return res;
 
-        for (byte i = 0; i < 8 && nbTotalBytesReaded < byte_46DC44; i += 2)
+        for (byte i = 0; i < 8 && nbTotalBytesReaded < hparamsBufferSize; i += 2)
         {
-            //not nbTotalBytesReaded * 2 because pdword_46DC40 is uint16_t[] type
-            pdword_46DC40[nbTotalBytesReaded] = buf[i + 1];
-            pdword_46DC40[nbTotalBytesReaded] <<= 8;
-            pdword_46DC40[nbTotalBytesReaded] |= buf[i];
+            //not nbTotalBytesReaded * 2 because _HPARAMS is uint16_t[] type
+            _HPARAMS[nbTotalBytesReaded] = buf[i + 1];
+            _HPARAMS[nbTotalBytesReaded] <<= 8;
+            _HPARAMS[nbTotalBytesReaded] |= buf[i];
             nbTotalBytesReaded++;
         }
     }
     ///*read all hparams OK*/
 
-    pdword_46DC24 = pdword_46DC40[4 / 2];
-    pdword_46DC20 = pdword_46DC40[6 / 2];
-    _CORE = pdword_46DC40[8 / 2];
-    pdword_46DC14 = pdword_46DC40[0xA / 2];
-    pdword_46DC18 = pdword_46DC40[0xC / 2];
-    pdword_46DC1C = pdword_46DC40[0xE / 2];
-    pdword_46DC34 = pdword_46DC40[0x1E / 2];
-    pdword_46DC28 = pdword_46DC40[0x88 / 2];
-    pdword_46DC2C = pdword_46DC40[0x8C / 2];
-    pdword_46DC30 = pdword_46DC40[0x8E / 2];
+    _VER = _HPARAMS[4 / 2];
+    _MOD = _HPARAMS[6 / 2];
+    _CORE = _HPARAMS[8 / 2];
+    _FWDATED = _HPARAMS[0xA / 2];
+    _FWDATEM = _HPARAMS[0xC / 2];
+    _FWDATEY = _HPARAMS[0xE / 2];
+    // pdword_471050 = _HPARAMS[0x1E / 2]; //Not Used elsewhere
+    // pdword_471044 = _HPARAMS[0x88 / 2]; //Not Used elsewhere
+    // pdword_471048 = _HPARAMS[0x8C / 2]; //Not Used elsewhere
+    // pdword_47104C = _HPARAMS[0x8E / 2]; //Not Used elsewhere
 
     res = iGetStoveConfigurationAtech();
     if (res < 0)
         return res;
 
-    if (pdword_46DC20 < 0x1F4 || pdword_46DC20 >= 0x258)
+    if (_MOD < 0x1F4 || _MOD >= 0x258)
     {
-        if (pdword_46DC24 < 0x1F)
+        if (_VER < 0x1F)
             wAddrFeederActiveTime = 0x1FAE;
         else
         {
-            if (pdword_46DC24 < 0x28)
+            if (_VER < 0x28)
                 wAddrFeederActiveTime = 0x1FAC;
             else
                 wAddrFeederActiveTime = 0x209A;
@@ -795,59 +795,57 @@ int Palazzetti::iUpdateStaticDataAtech()
         if (res < 0)
             return res;
 
-        byte var_82C = (var_18 < 2) ? 0 : 1;
+        _PSENSTYPE = 0;
 
-        dword_46DC5C = 0;
-
-        if (0 < (pdword_46DC40[(pdword_46DC38[0x4C] + 0x1B) << 1 / 2] & 0x10))
-            dword_46DC5C = 2;
-        else if (var_82C)
-            dword_46DC5C = 1;
+        if (0 < (_HPARAMS[(_UICONFIG + 0xD) * 4 / 2] & 0x10))
+            _PSENSTYPE = 2;
+        else if (1 < var_18)
+            _PSENSTYPE = 1;
     }
     else
         wAddrFeederActiveTime = 0x209A;
 
     nbTotalBytesReaded = 0; //var_838
-    while (nbTotalBytesReaded < byte_46DC3C)
+    while (nbTotalBytesReaded < paramsBufferSize)
     {
         res = fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf, 8);
         if (res < 0)
             return res;
 
-        for (byte i = 0; i < 8 && nbTotalBytesReaded < byte_46DC3C; i++)
+        for (byte i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
         {
-            pdword_46DC50[nbTotalBytesReaded] = buf[i];
+            splMinBuffer[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
 
     nbTotalBytesReaded = 0; //var_838
-    while (nbTotalBytesReaded < byte_46DC3C)
+    while (nbTotalBytesReaded < paramsBufferSize)
     {
         res = fumisComReadBuff((nbTotalBytesReaded + 0x810C), buf, 8);
         if (res < 0)
             return res;
 
-        for (byte i = 0; i < 8 && nbTotalBytesReaded < byte_46DC3C; i++)
+        for (byte i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
         {
-            pdword_46DC4C[nbTotalBytesReaded] = buf[i];
+            splMaxBuffer[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
 
-    if (dword_46DC48 < 2)
+    if (_FLUID < 2)
     {
-        pdword_46DC54 = pdword_46DC50[0x33];
-        pdword_46DC58 = pdword_46DC4C[0x33];
-        if (!dword_46DC48)
+        _SPLMIN = splMinBuffer[0x33];
+        _SPLMAX = splMaxBuffer[0x33];
+        if (!_FLUID)
         {
-            pdword_46DC54 = (uint8_t)((double)pdword_46DC54 / 5.0);
-            pdword_46DC58 = (uint8_t)((double)pdword_46DC58 / 5.0);
+            _SPLMIN = (uint8_t)((double)_SPLMIN / 5.0);
+            _SPLMAX = (uint8_t)((double)_SPLMAX / 5.0);
         }
-        else if (dword_46DC48 == 2)
+        else if (_FLUID == 2)
         {
-            pdword_46DC54 = pdword_46DC50[0x54];
-            pdword_46DC58 = pdword_46DC4C[0x54];
+            _SPLMIN = splMinBuffer[0x54];
+            _SPLMAX = splMaxBuffer[0x54];
         }
     }
 
@@ -905,24 +903,24 @@ int Palazzetti::iCloseUART()
 
 int Palazzetti::iGetSetPointAtech()
 {
-    if (byte_46DC62 == 1 && pdword_46DC38[0x4C] == 2)
+    if (_STOVETYPE == 1 && _PARAMS[0x4C] == 2)
     {
-        dword_46DBDC = 0;
+        _SETP = 0;
         return 0;
     }
 
     uint16_t data;
     int res;
 
-    if (dword_46DC48 <= 2)
+    if (_FLUID <= 2)
     {
-        res = fumisComReadByte((dword_46DC48 < 2) ? 0x1C33 : 0x1C54, &data);
+        res = fumisComReadByte((_FLUID < 2) ? 0x1C33 : 0x1C54, &data);
         if (res < 0)
             return res;
         float dataFloat = (int16_t)data;
-        if (!dword_46DC48)
+        if (!_FLUID)
             dataFloat /= 5.0;
-        dword_46DBDC = dataFloat;
+        _SETP = dataFloat;
     }
     return 0;
 }
@@ -931,34 +929,34 @@ int Palazzetti::iSetSetPointAtech(uint16_t setPoint)
 {
     int res; //var_10
 
-    if (setPoint < pdword_46DC54)
-        setPoint = pdword_46DC54;
+    if (setPoint < _SPLMIN)
+        setPoint = _SPLMIN;
 
-    if (setPoint > pdword_46DC58)
-        setPoint = pdword_46DC58;
+    if (setPoint > _SPLMAX)
+        setPoint = _SPLMAX;
 
-    if (dword_46DC48 > 2)
+    if (_FLUID > 2)
         return 0;
-    if (dword_46DC48 == 2)
+    if (_FLUID == 2)
     {
         res = fumisComWriteByte(0x1C54, setPoint);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
-    if (!dword_46DC48)
+    if (!_FLUID)
     {
         res = fumisComWriteByte(0x1C33, setPoint * 5);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
     else
     {
         res = fumisComWriteByte(0x1C33, setPoint);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
 
     return 0;
@@ -968,34 +966,34 @@ int Palazzetti::iSetSetPointAtech(float setPoint)
 {
     int res; //var_10
 
-    if (setPoint < pdword_46DC54)
-        setPoint = pdword_46DC54;
+    if (setPoint < _SPLMIN)
+        setPoint = _SPLMIN;
 
-    if (setPoint > pdword_46DC58)
-        setPoint = pdword_46DC58;
+    if (setPoint > _SPLMAX)
+        setPoint = _SPLMAX;
 
-    if (dword_46DC48 > 2)
+    if (_FLUID > 2)
         return 0;
-    if (dword_46DC48 == 2)
+    if (_FLUID == 2)
     {
         res = fumisComWriteByte(0x1C54, setPoint);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
-    if (!dword_46DC48)
+    if (!_FLUID)
     {
         res = fumisComWriteByte(0x1C33, setPoint * 5);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
     else
     {
         res = fumisComWriteByte(0x1C33, setPoint);
         if (res < 0)
             return res;
-        dword_46DBDC = setPoint;
+        _SETP = setPoint;
     }
 
     return 0;
@@ -1043,7 +1041,7 @@ int Palazzetti::iReadTemperatureAtech()
 int Palazzetti::iSwitchOnAtech()
 {
     int res; //var_10
-    if (pdword_46DC20 < 0x1F4 || pdword_46DC20 >= 0x258)
+    if (_MOD < 0x1F4 || _MOD >= 0x258)
         res = fumisComWriteWord(0x2044, 2);
 
     else
@@ -1057,7 +1055,7 @@ int Palazzetti::iSwitchOnAtech()
 int Palazzetti::iSwitchOffAtech()
 {
     int res; //var_10
-    if (pdword_46DC20 < 0x1F4 || pdword_46DC20 >= 0x258)
+    if (_MOD < 0x1F4 || _MOD >= 0x258)
         res = fumisComWriteWord(0x2044, 1);
 
     else
@@ -1074,7 +1072,7 @@ int Palazzetti::iGetPelletQtUsedAtech()
     int res = fumisComReadWord(0x2002, &var_10);
     if (res < 0)
         return res;
-    dword_46DBFC = var_10;
+    _PQT = var_10;
     return 0;
 }
 
@@ -1084,31 +1082,31 @@ int Palazzetti::iGetRoomFanAtech()
     int res = fumisComReadByte(0x2036, &var_C);
     if (res < 0)
         return res;
-    dword_46DBA0 = var_C;
+    _F2L = var_C;
 
     res = fumisComReadWord(0x2004, &var_C);
     if (res < 0)
         return res;
 
-    if (byte_46DC63 == 4)
+    if (_FAN2TYPE == 4)
     {
-        dword_46DBA4 = var_C & 1;
-        dword_46DBA8 = ((var_C & 2) != 0);
+        _F3L = var_C & 1;
+        _F4L = ((var_C & 2) != 0);
     }
-    else if (byte_46DC63 == 5)
+    else if (_FAN2TYPE == 5)
     {
-        dword_46DBA4 = var_C & 0xFF;
-        dword_46DBA8 = var_C >> 8;
+        _F3L = var_C & 0xFF;
+        _F4L = var_C >> 8;
     }
-    else if (byte_46DC63 == 3)
+    else if (_FAN2TYPE == 3)
     {
-        dword_46DBA4 = 0;
-        dword_46DBA8 = var_C;
+        _F3L = 0;
+        _F4L = var_C;
     }
     else
     {
-        dword_46DBA4 = 0;
-        dword_46DBA8 = 0;
+        _F3L = 0;
+        _F4L = 0;
     }
 
     return 0;
@@ -1120,29 +1118,29 @@ int Palazzetti::iReadFansAtech()
     int res = fumisComReadBuff(0x2024, buf, 8);
     if (res < 0)
     {
-        dword_46DB94 = 0xFFFF;
-        dword_46DB98 = 0xFFFF;
-        dword_46DB9C = 0xFFFF;
+        _F1V = 0xFFFF;
+        _F2V = 0xFFFF;
+        _F1RPM = 0xFFFF;
         return res;
     }
-    dword_46DB94 = buf[1];
-    dword_46DB94 <<= 8;
-    dword_46DB94 += buf[0];
+    _F1V = buf[1];
+    _F1V <<= 8;
+    _F1V += buf[0];
 
-    dword_46DB98 = buf[3];
-    dword_46DB98 <<= 8;
-    dword_46DB98 += buf[2];
+    _F2V = buf[3];
+    _F2V <<= 8;
+    _F2V += buf[2];
 
-    dword_46DB9C = buf[5];
-    dword_46DB9C <<= 8;
-    dword_46DB9C += buf[4];
+    _F1RPM = buf[5];
+    _F1RPM <<= 8;
+    _F1RPM += buf[4];
 
     res = iGetRoomFanAtech();
     if (res < 0)
     {
-        dword_46DB94 = 0xFFFF;
-        dword_46DB98 = 0xFFFF;
-        dword_46DB9C = 0xFFFF;
+        _F1V = 0xFFFF;
+        _F2V = 0xFFFF;
+        _F1RPM = 0xFFFF;
         return res;
     }
 
@@ -1157,14 +1155,14 @@ int Palazzetti::iGetPowerAtech()
     if (res < 0)
         return res;
 
-    byte_46DBAC = var_C & 0xFF;
+    _PWR = var_C & 0xFF;
 
     res = fumisComReadWord(wAddrFeederActiveTime, &var_C);
     if (res < 0)
         return res;
 
-    dword_46DBB0 = var_C;
-    dword_46DBB0 /= 10.0f;
+    _FDR = var_C;
+    _FDR /= 10.0f;
 
     return 0;
 }
@@ -1178,22 +1176,22 @@ int Palazzetti::iSetPowerAtech(uint16_t powerLevel)
     if (res < 0)
         return res;
 
-    byte_46DBAC = powerLevel;
+    _PWR = powerLevel;
 
     return 0;
 }
 
 void Palazzetti::iGetFanLimits()
 {
-    if (byte_46DC68)
+    if (byte_47108A)
     {
-        if (byte_46DC68 < byte_46DBAC)
+        if (byte_47108A < _PWR)
         {
-            byte_46DC69 = byte_46DBAC - byte_46DC68;
+            _FAN1LMIN = _PWR - byte_47108A;
         }
         else
         {
-            byte_46DC69 = 0;
+            _FAN1LMIN = 0;
         }
     }
 }
@@ -1217,7 +1215,7 @@ int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 
     int res;
 
-    if (byte_46DC68 == 0 || byte_46DBAC < 4 || roomFanSpeed != 7 || (res = iSetPowerAtech(3)) >= 0)
+    if (byte_47108A == 0 || _PWR < 4 || roomFanSpeed != 7 || (res = iSetPowerAtech(3)) >= 0)
     {
         res = fumisComWriteByte(0x2036, roomFanSpeed);
         if (res < 0)
@@ -1225,7 +1223,7 @@ int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
         res = iGetRoomFanAtech();
         if (res < 0)
             return res;
-        dword_46DBA0 = roomFanSpeed;
+        _F2L = roomFanSpeed;
         return 0;
     }
     return res;
@@ -1238,21 +1236,21 @@ int Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 
     int res;
 
-    if (byte_46DC63 == 4)
+    if (_FAN2TYPE == 4)
     {
-        res = fumisComWriteWord(0x2004, (!dword_46DBA8 ? 0 : 2) | (0 < roomFan3Speed));
+        res = fumisComWriteWord(0x2004, (!_F4L ? 0 : 2) | (0 < roomFan3Speed));
         if (res < 0)
             return res;
-        dword_46DBA4 = (0 < roomFan3Speed);
+        _F3L = (0 < roomFan3Speed);
     }
     else
     {
-        if (byte_46DC63 == 5)
+        if (_FAN2TYPE == 5)
             return -1;
         res = fumisComWriteWord(0x2004, roomFan3Speed);
         if (res < 0)
             return res;
-        dword_46DBA4 = roomFan3Speed;
+        _F3L = roomFan3Speed;
     }
 
     return 0;
@@ -1265,22 +1263,22 @@ int Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 
     int res;
 
-    if (byte_46DC63 == 4)
+    if (_FAN2TYPE == 4)
     {
-        res = fumisComWriteWord(0x2004, (!roomFan4Speed ? 0 : 2) | (0 < dword_46DBA4));
+        res = fumisComWriteWord(0x2004, (!roomFan4Speed ? 0 : 2) | (0 < _F3L));
         if (res < 0)
             return res;
-        dword_46DBA8 = (0 < roomFan4Speed);
+        _F4L = (0 < roomFan4Speed);
     }
     else
     {
-        if (byte_46DC63 != 5 && byte_46DC63 != 3)
+        if (_FAN2TYPE != 5 && _FAN2TYPE != 3)
             return -1;
 
-        res = fumisComWriteByte((byte_46DC63 == 5 ? 0x2005 : 0x2004), roomFan4Speed);
+        res = fumisComWriteByte((_FAN2TYPE == 5 ? 0x2005 : 0x2004), roomFan4Speed);
         if (res < 0)
             return res;
-        dword_46DBA8 = roomFan4Speed;
+        _F4L = roomFan4Speed;
     }
 
     return 0;
@@ -1312,68 +1310,68 @@ int Palazzetti::iGetCounters()
     if (res < 0)
         return res;
 
-    pdword_46DC08_00 = var_18[1];
-    pdword_46DC08_00 <<= 8;
-    pdword_46DC08_00 += var_18[0];
+    _IGN = var_18[1];
+    _IGN <<= 8;
+    _IGN += var_18[0];
 
-    pdword_46DC08_04 = var_18[3];
-    pdword_46DC08_04 <<= 8;
-    pdword_46DC08_04 += var_18[2];
+    _POWERTIMEM = var_18[3];
+    _POWERTIMEM <<= 8;
+    _POWERTIMEM += var_18[2];
 
-    pdword_46DC08_02 = var_18[5];
-    pdword_46DC08_02 <<= 8;
-    pdword_46DC08_02 += var_18[4];
+    _POWERTIMEH = var_18[5];
+    _POWERTIMEH <<= 8;
+    _POWERTIMEH += var_18[4];
 
     res = fumisComReadBuff(0x206E, var_18, 8);
     if (res < 0)
         return res;
 
-    pdword_46DC08_08 = var_18[1];
-    pdword_46DC08_08 <<= 8;
-    pdword_46DC08_08 += var_18[0];
+    _HEATTIMEM = var_18[1];
+    _HEATTIMEM <<= 8;
+    _HEATTIMEM += var_18[0];
 
-    pdword_46DC08_06 = var_18[3];
-    pdword_46DC08_06 <<= 8;
-    pdword_46DC08_06 += var_18[2];
+    _HEATTIMEH = var_18[3];
+    _HEATTIMEH <<= 8;
+    _HEATTIMEH += var_18[2];
 
-    pdword_46DC08_0A = var_18[7];
-    pdword_46DC08_0A <<= 8;
-    pdword_46DC08_0A += var_18[6];
+    _SERVICETIMEM = var_18[7];
+    _SERVICETIMEM <<= 8;
+    _SERVICETIMEM += var_18[6];
 
     res = fumisComReadBuff(0x2076, var_18, 8);
     if (res < 0)
         return res;
 
-    pdword_46DC08_0C = var_18[1];
-    pdword_46DC08_0C <<= 8;
-    pdword_46DC08_0C += var_18[0];
+    _SERVICETIMEH = var_18[1];
+    _SERVICETIMEH <<= 8;
+    _SERVICETIMEH += var_18[0];
 
-    pdword_46DC08_12 = var_18[5];
-    pdword_46DC08_12 <<= 8;
-    pdword_46DC08_12 += var_18[4];
+    _OVERTMPERRORS = var_18[5];
+    _OVERTMPERRORS <<= 8;
+    _OVERTMPERRORS += var_18[4];
 
-    pdword_46DC08_14 = var_18[7];
-    pdword_46DC08_14 <<= 8;
-    pdword_46DC08_14 += var_18[6];
+    _IGNERRORS = var_18[7];
+    _IGNERRORS <<= 8;
+    _IGNERRORS += var_18[6];
 
     res = fumisComReadBuff(0x2082, var_18, 8);
     if (res < 0)
         return res;
 
-    pdword_46DC08_0E = var_18[1];
-    pdword_46DC08_0E <<= 8;
-    pdword_46DC08_0E += var_18[0];
+    _ONTIMEM = var_18[1];
+    _ONTIMEM <<= 8;
+    _ONTIMEM += var_18[0];
 
-    pdword_46DC08_10 = var_18[3];
-    pdword_46DC08_10 <<= 8;
-    pdword_46DC08_10 += var_18[2];
+    _ONTIMEH = var_18[3];
+    _ONTIMEH <<= 8;
+    _ONTIMEH += var_18[2];
 
     uint16_t var_10;
 
     res = fumisComReadWord(0x2002, &var_10);
     if (res < 0)
         return res;
-    dword_46DBFC = var_10;
+    _PQT = var_10;
 
     return 0;
 }
@@ -1385,13 +1383,13 @@ int Palazzetti::iGetDPressDataAtech()
     if (res < 0)
         return res;
 
-    dword_46DBB8 = buf;
+    _DP_TARGET = buf;
 
     res = fumisComReadWord(0x2020, &buf);
     if (res < 0)
         return res;
 
-    dword_46DBBC = buf;
+    _DP_PRESS = buf;
 
     return 0;
 }
@@ -1403,9 +1401,9 @@ int Palazzetti::iGetDateTimeAtech()
     if (res < 0)
         return res;
 
-    sprintf(byte_46DBE0, "%d-%02d-%02d %02d:%02d:%02d", (uint16_t)buf[6] + 2000, buf[5], buf[4], buf[2], buf[1], buf[0]);
+    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", (uint16_t)buf[6] + 2000, buf[5], buf[4], buf[2], buf[1], buf[0]);
 
-    dword_46DBF4 = buf[3];
+    _STOVE_WDAY = buf[3];
 
     return 0;
 }
@@ -1417,18 +1415,18 @@ int Palazzetti::iReadIOAtech()
     if (res < 0)
         return res;
     
-    byte_46DB88 = (buf[0] & 0x01);
-    byte_46DB89 = (buf[0] & 0x02) >> 1;
-    byte_46DB8A = ((buf[0] & 0x04) >> 2) == 0;
-    byte_46DB8B = (buf[0] & 0x08) >> 3;
+    _IN_I01 = (buf[0] & 0x01);
+    _IN_I02 = (buf[0] & 0x02) >> 1;
+    _IN_I03 = ((buf[0] & 0x04) >> 2) == 0;
+    _IN_I04 = (buf[0] & 0x08) >> 3;
 
-    byte_46DB8C = (buf[2] & 0x01);
-    byte_46DB8D = (buf[2] & 0x02) >> 1;
-    byte_46DB8E = (buf[2] & 0x04) >> 2;
-    byte_46DB8F = (buf[2] & 0x08) >> 3;
-    byte_46DB90 = (buf[2] & 0x10) >> 4; //0x16 : original implementation is wrong
-    byte_46DB91 = (buf[2] & 0x20) >> 5; //0x32
-    byte_46DB92 = (buf[2] & 0x40) >> 6; //0x64
+    _OUT_O01 = (buf[2] & 0x01);
+    _OUT_O02 = (buf[2] & 0x02) >> 1;
+    _OUT_O03 = (buf[2] & 0x04) >> 2;
+    _OUT_O04 = (buf[2] & 0x08) >> 3;
+    _OUT_O05 = (buf[2] & 0x10) >> 4; //0x16 : original implementation is wrong
+    _OUT_O06 = (buf[2] & 0x20) >> 5; //0x32
+    _OUT_O07 = (buf[2] & 0x40) >> 6; //0x64
 
     return 0;
 }
@@ -1440,7 +1438,7 @@ int Palazzetti::iGetPumpRateAtech()
     if (res < 0)
         return res;
 
-    dword_46DBB4 = buf & 0xFF;
+    _PUMP = buf & 0xFF;
 
     return 0;
 }
@@ -1453,7 +1451,7 @@ int Palazzetti::iGetChronoDataAtech()
     int res = fumisComReadWord(0x2020, &buf);
     if (res < 0)
         return res;
-    dword_46DBF8 = buf & 0x01;
+    _CHRSTATUS = buf & 0x01;
 
     return 0;
 }
@@ -1635,50 +1633,50 @@ bool Palazzetti::getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_
     //APLCONN : useless because overwritten by CBox lua code
 
     if (MOD)
-        *MOD = pdword_46DC20;
+        *MOD = _MOD;
     if (VER)
-        *VER = pdword_46DC24;
+        *VER = _VER;
     if (CORE)
         *CORE = _CORE;
-    sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
+    sprintf(FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
     if (FLUID)
-        *FLUID = dword_46DC48;
+        *FLUID = _FLUID;
     if (SPLMIN)
-        *SPLMIN = pdword_46DC54;
+        *SPLMIN = _SPLMIN;
     if (SPLMAX)
-        *SPLMAX = pdword_46DC58;
+        *SPLMAX = _SPLMAX;
     if (UICONFIG)
-        *UICONFIG = byte_46DC60;
+        *UICONFIG = _UICONFIG;
     if (HWTYPE)
         *HWTYPE = _HWTYPE;
     if (DSPFWVER)
         *DSPFWVER = _DSPFWVER;
     if (CONFIG)
-        *CONFIG = pdword_46DC38[0x4C];
+        *CONFIG = _PARAMS[0x4C];
     if (PELLETTYPE)
-        *PELLETTYPE = pdword_46DC38[0x5C];
+        *PELLETTYPE = _PARAMS[0x5C];
     if (PSENSTYPE)
-        *PSENSTYPE = dword_46DC5C;
+        *PSENSTYPE = _PSENSTYPE;
     if (PSENSLMAX)
-        *PSENSLMAX = pdword_46DC38[0x62];
+        *PSENSLMAX = _PARAMS[0x62];
     if (PSENSLTSH)
-        *PSENSLTSH = pdword_46DC38[0x63];
+        *PSENSLTSH = _PARAMS[0x63];
     if (PSENSLMIN)
-        *PSENSLMIN = pdword_46DC38[0x64];
+        *PSENSLMIN = _PARAMS[0x64];
     if (MAINTPROBE)
-        *MAINTPROBE = byte_46DC61;
+        *MAINTPROBE = _MAINTPROBE;
     if (STOVETYPE)
-        *STOVETYPE = byte_46DC62;
+        *STOVETYPE = _STOVETYPE;
     if (FAN2TYPE)
-        *FAN2TYPE = byte_46DC63;
+        *FAN2TYPE = _FAN2TYPE;
     if (FAN2MODE)
-        *FAN2MODE = byte_46DC64;
+        *FAN2MODE = _FAN2MODE;
     if (CHRONOTYPE)
         *CHRONOTYPE = 5; //hardcoded value
     if (AUTONOMYTYPE)
-        *AUTONOMYTYPE = byte_46DC66;
+        *AUTONOMYTYPE = _AUTONOMYTYPE;
     if (NOMINALPWR)
-        *NOMINALPWR = byte_46DC67;
+        *NOMINALPWR = _NOMINALPWR;
     return true;
 }
 
@@ -1695,85 +1693,85 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
         *MBTYPE = _MBTYPE;
     // MAC not needed
     if (MOD)
-        *MOD = pdword_46DC20;
+        *MOD = _MOD;
     if (VER)
-        *VER = pdword_46DC24;
+        *VER = _VER;
     if (CORE)
         *CORE = _CORE;
-    sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
-    sprintf(APLTS,byte_46DBE0);
+    sprintf(FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+    sprintf(APLTS,_STOVE_DATETIME);
     if (APLWDAY)
-        *APLWDAY = dword_46DBF4;
+        *APLWDAY = _STOVE_WDAY;
     if (CHRSTATUS)
-        *CHRSTATUS = dword_46DBF8;
+        *CHRSTATUS = _CHRSTATUS;
     if (STATUS)
-        *STATUS = dword_46DBC0;
+        *STATUS = _STATUS;
     if (LSTATUS)
-        *LSTATUS = dword_46DBC4;
+        *LSTATUS = _LSTATUS;
     if (isMFSTATUSValid && MFSTATUS)
     {
-        if (byte_46DC62 == 3 || byte_46DC62 == 4)
+        if (_STOVETYPE == 3 || _STOVETYPE == 4)
         {
             *isMFSTATUSValid = true;
-            *MFSTATUS = dword_46DBC8;
+            *MFSTATUS = _MFSTATUS;
         }
         else
             *isMFSTATUSValid = false;
     }
     if (SETP)
-        *SETP = dword_46DBDC;
+        *SETP = _SETP;
     if (PUMP)
-        *PUMP = dword_46DBB4;
+        *PUMP = _PUMP;
     if (PQT)
-        *PQT = dword_46DBFC;
+        *PQT = _PQT;
     if (F1V)
-        *F1V = dword_46DB94;
+        *F1V = _F1V;
     if (F1RPM)
-        *F1RPM = dword_46DB9C;
+        *F1RPM = _F1RPM;
     if (F2L)
-        *F2L = transcodeRoomFanSpeed(dword_46DBA0, true);
+        *F2L = transcodeRoomFanSpeed(_F2L, true);
     if (F2LF)
     {
-        uint16_t tmp = transcodeRoomFanSpeed(dword_46DBA0, true);
+        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
         if (tmp < 6)
             *F2LF = 0;
         else
             *F2LF = tmp - 5;
     }
     iGetFanLimits();
-    FANLMINMAX[0] = byte_46DC69;
-    FANLMINMAX[1] = byte_46DC6A;
-    FANLMINMAX[2] = byte_46DC6B;
-    FANLMINMAX[3] = byte_46DC6C;
-    FANLMINMAX[4] = byte_46DC6D;
-    FANLMINMAX[5] = byte_46DC6E;
+    FANLMINMAX[0] = _FAN1LMIN;
+    FANLMINMAX[1] = _FAN1LMAX;
+    FANLMINMAX[2] = _FAN2LMIN;
+    FANLMINMAX[3] = _FAN2LMAX;
+    FANLMINMAX[4] = _FAN3LMIN;
+    FANLMINMAX[5] = _FAN3LMAX;
     if (F2V)
-        *F2V = dword_46DB98;
+        *F2V = _F2V;
     if (isF3LF4LValid)
     {
-        if (byte_46DC63 > 2)
+        if (_FAN2TYPE > 2)
         {
             *isF3LF4LValid = true;
             if (F3L)
-                *F3L = dword_46DBA4;
+                *F3L = _F3L;
             if (F4L)
-                *F4L = dword_46DBA8;
+                *F4L = _F4L;
         }
         else
             *isF3LF4LValid = false;
     }
     if (PWR)
-        *PWR = byte_46DBAC;
+        *PWR = _PWR;
     if (FDR)
-        *FDR = dword_46DBB0;
+        *FDR = _FDR;
     if (DPT)
-        *DPT = dword_46DBB8;
+        *DPT = _DP_TARGET;
     if (DP)
-        *DP = dword_46DBBC;
+        *DP = _DP_PRESS;
     if (IN)
-        *IN = byte_46DB8B << 3 | byte_46DB8A << 2 | byte_46DB89 << 1 | byte_46DB88;
+        *IN = _IN_I04 << 3 | _IN_I03 << 2 | _IN_I02 << 1 | _IN_I01;
     if (OUT)
-        *OUT = byte_46DB92 << 6 | byte_46DB91 << 5 | byte_46DB90 << 4 | byte_46DB8F << 3 | byte_46DB8E << 2 | byte_46DB8D << 1 | byte_46DB8C;
+        *OUT = _OUT_O07 << 6 | _OUT_O06 << 5 | _OUT_O05 << 4 | _OUT_O04 << 3 | _OUT_O03 << 2 | _OUT_O02 << 1 | _OUT_O01;
     if (T1)
         *T1 = _T1;
     if (T2)
@@ -1815,7 +1813,7 @@ bool Palazzetti::getSetPoint(float *setPoint)
     if (iGetSetPointAtech() < 0)
         return false;
     if (setPoint)
-        *setPoint = dword_46DBDC;
+        *setPoint = _SETP;
     return true;
 }
 
@@ -1855,9 +1853,9 @@ bool Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTATUS)
     if (iGetStatusAtech() < 0)
         return false;
     if (STATUS)
-        *STATUS = dword_46DBC0;
+        *STATUS = _STATUS;
     if (LSTATUS)
-        *LSTATUS = dword_46DBC4;
+        *LSTATUS = _LSTATUS;
     return true;
 }
 
@@ -1869,7 +1867,7 @@ bool Palazzetti::getPelletQtUsed(uint16_t *PQT)
     if (iGetPelletQtUsedAtech() < 0)
         return false;
     if (PQT)
-        *PQT = dword_46DBFC;
+        *PQT = _PQT;
     return true;
 }
 
@@ -1885,17 +1883,17 @@ bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint1
         return false;
 
     if (F1V)
-        *F1V = dword_46DB94;
+        *F1V = _F1V;
     if (F2V)
-        *F2V = dword_46DB98;
+        *F2V = _F2V;
     if (F1RPM)
-        *F1RPM = dword_46DB9C;
+        *F1RPM = _F1RPM;
     if (F2L)
-        *F2L = transcodeRoomFanSpeed(dword_46DBA0, true);
+        *F2L = transcodeRoomFanSpeed(_F2L, true);
 
     if (F2LF)
     {
-        uint16_t tmp = transcodeRoomFanSpeed(dword_46DBA0, true);
+        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
         if (tmp < 6)
             *F2LF = 0;
         else
@@ -1904,13 +1902,13 @@ bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint1
 
     if (isF3LF4LValid)
     {
-        if (byte_46DC63 > 2)
+        if (_FAN2TYPE > 2)
         {
             *isF3LF4LValid = true;
             if (F3L)
-                *F3L = dword_46DBA4;
+                *F3L = _F3L;
             if (F4L)
-                *F4L = dword_46DBA8;
+                *F4L = _F4L;
         }
         else
             *isF3LF4LValid = false;
@@ -1928,9 +1926,9 @@ bool Palazzetti::getPower(byte *PWR, float *FDR)
         return false;
 
     if (PWR)
-        *PWR = byte_46DBAC;
+        *PWR = _PWR;
     if (FDR)
-        *FDR = dword_46DBB0;
+        *FDR = _FDR;
 
     return true;
 }
@@ -1946,7 +1944,7 @@ bool Palazzetti::setPower(byte powerLevel)
     if (iSetPowerAtech(powerLevel) < 0)
         return false;
 
-    if (byte_46DC68)
+    if (byte_47108A)
     {
         if (iGetRoomFanAtech() < 0)
             return false;
@@ -2026,29 +2024,29 @@ bool Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWE
         return false;
 
     if (IGN)
-        *IGN = pdword_46DC08_00;
+        *IGN = _IGN;
     if (POWERTIMEh)
-        *POWERTIMEh = pdword_46DC08_02;
+        *POWERTIMEh = _POWERTIMEH;
     if (POWERTIMEm)
-        *POWERTIMEm = pdword_46DC08_04;
+        *POWERTIMEm = _POWERTIMEM;
     if (HEATTIMEh)
-        *HEATTIMEh = pdword_46DC08_06;
+        *HEATTIMEh = _HEATTIMEH;
     if (HEATTIMEm)
-        *HEATTIMEm = pdword_46DC08_08;
+        *HEATTIMEm = _HEATTIMEM;
     if (SERVICETIMEh)
-        *SERVICETIMEh = pdword_46DC08_0C;
+        *SERVICETIMEh = _SERVICETIMEH;
     if (SERVICETIMEm)
-        *SERVICETIMEm = pdword_46DC08_0A;
+        *SERVICETIMEm = _SERVICETIMEM;
     if (ONTIMEh)
-        *ONTIMEh = pdword_46DC08_10;
+        *ONTIMEh = _ONTIMEH;
     if (ONTIMEm)
-        *ONTIMEm = pdword_46DC08_0E;
+        *ONTIMEm = _ONTIMEM;
     if (OVERTMPERRORS)
-        *OVERTMPERRORS = pdword_46DC08_12;
+        *OVERTMPERRORS = _OVERTMPERRORS;
     if (IGNERRORS)
-        *IGNERRORS = pdword_46DC08_14;
+        *IGNERRORS = _IGNERRORS;
     if (PQT)
-        *PQT = dword_46DBFC;
+        *PQT = _PQT;
 
     return true;
 }
@@ -2065,9 +2063,9 @@ bool Palazzetti::getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS)
         return false;
 
     if (DP_TARGET)
-        *DP_TARGET = dword_46DBB8;
+        *DP_TARGET = _DP_TARGET;
     if (DP_PRESS)
-        *DP_PRESS = dword_46DBBC;
+        *DP_PRESS = _DP_PRESS;
 
     return true;
 }
@@ -2083,10 +2081,10 @@ bool Palazzetti::getDateTime(char (&STOVE_DATETIME)[20], byte *STOVE_WDAY)
     if (iGetDateTimeAtech() < 0)
         return false;
 
-    strcpy(STOVE_DATETIME, byte_46DBE0);
+    strcpy(STOVE_DATETIME, _STOVE_DATETIME);
 
     if (STOVE_WDAY)
-        *STOVE_WDAY = dword_46DBF4;
+        *STOVE_WDAY = _STOVE_WDAY;
 
     return true;
 }
@@ -2103,27 +2101,27 @@ bool Palazzetti::getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, b
         return false;
 
     if (IN_I01)
-        *IN_I01 = byte_46DB88;
+        *IN_I01 = _IN_I01;
     if (IN_I02)
-        *IN_I02 = byte_46DB89;
+        *IN_I02 = _IN_I02;
     if (IN_I03)
-        *IN_I03 = byte_46DB8A;
+        *IN_I03 = _IN_I03;
     if (IN_I04)
-        *IN_I04 = byte_46DB8B;
+        *IN_I04 = _IN_I04;
     if (OUT_O01)
-        *OUT_O01 = byte_46DB8C;
+        *OUT_O01 = _OUT_O01;
     if (OUT_O02)
-        *OUT_O02 = byte_46DB8D;
+        *OUT_O02 = _OUT_O02;
     if (OUT_O03)
-        *OUT_O03 = byte_46DB8E;
+        *OUT_O03 = _OUT_O03;
     if (OUT_O04)
-        *OUT_O04 = byte_46DB8F;
+        *OUT_O04 = _OUT_O04;
     if (OUT_O05)
-        *OUT_O05 = byte_46DB90;
+        *OUT_O05 = _OUT_O05;
     if (OUT_O06)
-        *OUT_O06 = byte_46DB91;
+        *OUT_O06 = _OUT_O06;
     if (OUT_O07)
-        *OUT_O07 = byte_46DB92;
+        *OUT_O07 = _OUT_O07;
 
     return true;
 }
@@ -2182,9 +2180,9 @@ bool Palazzetti::setHiddenParameter(byte hParamNumber, uint16_t hParamValue)
 
     if (iSetHiddenParameterAtech(hParamNumber, hParamValue) < 0)
         return false;
-    else if (hParamNumber < byte_46DC44)
+    else if (hParamNumber < hparamsBufferSize)
     {
-        pdword_46DC40[hParamNumber] = hParamValue;
+        _HPARAMS[hParamNumber] = hParamValue;
     }
 
     return true;
@@ -2198,7 +2196,7 @@ bool Palazzetti::getAllParameters(byte (&params)[0x6A])
     if (iUpdateStaticDataAtech() < 0)
         return false;
 
-    memcpy(params, pdword_46DC38, 0x6A * sizeof(byte));
+    memcpy(params, _PARAMS, 0x6A * sizeof(byte));
 
     return true;
 }
@@ -2211,7 +2209,7 @@ bool Palazzetti::getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F])
     if (iUpdateStaticDataAtech() < 0)
         return false;
 
-    memcpy(hiddenParams, pdword_46DC40, 0x6F * sizeof(uint16_t));
+    memcpy(hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
 
     return true;
 }

@@ -9,10 +9,10 @@ class Palazzetti
     uint32_t fumisComStatus = 0; //sFumisComData.4
     uint16_t dword_432618 = 0; //sFumisComData.8  Unused variable (always set but never get : DEBUG?)
 
-    uint16_t serialPortModel = 2; //myData.32 depend of board name : 1=omni-emb; 2=others
+    uint16_t serialPortModel = 2; //myData.32  depend of board name : 1=omni-emb; 2=others
 
     //myData.4176 = verbose level
-    uint16_t comPortNumber = 0; //myData.4180 COM Port Number
+    uint16_t comPortNumber = 0; //myData.4180  COM Port Number
 
     int _MBTYPE = 0; //myData.4200  0 for Fumis; 100(0x64) for Micronova
     byte _HWTYPE = 0; //myData.4208 
@@ -22,128 +22,127 @@ class Palazzetti
 
     char _SN[28]; //myData.4224
 
-    // char _LABEL[32]; //myData.4280 Not Used
+    // char _LABEL[32]; //myData.4280  Not Used
 
     float _T1 = 0; //myData.4312
     float _T2 = 0; //myData.4316
     float _T3 = 0; //myData.4320
     float _T4 = 0; //myData.4324
     float _T5 = 0; //myData.4328
-    byte byte_46DB88 = 0;   //IN_I01
-    byte byte_46DB89 = 0;   //IN_I02
-    byte byte_46DB8A = 0;   //IN_I03
-    byte byte_46DB8B = 0;   //IN_I04
-    byte byte_46DB8C = 0;   //OUT_O01
-    byte byte_46DB8D = 0;   //OUT_O02
-    byte byte_46DB8E = 0;   //OUT_O03
-    byte byte_46DB8F = 0;   //OUT_O04
-    byte byte_46DB90 = 0;   //OUT_O05
-    byte byte_46DB91 = 0;   //OUT_O06
-    byte byte_46DB92 = 0;   //OUT_O07
+    byte _IN_I01 = 0;   //myData.4332
+    byte _IN_I02 = 0;   //myData.4333
+    byte _IN_I03 = 0;   //myData.4334
+    byte _IN_I04 = 0;   //myData.4335
+    byte _OUT_O01 = 0;   //myData.4336
+    byte _OUT_O02 = 0;   //myData.4337
+    byte _OUT_O03 = 0;   //myData.4338
+    byte _OUT_O04 = 0;   //myData.4339
+    byte _OUT_O05 = 0;   //myData.4340
+    byte _OUT_O06 = 0;   //myData.4341
+    byte _OUT_O07 = 0;   //myData.4342
 
-    uint16_t dword_46DB94 = 0; //F1V
-    uint16_t dword_46DB98 = 0; //F2V
-    uint16_t dword_46DB9C = 0; //F1RPM
-    uint16_t dword_46DBA0 = 0; //F2L (transcode needed)
-    uint16_t dword_46DBA4 = 0; //F3L
-    uint16_t dword_46DBA8 = 0; //F4L
+    uint16_t _F1V = 0; //myData.4344
+    uint16_t _F2V = 0; //myData.4348
+    uint16_t _F1RPM = 0; //myData.4352
+    uint16_t _F2L = 0; //myData.4356 (transcode needed)
+    uint16_t _F3L = 0; //myData.4360
+    uint16_t _F4L = 0; //myData.4364
 
-    byte byte_46DBAC = 0; //PWR
-    //byte byte_46DBAD = 0; //RPWR (Micronova)
+    byte _PWR = 0; //myData.4364
 
-    float dword_46DBB0 = 0; //FDR (FeederActiveTime)
+    float _FDR = 0; //myData.4372  (FeederActiveTime)
 
-    byte dword_46DBB4 = 0; //PUMP_RATE
-    uint16_t dword_46DBB8 = 0; //DP_TARGET
-    uint16_t dword_46DBBC = 0; //DP_PRESS
+    byte _PUMP = 0; //myData.4376
+    uint16_t _DP_TARGET = 0; //myData.4380
+    uint16_t _DP_PRESS = 0; //myData.4384
 
-    uint16_t dword_46DBC0 = 0; //STATUS
-    uint16_t dword_46DBC4 = 0; //LSTATUS
-    uint16_t dword_46DBC8 = 0; //MFSTATUS
+    uint16_t _STATUS = 0; //myData.4388
+    uint16_t _LSTATUS = 0; //myData.4392
+    uint16_t _MFSTATUS = 0; //myData.4396
 
-    float dword_46DBDC = 0;    //SETP aka SetPoint
-    char byte_46DBE0[20];      //STOVE_DATETIME
-    uint16_t dword_46DBF4 = 0; //STOVE_WDAY
-    byte dword_46DBF8 = 0;     //CHRSTATUS
-    uint16_t dword_46DBFC = 0; //PQT
+    float _SETP = 0;    //myData.4416  aka SetPoint
+    char _STOVE_DATETIME[20]; //myData.4428
+    uint16_t _STOVE_WDAY = 0; //myData.4448
+    byte _CHRSTATUS = 0; //myData.4452
+    uint16_t _PQT = 0; //myData.4460
 
-    //dword_46DC04 contains pointer to malloc(0xD0)
+    //dword_47101C //myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
 
     //space of 0x16 size reserved by malloc in iInit
-    uint16_t pdword_46DC08_00 = 0; //IGN
-    uint16_t pdword_46DC08_02 = 0; //POWERTIME(hour)
-    uint16_t pdword_46DC08_04 = 0; //POWERTIME(minute)
-    uint16_t pdword_46DC08_06 = 0; //HEATTIME(hour)
-    uint16_t pdword_46DC08_08 = 0; //HEATTIME(minute)
-    uint16_t pdword_46DC08_0A = 0; //SERVICETIME(minute)
-    uint16_t pdword_46DC08_0C = 0; //SERVICETIME(hour)
-    uint16_t pdword_46DC08_0E = 0; //ONTIME(minute)
-    uint16_t pdword_46DC08_10 = 0; //ONTIME(hour)
-    uint16_t pdword_46DC08_12 = 0; //OVERTMPERRORS
-    uint16_t pdword_46DC08_14 = 0; //IGNERRORS
+    uint16_t _IGN = 0; //myData.4480[0]
+    uint16_t _POWERTIMEH = 0; //myData.4480[1]
+    uint16_t _POWERTIMEM = 0; //myData.4480[2]
+    uint16_t _HEATTIMEH = 0; //myData.4480[3]
+    uint16_t _HEATTIMEM = 0; //myData.4480[4]
+    uint16_t _SERVICETIMEM = 0; //myData.4480[5]
+    uint16_t _SERVICETIMEH = 0; //myData.4480[6]
+    uint16_t _ONTIMEM = 0; //myData.4480[7]
+    uint16_t _ONTIMEH = 0; //myData.4480[8]
+    uint16_t _OVERTMPERRORS = 0; //myData.4480[9]
+    uint16_t _IGNERRORS = 0; //myData.4480[10]
 
-    //space of 0x69 size reserved by malloc in iInit
-    //dword_46DC0C contains pointer to malloc(0x69)
+    //dword_471024 //myData.4484 contains pointer from malloc(0x69) used to store Logs
 
-    byte staticDataLoaded = 0; //46DC10 : indicates that Static Data are loaded
+    byte staticDataLoaded = 0; //myData.4488  (psStaticData) : indicates that Static Data are loaded
 
-    uint16_t pdword_46DC14 = 0; //FWDATE(day)
-    uint16_t pdword_46DC18 = 0; //FWDATE(month)
-    uint16_t pdword_46DC1C = 0; //FWDATE(year)
+    uint16_t _FWDATEY = 0; //myData.4492
+    uint16_t _FWDATEM = 0; //myData.4496
+    uint16_t _FWDATED = 0; //myData.4500
 
-    uint16_t pdword_46DC20 = 0; //MOD
-    uint16_t pdword_46DC24 = 0; //VER
-    uint16_t pdword_46DC28 = 0;
-    uint16_t pdword_46DC2C = 0;
-    uint16_t pdword_46DC30 = 0;
-    uint16_t pdword_46DC34 = 0;
-    uint16_t _CORE = 0;
-    uint16_t _DSPFWVER = 0;
+    uint16_t _MOD = 0; //myData.4504
+    uint16_t _VER = 0; //myData.4508
+    uint16_t _CORE = 0; //myData.4512
+    // uint16_t pdword_471044 = 0; //myData.4516  Unused variable (always set but never get)
+    // uint16_t pdword_471048 = 0; //myData.4520  Unused variable (always set but never get)
+    // uint16_t pdword_47104C = 0; //myData.4524  Unused variable (always set but never get)
+    // uint16_t pdword_471050 = 0; //myData.4528  Unused variable (always set but never get)
+    
+    uint16_t _DSPFWVER = 0; //myData.4532
 
-    //dword_46DC38 contains pointer to malloc(0x6A) (setted up in iInit)
-    byte pdword_46DC38[0x6A]; //PARAMS
-    // byte pdword_46DC38_4C = 0; //CONFIG
-    // byte pdword_46DC38_5C = 0; //PELLETTYPE
-    // byte pdword_46DC38_62 = 0; //PSENSLMAX (Pellet Level max)
-    // byte pdword_46DC38_63 = 0; //PSENSLTSH (Pellet Level threshold)
-    // byte pdword_46DC38_64 = 0; //PSENSLMIN (Pellet Level min)
+    //myData.4536 contains pointer to malloc(0x6A) (setted up in iInit)
+    byte _PARAMS[0x6A]; //myData.4536
+    // byte _PARAMS[0x4C] = 0; //CONFIG
+    // byte _PARAMS[0x5C] = 0; //PELLETTYPE
+    // byte _PARAMS[0x62] = 0; //PSENSLMAX (Pellet Level max)
+    // byte _PARAMS[0x63] = 0; //PSENSLTSH (Pellet Level threshold)
+    // byte _PARAMS[0x64] = 0; //PSENSLMIN (Pellet Level min)
 
-    byte byte_46DC3C = 0x6A; //setted up in iInit for sizing malloc
+    byte paramsBufferSize = 0x6A; //myData.4540  setted up in iInit for sizing PARAMS, splMaxBuffer and splMinBuffer malloc
 
-    //dword_46DC40 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F*2)
-    uint16_t pdword_46DC40[0x6F]; //HPARAMS
+    //myData.4544 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
+    uint16_t _HPARAMS[0x6F]; //myData.4544
 
-    byte byte_46DC44 = 0x6F; //setted up in iInit for sizing malloc
+    byte hparamsBufferSize = 0x6F; //myData.4548  setted up in iInit for sizing HPARAMS malloc
 
-    uint16_t dword_46DC48 = 0; //FLUID
+    uint16_t _FLUID = 0; //myData.4552
 
-    //dword_46DC4C contains pointer to malloc(0x6A) (setted up in iInit)
-    byte pdword_46DC4C[0x6A];
+    byte splMaxBuffer[0x6A]; //mydata.4556
+    // byte splMaxBuffer[0x33] or splMaxBuffer[0x33] contains SPLMAX
 
-    //dword_46DC50 contains pointer to malloc(0x6A) (setted up in iInit)
-    byte pdword_46DC50[0x6A];
+    byte splMinBuffer[0x6A]; //mydata.4560
+    // byte splMinBuffer[0x33] or splMinBuffer[0x33] contains SPLMIN
 
-    byte pdword_46DC54 = 0;    //SPLMIN (SetPointLimitMin)
-    byte pdword_46DC58 = 0;    //SPLMAX (SetPointLimitMax)
-    uint16_t dword_46DC5C = 0; //PSENSTYPE (if 1 then Pellet level sensor)
+    byte _SPLMIN = 0; //myData.4564  (SetPointLimitMin)
+    byte _SPLMAX = 0;    //myData.4568  (SetPointLimitMax)
+    uint16_t _PSENSTYPE = 0; //myData.4572  (if 1 then Pellet level sensor)
 
-    byte byte_46DC60 = 0; //UICONFIG
-    byte byte_46DC61 = 0; //MAINTPROBE
-    byte byte_46DC62 = 0; //STOVETYPE
-    byte byte_46DC63 = 0; //FAN2TYPE
-    byte byte_46DC64 = 0; //FAN2MODE
-    byte byte_46DC65 = 0;
-    byte byte_46DC66 = 0; //AUTONOMYTYPE
-    byte byte_46DC67 = 0; //NOMINALPWR
-    byte byte_46DC68 = 0;
-    byte byte_46DC69 = 0; //FANLMINMAX[0]
-    byte byte_46DC6A = 0; //FANLMINMAX[1]
-    byte byte_46DC6B = 0; //FANLMINMAX[2]
-    byte byte_46DC6C = 0; //FANLMINMAX[3]
-    byte byte_46DC6D = 0; //FANLMINMAX[4]
-    byte byte_46DC6E = 0; //FANLMINMAX[5]
+    byte _UICONFIG = 0; //myData.4576
+    byte _MAINTPROBE = 0; //myData.4579
+    byte _STOVETYPE = 0; //myData.4580
+    byte _FAN2TYPE = 0; //myData.4581
+    byte _FAN2MODE = 0; //myData.4582
+    // byte byte_46DC65 = 0; //myData.4583  Unused variable (always set but never get)
+    byte _AUTONOMYTYPE = 0; //myData.4584
+    byte _NOMINALPWR = 0; //myData.4585
+    byte byte_47108A = 0; //myData.4586  Fan related value used for calculation...
+    byte _FAN1LMIN = 0; //myData.4587  FANLMINMAX[0]
+    byte _FAN1LMAX = 0; //myData.4588  FANLMINMAX[1]
+    byte _FAN2LMIN = 0; //myData.4589  FANLMINMAX[2]
+    byte _FAN2LMAX = 0; //myData.4590  FANLMINMAX[3]
+    byte _FAN3LMIN = 0; //myData.4591  FANLMINMAX[4]
+    byte _FAN3LMAX = 0; //myData.4592  FANLMINMAX[5]
 
-    char byte_46DC6F[19]; //Mac address setted up by iUpdateStaticData
+    // char byte_471091[19]; //myData.4593  Mac address setted up by iUpdateStaticData
 
 #define OPENSERIAL_SIGNATURE std::function<int(uint32_t baudrate)>
 #define CLOSESERIAL_SIGNATURE std::function<void()>
