@@ -553,12 +553,12 @@ int Palazzetti::iGetStoveConfigurationAtech()
 
     if ((buf2[0] & 8) > 0)
     {
-        if ((buf2[2] & 0x80) > 0)
+        if ((buf2[2] & 0x80) == 0)
             byte_46DC63 = 2;
         else
         {
             byte_46DC61 = 4;
-            if ((buf & 0x8000) > 0)
+            if ((buf & 0x8000) == 0)
             {
                 byte_46DC63 = 4;
                 uint16_t var_C;
