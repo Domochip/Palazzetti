@@ -1398,7 +1398,7 @@ int Palazzetti::iGetAllStatus(bool refreshStatus)
         res = iGetDPressDataAtech();
         if (res < 0)
             return res;
-        // res = iReadIOATech();
+        res = iReadIOAtech();
         if (res < 0)
             return res;
         res = iReadTemperatureAtech();
