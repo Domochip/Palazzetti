@@ -5,31 +5,30 @@
 
 class Palazzetti
 {
-    uint16_t wAddrFeederActiveTime = 0; //dword_42F1F0
-    uint32_t dword_42F214 = 0;
-    int dword_42F218 = 0;
+    uint16_t wAddrFeederActiveTime = 0;
+    uint32_t fumisComStatus = 0; //sFumisComData.4
+    uint16_t dword_432618 = 0; //sFumisComData.8  Unused variable (always set but never get : DEBUG?)
 
-    uint16_t dword_46CAC0 = 2; //depend of board name : 1=omni-emb; 2=others
+    uint16_t serialPortModel = 2; //myData.32 depend of board name : 1=omni-emb; 2=others
 
-    //dword_46DAF0 = verbose mode
-    uint16_t dword_46DAF4 = 0; //COM Port Number
+    //myData.4176 = verbose level
+    uint16_t comPortNumber = 0; //myData.4180 COM Port Number
 
-    int dword_46DB08 = 0;      //MBTYPE
-    uint16_t dword_46DB10 = 0; //HWTYPE
-    uint16_t dword_46DB0C = 0; //MBTYPE (Micronova)
+    int _MBTYPE = 0; //myData.4200  0 for Fumis; 100(0x64) for Micronova
+    byte _HWTYPE = 0; //myData.4208 
+    uint16_t dword_470F0C = 0; //myData.4204  MBTYPE (Micronova)
 
-    //dword_46DB14 and dword_46DB18 as struct timeval
     unsigned long selectSerialTimeoutms = 3000;
 
-    char byte_46DB1C[28]; //SN
+    char _SN[28]; //myData.4224
 
-    char byte_46DB54[32]; //LABEL
+    // char _LABEL[32]; //myData.4280 Not Used
 
-    float dword_46DB74 = 0; //T1
-    float dword_46DB78 = 0; //T2
-    float dword_46DB7C = 0; //T3
-    float dword_46DB80 = 0; //T4
-    float dword_46DB84 = 0; //T5
+    float _T1 = 0; //myData.4312
+    float _T2 = 0; //myData.4316
+    float _T3 = 0; //myData.4320
+    float _T4 = 0; //myData.4324
+    float _T5 = 0; //myData.4328
     byte byte_46DB88 = 0;   //IN_I01
     byte byte_46DB89 = 0;   //IN_I02
     byte byte_46DB8A = 0;   //IN_I03
@@ -244,7 +243,7 @@ public:
     bool initialize();
     bool initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep);
     bool isInitialized() { return _isInitialized; };
-    bool getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
+    bool getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, byte *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
     bool getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (&SN)[28]);
     bool getSN(char (&SN)[28]);
     bool getSetPoint(float *setPoint);
