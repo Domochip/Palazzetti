@@ -1360,7 +1360,7 @@ int Palazzetti::iReadIOAtech()
     
     byte_46DB88 = (buf[0] & 0x01);
     byte_46DB89 = (buf[0] & 0x02) >> 1;
-    byte_46DB8A = (buf[0] & 0x04) >> 2;
+    byte_46DB8A = ((buf[0] & 0x04) >> 2) == 0;
     byte_46DB8B = (buf[0] & 0x08) >> 3;
 
     byte_46DB8C = (buf[2] & 0x01);
