@@ -1527,7 +1527,7 @@ bool Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATU
     return initialize();
 }
 
-bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MOD, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
+bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, uint16_t *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
 {
     if (!initialize())
         return false;
@@ -1585,8 +1585,8 @@ bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16
         *STOVETYPE = byte_46DC62;
     if (FAN2TYPE)
         *FAN2TYPE = byte_46DC63;
-    if (FAN2MOD)
-        *FAN2MOD = byte_46DC64;
+    if (FAN2MODE)
+        *FAN2MODE = byte_46DC64;
     if (CHRONOTYPE)
         *CHRONOTYPE = 5; //hardcoded value
     if (AUTONOMYTYPE)
