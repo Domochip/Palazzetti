@@ -707,6 +707,7 @@ int Palazzetti::iUpdateStaticDataAtech()
 
     pdword_46DC24 = pdword_46DC40[4 / 2];
     pdword_46DC20 = pdword_46DC40[6 / 2];
+    _CORE = pdword_46DC40[8 / 2];
     pdword_46DC14 = pdword_46DC40[0xA / 2];
     pdword_46DC18 = pdword_46DC40[0xC / 2];
     pdword_46DC1C = pdword_46DC40[0xE / 2];
@@ -1553,7 +1554,7 @@ bool Palazzetti::getStaticData(int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16
     if (VER)
         *VER = pdword_46DC24;
     if (CORE)
-        *CORE = pdword_46DC28;
+        *CORE = _CORE;
     sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
     if (FLUID)
         *FLUID = dword_46DC48;
@@ -1613,7 +1614,7 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
     if (VER)
         *VER = pdword_46DC24;
     if (CORE)
-        *CORE = pdword_46DC28;
+        *CORE = _CORE;
     sprintf(FWDATE, "%d-%02d-%02d", pdword_46DC1C, pdword_46DC18, pdword_46DC14);
     sprintf(APLTS,byte_46DBE0);
     if (APLWDAY)

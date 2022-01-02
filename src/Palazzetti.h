@@ -93,10 +93,11 @@ class Palazzetti
 
     uint16_t pdword_46DC20 = 0; //MOD
     uint16_t pdword_46DC24 = 0; //VER
-    uint16_t pdword_46DC28 = 0; //CORE
+    uint16_t pdword_46DC28 = 0;
     uint16_t pdword_46DC2C = 0;
     uint16_t pdword_46DC30 = 0;
     uint16_t pdword_46DC34 = 0;
+    uint16_t _CORE = 0;
     uint16_t _DSPFWVER = 0;
 
     //dword_46DC38 contains pointer to malloc(0x6A) (setted up in iInit)
