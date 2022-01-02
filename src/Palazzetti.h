@@ -127,11 +127,13 @@ class Palazzetti
     uint16_t _PSENSTYPE = 0; //myData.4572  (if 1 then Pellet level sensor)
 
     byte _UICONFIG = 0; //myData.4576
+    byte _BLEMBMODE = 0; //myData.4577
+    byte _BLEDSPMODE = 0; //myData.4578
     byte _MAINTPROBE = 0; //myData.4579
     byte _STOVETYPE = 0; //myData.4580
     byte _FAN2TYPE = 0; //myData.4581
     byte _FAN2MODE = 0; //myData.4582
-    // byte byte_46DC65 = 0; //myData.4583  Unused variable (always set but never get)
+    // byte byte_471087 = 0; //myData.4583  Unused variable (always set but never get)
     byte _AUTONOMYTYPE = 0; //myData.4584
     byte _NOMINALPWR = 0; //myData.4585
     byte byte_47108A = 0; //myData.4586  Fan related value used for calculation...

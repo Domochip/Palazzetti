@@ -581,7 +581,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
 
     iGetMBTypeAtech();
 
-    // byte_46DC65 = 2; //Not Used elsewhere
+    // byte_471087 = 2; //Not Used elsewhere
     _MAINTPROBE = 0;
 
     res = fumisComReadWord(0x1ED4, &buf);
