@@ -475,20 +475,51 @@ int Palazzetti::iInit()
 
 int Palazzetti::iGetSNAtech()
 {
-    //Complex and useless function ...
-    //(mine return '000000000000000000000000000' as SN...)
+    int res = 0;
+    int currentPosInSN = 0; //var_24
+    byte buf[8];            //var_14
+    char *pSN = (char*)&byte_46DB1C; //var_18
+    byte checkSum = 0;
+    while (currentPosInSN < 0xE)
+    {
+        res = fumisComReadBuff(0x2100 + currentPosInSN, buf, 8);
+        if (res < 0)
+        {
+            byte_46DB1C[0]=0;
+            return res;
+        }
+        for (byte i = 0; i < 8; i++)
+        {
+            sprintf(pSN, "%02X", buf[i]);
+            pSN += 2;
+            checkSum += buf[i];
+        }
+        currentPosInSN += 8;
+    }
 
-    // int currentPosInSN = 0; //var_24
-    // byte buf[8];            //var_14
-    // int nbByteReaded = 0;   //var_1C
-    // while (currentPosInSN < 0xE)
-    // {
-    //   nbByteReaded = fumisComReadBuff(0x2100 + currentPosInSN, buf, 8);
-    //   if(nbByteReaded<0){
-    //     byte_46DB1C[0]=0;
-    //     return nbByteReaded;
-    //   }
-    // }
+    byte_46DB1C[27] = 0;
+    res = fumisComReadBuff(0x2100 + currentPosInSN, buf, 8);
+    if (res < 0)
+    {
+        byte_46DB1C[0]=0;
+        return res;
+    }
+    if (buf[0] == -checkSum)
+    {
+        byte_46DB1C[0]=0;
+        return -1;
+    }
+    if (buf[1] != 'U')
+    {
+        if (strncmp(byte_46DB1C,"7684",4) == 0)
+        {
+            byte_46DB1C[0] = 'L';
+            byte_46DB1C[1] = 'T';
+            strcpy((char*)&byte_46DB1C + 2, (char*)&byte_46DB1C + 4);
+            byte_46DB1C[23] = 0;
+        }
+    }
+
     return 0;
 }
 
@@ -1724,6 +1755,15 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
         *T4 = dword_46DB80;
     if (T5)
         *T5 = dword_46DB84;
+    return true;
+}
+
+bool Palazzetti::getSN(char (&SN)[28])
+{
+    if (!initialize())
+        return false;
+    
+    strcpy(SN, byte_46DB1C);
     return true;
 }
 
