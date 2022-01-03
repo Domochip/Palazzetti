@@ -1146,9 +1146,11 @@ int Palazzetti::iReadFansAtech()
     int res = fumisComReadBuff(0x2024, buf, 8);
     if (res < 0)
     {
-        _F1V = 0xFFFF;
-        _F2V = 0xFFFF;
-        _F1RPM = 0xFFFF;
+        _F1V = 0xFFFFFFFF;
+        _F2V = 0xFFFFFFFF;
+        _F1RPM = 0xFFFFFFFF;
+        _F3S = -1;
+        _F4S = -1;
         return res;
     }
     _F1V = buf[1];
@@ -1166,10 +1168,30 @@ int Palazzetti::iReadFansAtech()
     res = iGetRoomFanAtech();
     if (res < 0)
     {
-        _F1V = 0xFFFF;
-        _F2V = 0xFFFF;
-        _F1RPM = 0xFFFF;
+        _F1V = 0xFFFFFFFF;
+        _F2V = 0xFFFFFFFF;
+        _F1RPM = 0xFFFFFFFF;
+        _F3S = -1;
+        _F4S = -1;
         return res;
+    }
+    if (_BLEMBMODE > 1)
+    {
+        uint16_t buf2;
+        res = fumisComReadWord(0x20A2, &buf2);
+        if (res < 0)
+        {
+            _F1V = 0xFFFFFFFF;
+            _F2V = 0xFFFFFFFF;
+            _F1RPM = 0xFFFFFFFF;
+            _F3S = -1;
+            _F4S = -1;
+            return res;
+        }
+        _F3S = buf2 & 0xFF;
+        _F3S /= 5.0f; //Code indicates a multiplication by 0.2
+        _F4S = buf2 >> 8;
+        _F4S /= 5.0f; //Code indicates a multiplication by 0.2
     }
 
     return 0;
