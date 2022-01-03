@@ -1937,7 +1937,7 @@ bool Palazzetti::getPelletQtUsed(uint16_t *PQT)
     return true;
 }
 
-bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L)
+bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3SF4SValid, float *F3S, float *F4S, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L)
 {
     if (!initialize())
         return false;
@@ -1966,6 +1966,21 @@ bool Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint1
             *F2LF = tmp - 5;
     }
 
+    if (isF3SF4SValid)
+    {
+        if (_BLEMBMODE > 0xC)
+        {
+            *isF3SF4SValid = true;
+            if (F3S)
+                *F3S = _F3S;
+            if (F4S)
+                *F4S = _F4S;
+        }
+        else
+            *isF3SF4SValid = false;
+    }
+
+    //Custom convenient code
     if (isF3LF4LValid)
     {
         if (_FAN2TYPE > 2)
