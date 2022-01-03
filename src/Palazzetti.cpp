@@ -1991,7 +1991,7 @@ bool Palazzetti::setPower(byte powerLevel, byte *PWRReturn, bool *isF2LReturnVal
     return true;
 }
 
-bool Palazzetti::setRoomFan(byte roomFanSpeed)
+bool Palazzetti::setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid, byte *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn)
 {
     if (!initialize())
         return false;
@@ -2001,6 +2001,27 @@ bool Palazzetti::setRoomFan(byte roomFanSpeed)
 
     if (iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0)) < 0)
         return false;
+
+    if (isPWRReturnValid && PWRReturn)
+    {
+        if (byte_47108A)
+        {
+            *isPWRReturnValid = true;
+            *PWRReturn = _PWR;
+        }
+        else
+            *isPWRReturnValid = false;
+    }
+    if (F2LFReturn)
+        *F2LFReturn = transcodeRoomFanSpeed(_F2L, true);
+    if (F2LFReturn)
+    {
+        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
+        if (tmp < 6)
+            *F2LFReturn = 0;
+        else
+            *F2LFReturn = tmp - 5;
+    }
 
     return true;
 }
