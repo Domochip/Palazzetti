@@ -107,7 +107,7 @@ class Palazzetti
     // byte _PARAMS[0x63] = 0; //PSENSLTSH (Pellet Level threshold)
     // byte _PARAMS[0x64] = 0; //PSENSLMIN (Pellet Level min)
 
-    byte paramsBufferSize = 0x6A; //myData.4540  setted up in iInit for sizing PARAMS, splMaxBuffer and splMinBuffer malloc
+    byte paramsBufferSize = 0x6A; //myData.4540  setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
     //myData.4544 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
     uint16_t _HPARAMS[0x6F]; //myData.4544
@@ -116,11 +116,11 @@ class Palazzetti
 
     uint16_t _FLUID = 0; //myData.4552
 
-    byte splMaxBuffer[0x6A]; //mydata.4556
-    // byte splMaxBuffer[0x33] or splMaxBuffer[0x33] contains SPLMAX
+    byte _LIMMAX[0x6A]; //mydata.4556
+    // byte _LIMMAX[0x33] or _LIMMAX[0x33] contains SPLMAX
 
-    byte splMinBuffer[0x6A]; //mydata.4560
-    // byte splMinBuffer[0x33] or splMinBuffer[0x33] contains SPLMIN
+    byte _LIMMIN[0x6A]; //mydata.4560
+    // byte _LIMMIN[0x33] or _LIMMIN[0x33] contains SPLMIN
 
     byte _SPLMIN = 0; //myData.4564  (SetPointLimitMin)
     byte _SPLMAX = 0;    //myData.4568  (SetPointLimitMax)

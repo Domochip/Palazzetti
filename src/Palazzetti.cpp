@@ -814,7 +814,7 @@ int Palazzetti::iUpdateStaticDataAtech()
 
         for (byte i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
         {
-            splMinBuffer[nbTotalBytesReaded] = buf[i];
+            _LIMMIN[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
@@ -828,15 +828,15 @@ int Palazzetti::iUpdateStaticDataAtech()
 
         for (byte i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
         {
-            splMaxBuffer[nbTotalBytesReaded] = buf[i];
+            _LIMMAX[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
 
     if (_FLUID < 2)
     {
-        _SPLMIN = splMinBuffer[0x33];
-        _SPLMAX = splMaxBuffer[0x33];
+        _SPLMIN = _LIMMIN[0x33];
+        _SPLMAX = _LIMMAX[0x33];
         if (!_FLUID)
         {
             _SPLMIN = (uint8_t)((double)_SPLMIN / 5.0);
@@ -844,8 +844,8 @@ int Palazzetti::iUpdateStaticDataAtech()
         }
         else if (_FLUID == 2)
         {
-            _SPLMIN = splMinBuffer[0x54];
-            _SPLMAX = splMaxBuffer[0x54];
+            _SPLMIN = _LIMMIN[0x54];
+            _SPLMAX = _LIMMAX[0x54];
         }
     }
 
