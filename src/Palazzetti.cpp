@@ -1146,9 +1146,9 @@ int Palazzetti::iReadFansAtech()
     int res = fumisComReadBuff(0x2024, buf, 8);
     if (res < 0)
     {
-        _F1V = 0xFFFFFFFF;
-        _F2V = 0xFFFFFFFF;
-        _F1RPM = 0xFFFFFFFF;
+        _F1V = 0xFFFF;
+        _F2V = 0xFFFF;
+        _F1RPM = 0xFFFF;
         _F3S = -1;
         _F4S = -1;
         return res;
@@ -1168,9 +1168,9 @@ int Palazzetti::iReadFansAtech()
     res = iGetRoomFanAtech();
     if (res < 0)
     {
-        _F1V = 0xFFFFFFFF;
-        _F2V = 0xFFFFFFFF;
-        _F1RPM = 0xFFFFFFFF;
+        _F1V = 0xFFFF;
+        _F2V = 0xFFFF;
+        _F1RPM = 0xFFFF;
         _F3S = -1;
         _F4S = -1;
         return res;
@@ -1181,9 +1181,9 @@ int Palazzetti::iReadFansAtech()
         res = fumisComReadWord(0x20A2, &buf2);
         if (res < 0)
         {
-            _F1V = 0xFFFFFFFF;
-            _F2V = 0xFFFFFFFF;
-            _F1RPM = 0xFFFFFFFF;
+            _F1V = 0xFFFF;
+            _F2V = 0xFFFF;
+            _F1RPM = 0xFFFF;
             _F3S = -1;
             _F4S = -1;
             return res;
