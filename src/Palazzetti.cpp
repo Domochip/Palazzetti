@@ -2012,8 +2012,8 @@ bool Palazzetti::setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid, byte *PWR
         else
             *isPWRReturnValid = false;
     }
-    if (F2LFReturn)
-        *F2LFReturn = transcodeRoomFanSpeed(_F2L, true);
+    if (F2LReturn)
+        *F2LReturn = transcodeRoomFanSpeed(_F2L, true);
     if (F2LFReturn)
     {
         uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
