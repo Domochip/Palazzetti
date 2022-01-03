@@ -258,7 +258,7 @@ public:
     bool setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
     bool setRoomFan3(byte roomFan3Speed, uint16_t *F3LReturn = nullptr);
     bool setRoomFan4(byte roomFan4Speed, uint16_t *F4LReturn = nullptr);
-    bool setSilentMode(byte silentMode);
+    bool setSilentMode(byte silentMode, byte *SLNTReturn = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
     bool getDateTime(char (*STOVE_DATETIME)[20],byte *STOVE_WDAY);

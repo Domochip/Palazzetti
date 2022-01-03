@@ -2060,7 +2060,7 @@ bool Palazzetti::setRoomFan4(byte roomFan4Speed, uint16_t *F4LReturn)
     return true;
 }
 
-bool Palazzetti::setSilentMode(byte silentMode)
+bool Palazzetti::setSilentMode(byte silentMode, byte *SLNTReturn, byte *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn, bool *isF3LF4LReturnValid, uint16_t *F3LReturn, uint16_t *F4LReturn)
 {
     if (!initialize())
         return false;
@@ -2070,6 +2070,33 @@ bool Palazzetti::setSilentMode(byte silentMode)
 
     if (iSetSilentModeAtech(silentMode) < 0)
         return false;
+    if (SLNTReturn)
+        *SLNTReturn = silentMode;
+    if (PWRReturn)
+        *PWRReturn = _PWR;
+    if (F2LReturn)
+        *F2LReturn = transcodeRoomFanSpeed(_F2L, true);
+    if (F2LFReturn)
+    {
+        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
+        if (tmp < 6)
+            *F2LFReturn = 0;
+        else
+            *F2LFReturn = tmp - 5;
+    }
+    if (isF3LF4LReturnValid)
+    {
+        if (_FAN2TYPE > 2)
+        {
+            *isF3LF4LReturnValid = true;
+            if (F3LReturn)
+                *F3LReturn = _F3L;
+            if (F4LReturn)
+                *F4LReturn = _F4L;
+        }
+        else
+            *isF3LF4LReturnValid = false;
+    }
 
     return true;
 }
