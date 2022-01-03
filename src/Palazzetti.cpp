@@ -1945,7 +1945,7 @@ bool Palazzetti::getPower(byte *PWR, float *FDR)
     return true;
 }
 
-bool Palazzetti::setPower(byte powerLevel)
+bool Palazzetti::setPower(byte powerLevel, byte *PWRReturn, bool *isF2LReturnValid, uint16_t *_F2LReturn, uint16_t (*FANLMINMAXReturn)[6])
 {
     if (!initialize())
         return false;
@@ -1962,8 +1962,31 @@ bool Palazzetti::setPower(byte powerLevel)
             return false;
     }
 
+    if (PWRReturn)
+        *PWRReturn = _PWR;
+    if (isF2LReturnValid && _F2LReturn)
+    {
+        if (byte_47108A)
+        {
+            *isF2LReturnValid = true;
+            *_F2LReturn = transcodeRoomFanSpeed(_F2L, true);
+        }
+        else
+            *isF2LReturnValid = false;
+    }
+
     // if (dword_470F0C != 0xB) //Micronova MBTYPE always equals 0
         iGetFanLimits();
+    
+    if (FANLMINMAXReturn)
+    {
+        (*FANLMINMAXReturn)[0] = _FAN1LMIN;
+        (*FANLMINMAXReturn)[1] = _FAN1LMAX;
+        (*FANLMINMAXReturn)[2] = _FAN2LMIN;
+        (*FANLMINMAXReturn)[3] = _FAN2LMAX;
+        (*FANLMINMAXReturn)[4] = _FAN3LMIN;
+        (*FANLMINMAXReturn)[5] = _FAN3LMAX;
+    }
 
     return true;
 }
