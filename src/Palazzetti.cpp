@@ -1825,12 +1825,16 @@ bool Palazzetti::getSetPoint(float *setPoint)
     return true;
 }
 
-bool Palazzetti::setSetpoint(byte setPoint)
+bool Palazzetti::setSetpoint(byte setPoint, float *SETPReturn)
 {
     if (!initialize())
         return false;
 
-    return iSetSetPointAtech((uint16_t)setPoint) >= 0;
+    if (iSetSetPointAtech((uint16_t)setPoint) < 0)
+        return false;
+    if (SETPReturn)
+        *SETPReturn = _SETP;
+    return true;
 }
 
 bool Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5)
