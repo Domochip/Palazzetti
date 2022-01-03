@@ -1867,6 +1867,23 @@ bool Palazzetti::getSN(char (*SN)[28])
     return true;
 }
 
+bool Palazzetti::getModelVersion(uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11])
+{
+    if (!initialize())
+        return false;
+
+    if (MOD)
+        *MOD = _MOD;
+    if (VER)
+        *VER = _VER;
+    if (CORE)
+        *CORE = _CORE;
+    if (FWDATE)
+        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+
+    return true;
+}
+
 bool Palazzetti::getSetPoint(float *setPoint)
 {
     if (!initialize())
