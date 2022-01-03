@@ -2026,7 +2026,7 @@ bool Palazzetti::setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid, byte *PWR
     return true;
 }
 
-bool Palazzetti::setRoomFan3(byte roomFan3Speed)
+bool Palazzetti::setRoomFan3(byte roomFan3Speed, uint16_t *F3LReturn)
 {
     if (!initialize())
         return false;
@@ -2037,10 +2037,13 @@ bool Palazzetti::setRoomFan3(byte roomFan3Speed)
     if (iSetRoomFan3Atech(roomFan3Speed) < 0)
         return false;
 
+    if (F3LReturn)
+        *F3LReturn = _F3L;
+
     return true;
 }
 
-bool Palazzetti::setRoomFan4(byte roomFan4Speed)
+bool Palazzetti::setRoomFan4(byte roomFan4Speed, uint16_t *F4LReturn)
 {
     if (!initialize())
         return false;
@@ -2050,6 +2053,9 @@ bool Palazzetti::setRoomFan4(byte roomFan4Speed)
 
     if (iSetRoomFan4Atech(roomFan4Speed) < 0)
         return false;
+
+    if (F4LReturn)
+        *F4LReturn = _F4L;
 
     return true;
 }

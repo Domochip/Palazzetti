@@ -256,8 +256,8 @@ public:
     bool getPower(byte *PWR, float *FDR);
     bool setPower(byte powerLevel, byte *PWRReturn = nullptr, bool *isF2LReturnValid = nullptr, uint16_t *F2LReturn = nullptr, uint16_t (*FANLMINMAXReturn)[6] = nullptr);
     bool setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
-    bool setRoomFan3(byte roomFan3Speed);
-    bool setRoomFan4(byte roomFan4Speed);
+    bool setRoomFan3(byte roomFan3Speed, uint16_t *F3LReturn = nullptr);
+    bool setRoomFan4(byte roomFan4Speed, uint16_t *F4LReturn = nullptr);
     bool setSilentMode(byte silentMode);
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
