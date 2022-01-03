@@ -620,11 +620,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
             if ((buf & 0x8000) == 0)
             {
                 _FAN2TYPE = 4;
-                uint16_t var_C;
-                res = fumisComReadWord(0x204C, &var_C);
-                if (res < 0)
-                    return res;
-                if ((var_C & 0x8000) > 0)
+                if (_HWTYPE == 7)
                     _FAN2TYPE = 5;
             }
             else
@@ -656,6 +652,38 @@ int Palazzetti::iGetStoveConfigurationAtech()
         _FAN2LMAX = 5;
         _FAN3LMAX = 5;
     }
+
+    byte tmp = 1; //var_27
+    if (4208 == 5)
+    {
+        if (4512 > 0x13)
+            tmp = 0x11;
+    }
+    else if (4208 == 7)
+    {
+        tmp = 3;
+        if (4512 > 0x1D)
+            tmp = 0xD;
+        if (4512 > 0x21)
+            tmp = 0x11;
+    }
+    else
+    {
+        if (4512 > 0x81)
+            tmp = 3;
+        if (4512 > 0x88)
+            tmp = 7;
+    }
+    _BLEMBMODE = tmp;
+
+    if (_DSPFWVER < 0x2E)
+    {
+        if (_DSPFWVER < 0x2A)
+            tmp = 1;
+        else if (tmp > 6)
+            tmp -= 4;
+    }
+    _BLEDSPMODE = tmp;
 
     if (var_1E)
         _STOVETYPE = 2;
