@@ -1543,8 +1543,17 @@ int Palazzetti::iGetAllStatus(bool refreshStatus)
         if (res < 0)
             return res;
         // res = iGetChronoDataAtech();
-        if (res < 0)
-            return res;
+        // if (res < 0)
+        //     return res;
+        // res = iGetErrorFlagAtech();
+        // if (res < 0)
+        //     return res;
+        // if (_PSENSTYPE)
+        // {
+        //     res = iGetPelletLevelAtech();
+        //     if (res < 0)
+        //         return res;
+        // }
     }
     
 
