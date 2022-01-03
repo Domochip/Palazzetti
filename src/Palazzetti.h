@@ -48,7 +48,7 @@ class Palazzetti
     uint16_t _F3L = 0; //myData.4360
     uint16_t _F4L = 0; //myData.4364
 
-    byte _PWR = 0; //myData.4364
+    byte _PWR = 0; //myData.4368
 
     float _FDR = 0; //myData.4372  (FeederActiveTime)
 
@@ -244,9 +244,9 @@ public:
     bool initialize();
     bool initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep);
     bool isInitialized() { return _isInitialized; };
-    bool getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, byte *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
-    bool getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (&SN)[28]);
-    bool getSN(char (&SN)[28]);
+    bool getStaticData(char (*SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, byte *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR);
+    bool getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28]);
+    bool getSN(char (*SN)[28]);
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
@@ -261,14 +261,14 @@ public:
     bool setSilentMode(byte silentMode);
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
-    bool getDateTime(char (&STOVE_DATETIME)[20],byte *STOVE_WDAY);
+    bool getDateTime(char (*STOVE_DATETIME)[20],byte *STOVE_WDAY);
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
     bool setHiddenParameter(byte hParamNumber, uint16_t hParamValue);
-    bool getAllParameters(byte (&params)[0x6A]);
-    bool getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F]);
+    bool getAllParameters(byte (*params)[0x6A]);
+    bool getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     bool powerOff();
     bool powerOn();
     Palazzetti();

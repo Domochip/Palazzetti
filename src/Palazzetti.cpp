@@ -1610,7 +1610,7 @@ bool Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATU
     return initialize();
 }
 
-bool Palazzetti::getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, byte *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
+bool Palazzetti::getStaticData(char (*SN)[28], byte *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, byte *UICONFIG, byte *HWTYPE, uint16_t *DSPFWVER, byte *CONFIG, byte *PELLETTYPE, uint16_t *PSENSTYPE, byte *PSENSLMAX, byte *PSENSLTSH, byte *PSENSLMIN, byte *MAINTPROBE, byte *STOVETYPE, byte *FAN2TYPE, byte *FAN2MODE, byte *CHRONOTYPE, byte *AUTONOMYTYPE, byte *NOMINALPWR)
 {
     if (!initialize())
         return false;
@@ -1624,7 +1624,8 @@ bool Palazzetti::getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_
     //read LABEL : not needed
     //get network infos by running nwdata.sh : not needed
 
-    strcpy(SN, _SN);
+    if (SN)
+        strcpy((char*)SN, _SN);
     if (SNCHK)
         *SNCHK = isValidSerialNumber(_SN);
     if (MBTYPE)
@@ -1638,7 +1639,8 @@ bool Palazzetti::getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_
         *VER = _VER;
     if (CORE)
         *CORE = _CORE;
-    sprintf(FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+    if (FWDATE)
+        sprintf((char*)FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
     if (FLUID)
         *FLUID = _FLUID;
     if (SPLMIN)
@@ -1681,7 +1683,7 @@ bool Palazzetti::getStaticData(char (&SN)[28], byte *SNCHK, int *MBTYPE, uint16_
 }
 
 //refreshStatus shoud be true if last call is over ~15sec
-bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (&FWDATE)[11], char (&APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (&FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (&SN)[28])
+bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28])
 {
     if (!initialize())
         return false;
@@ -1698,8 +1700,10 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
         *VER = _VER;
     if (CORE)
         *CORE = _CORE;
-    sprintf(FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
-    sprintf(APLTS,_STOVE_DATETIME);
+    if (FWDATE)
+        sprintf((char*)FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+    if (APLTS)
+        strcpy((char*)APLTS,_STOVE_DATETIME);
     if (APLWDAY)
         *APLWDAY = _STOVE_WDAY;
     if (CHRSTATUS)
@@ -1739,12 +1743,15 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
             *F2LF = tmp - 5;
     }
     iGetFanLimits();
-    FANLMINMAX[0] = _FAN1LMIN;
-    FANLMINMAX[1] = _FAN1LMAX;
-    FANLMINMAX[2] = _FAN2LMIN;
-    FANLMINMAX[3] = _FAN2LMAX;
-    FANLMINMAX[4] = _FAN3LMIN;
-    FANLMINMAX[5] = _FAN3LMAX;
+    if (FANLMINMAX)
+    {
+        (*FANLMINMAX)[0] = _FAN1LMIN;
+        (*FANLMINMAX)[1] = _FAN1LMAX;
+        (*FANLMINMAX)[2] = _FAN2LMIN;
+        (*FANLMINMAX)[3] = _FAN2LMAX;
+        (*FANLMINMAX)[4] = _FAN3LMIN;
+        (*FANLMINMAX)[5] = _FAN3LMAX;
+    }
     if (F2V)
         *F2V = _F2V;
     if (isF3LF4LValid)
@@ -1782,12 +1789,12 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
         *T4 = _T4;
     if (T5)
         *T5 = _T5;
-    if (isSNValid)
+    if (isSNValid && SN)
     {
         if (isValidSerialNumber(_SN))
         {
             *isSNValid = true;
-            strcpy(SN, _SN);
+            strcpy((char*)SN, _SN);
         }
         else
             *isSNValid = false;
@@ -1796,12 +1803,13 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
     return true;
 }
 
-bool Palazzetti::getSN(char (&SN)[28])
+bool Palazzetti::getSN(char (*SN)[28])
 {
     if (!initialize())
         return false;
     
-    strcpy(SN, _SN);
+    if (SN)
+        strcpy((char*)SN, _SN);
     return true;
 }
 
@@ -2070,7 +2078,7 @@ bool Palazzetti::getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS)
     return true;
 }
 
-bool Palazzetti::getDateTime(char (&STOVE_DATETIME)[20], byte *STOVE_WDAY)
+bool Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], byte *STOVE_WDAY)
 {
     if (!initialize())
         return false;
@@ -2081,7 +2089,8 @@ bool Palazzetti::getDateTime(char (&STOVE_DATETIME)[20], byte *STOVE_WDAY)
     if (iGetDateTimeAtech() < 0)
         return false;
 
-    strcpy(STOVE_DATETIME, _STOVE_DATETIME);
+    if (STOVE_DATETIME)
+        strcpy((char*)STOVE_DATETIME, _STOVE_DATETIME);
 
     if (STOVE_WDAY)
         *STOVE_WDAY = _STOVE_WDAY;
@@ -2188,7 +2197,7 @@ bool Palazzetti::setHiddenParameter(byte hParamNumber, uint16_t hParamValue)
     return true;
 }
 
-bool Palazzetti::getAllParameters(byte (&params)[0x6A])
+bool Palazzetti::getAllParameters(byte (*params)[0x6A])
 {
     if (!initialize())
         return false;
@@ -2196,12 +2205,12 @@ bool Palazzetti::getAllParameters(byte (&params)[0x6A])
     if (iUpdateStaticDataAtech() < 0)
         return false;
 
-    memcpy(params, _PARAMS, 0x6A * sizeof(byte));
+    memcpy(*params, _PARAMS, 0x6A * sizeof(byte));
 
     return true;
 }
 
-bool Palazzetti::getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F])
+bool Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
 {
     if (!initialize())
         return false;
@@ -2209,7 +2218,7 @@ bool Palazzetti::getAllHiddenParameters(uint16_t (&hiddenParams)[0x6F])
     if (iUpdateStaticDataAtech() < 0)
         return false;
 
-    memcpy(hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
+    memcpy(*hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
 
     return true;
 }
