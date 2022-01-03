@@ -1625,7 +1625,7 @@ bool Palazzetti::getStaticData(char (*SN)[28], byte *SNCHK, int *MBTYPE, uint16_
     //get network infos by running nwdata.sh : not needed
 
     if (SN)
-        strcpy((char*)SN, _SN);
+        strcpy(*SN, _SN);
     if (SNCHK)
         *SNCHK = isValidSerialNumber(_SN);
     if (MBTYPE)
@@ -1640,7 +1640,7 @@ bool Palazzetti::getStaticData(char (*SN)[28], byte *SNCHK, int *MBTYPE, uint16_
     if (CORE)
         *CORE = _CORE;
     if (FWDATE)
-        sprintf((char*)FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
     if (FLUID)
         *FLUID = _FLUID;
     if (SPLMIN)
@@ -1701,9 +1701,9 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
     if (CORE)
         *CORE = _CORE;
     if (FWDATE)
-        sprintf((char*)FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
     if (APLTS)
-        strcpy((char*)APLTS,_STOVE_DATETIME);
+        strcpy(*APLTS,_STOVE_DATETIME);
     if (APLWDAY)
         *APLWDAY = _STOVE_WDAY;
     if (CHRSTATUS)
@@ -1794,7 +1794,7 @@ bool Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, ui
         if (isValidSerialNumber(_SN))
         {
             *isSNValid = true;
-            strcpy((char*)SN, _SN);
+            strcpy(*SN, _SN);
         }
         else
             *isSNValid = false;
@@ -1809,7 +1809,7 @@ bool Palazzetti::getSN(char (*SN)[28])
         return false;
     
     if (SN)
-        strcpy((char*)SN, _SN);
+        strcpy(*SN, _SN);
     return true;
 }
 
@@ -2117,7 +2117,7 @@ bool Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], byte *STOVE_WDAY)
         return false;
 
     if (STOVE_DATETIME)
-        strcpy((char*)STOVE_DATETIME, _STOVE_DATETIME);
+        strcpy(*STOVE_DATETIME, _STOVE_DATETIME);
 
     if (STOVE_WDAY)
         *STOVE_WDAY = _STOVE_WDAY;
