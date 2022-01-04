@@ -244,7 +244,7 @@ class Palazzetti
     int iSetRoomFan3Atech(uint16_t roomFan3Speed);
     int iSetRoomFan4Atech(uint16_t roomFan4Speed);
     int iSetSilentModeAtech(uint16_t silentMode);
-    int iGetCounters();
+    int iGetCountersAtech();
     int iGetDPressDataAtech();
     int iGetDateTimeAtech();
     int iReadIOAtech();

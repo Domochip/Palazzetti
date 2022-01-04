@@ -1352,7 +1352,7 @@ int Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
     return 0;
 }
 
-int Palazzetti::iGetCounters()
+int Palazzetti::iGetCountersAtech()
 {
 
     byte var_18[8];
@@ -2204,7 +2204,7 @@ bool Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWE
     if (_MBTYPE < 0 || _MBTYPE >= 2)
         return false;
 
-    if (iGetCounters() < 0)
+    if (iGetCountersAtech() < 0)
         return false;
 
     if (IGN)
