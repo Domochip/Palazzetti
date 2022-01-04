@@ -12,15 +12,19 @@ class Palazzetti
     uint16_t dword_432618 = 0; //sFumisComData.8  Unused variable (always set but never get : DEBUG?)
 
     uint16_t serialPortModel = 2; //myData.32  depend of board name : 1=omni-emb; 2=others
-    //myData.36
-    //myData.40
-    //myData.44  => 2048 array
-    //myData.2092
-    //myData.2096  => 2048 array
-    //myData.4144
-    //myData.4148  unused 1 byte
-    //myData.4175
-    // byte verboseLevel = 0; //myData.4176
+    // time_t lastGetAllStatusTime; //myData.36  keep track of last iGetAllStatus
+    // msgbuf structure used by msgrcv function
+    // struct msgbufR {
+    //     long mtype; //myData.40
+    //     char mtext[2048]; //myData.44
+    // } msgbufReceive;
+    // msgbuf structure used by msgsnd function
+    // struct msgbufS {
+    //     long mtype; //myData.2092
+    //     char mtext[2048]; //myData.2096
+    // } msgbufSend;
+    // char path[31] = "/tmp"; //myData.4144  file path to generate msgkey
+    // uint16_t verboseLevel = 0; //myData.4176
     uint16_t comPortNumber = 0; //myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
     //myData.4184  pointer to string "/dev/ttyS0"
     //myData.4188  pointer to string "/dev/ttyUSB0"
@@ -135,10 +139,10 @@ class Palazzetti
     uint16_t _FLUID = 0; //myData.4552
 
     byte _LIMMAX[0x6A]; //mydata.4556
-    // byte _LIMMAX[0x33] or _LIMMAX[0x33] contains SPLMAX
+    // byte _LIMMAX[0x33] or _LIMMAX[0x54] contains SPLMAX
 
     byte _LIMMIN[0x6A]; //mydata.4560
-    // byte _LIMMIN[0x33] or _LIMMIN[0x33] contains SPLMIN
+    // byte _LIMMIN[0x33] or _LIMMIN[0x54] contains SPLMIN
 
     byte _SPLMIN = 0; //myData.4564  (SetPointLimitMin)
     byte _SPLMAX = 0;    //myData.4568  (SetPointLimitMax)
