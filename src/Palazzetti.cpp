@@ -1219,7 +1219,7 @@ int Palazzetti::iGetPowerAtech()
 
 int Palazzetti::iSetPowerAtech(uint16_t powerLevel)
 {
-    if (powerLevel < 0 || powerLevel > 5)
+    if (powerLevel < 1 || powerLevel > 5)
         return -1;
 
     int res = fumisComWriteByte(0x202a, powerLevel);
