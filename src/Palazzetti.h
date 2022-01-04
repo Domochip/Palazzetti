@@ -5,21 +5,33 @@
 
 class Palazzetti
 {
+    unsigned long selectSerialTimeoutms = 3000;
+
     uint16_t wAddrFeederActiveTime = 0;
     uint32_t fumisComStatus = 0; //sFumisComData.4
     uint16_t dword_432618 = 0; //sFumisComData.8  Unused variable (always set but never get : DEBUG?)
 
     uint16_t serialPortModel = 2; //myData.32  depend of board name : 1=omni-emb; 2=others
-
-    //myData.4176 = verbose level
-    uint16_t comPortNumber = 0; //myData.4180  COM Port Number
-
+    //myData.36
+    //myData.40
+    //myData.44  => 2048 array
+    //myData.2092
+    //myData.2096  => 2048 array
+    //myData.4144
+    //myData.4148  unused 1 byte
+    //myData.4175
+    // byte verboseLevel = 0; //myData.4176
+    uint16_t comPortNumber = 0; //myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
+    //myData.4184  pointer to string "/dev/ttyS0"
+    //myData.4188  pointer to string "/dev/ttyUSB0"
+    //myData.4192  pointer to string "/dev/ttyUSB1"
+    //myData.4196  pointer to string "/dev/ttyACM0"
     int _MBTYPE = 0; //myData.4200  0 for Fumis; 100(0x64) for Micronova
-    byte _HWTYPE = 0; //myData.4208 
     uint16_t dword_470F0C = 0; //myData.4204  MBTYPE (Micronova)
-
-    unsigned long selectSerialTimeoutms = 3000;
-
+    byte _HWTYPE = 0; //myData.4208 
+    //myData.4212
+    //myData.4216
+    //myData.4220
     char _SN[28]; //myData.4224
 
     // char _LABEL[32]; //myData.4280  Not Used
@@ -66,7 +78,11 @@ class Palazzetti
     char _STOVE_DATETIME[20]; //myData.4428
     uint16_t _STOVE_WDAY = 0; //myData.4448
     byte _CHRSTATUS = 0; //myData.4452
+    uint16_t _EFLAGS = 0; //myData.4456
     uint16_t _PQT = 0; //myData.4460
+    uint16_t _PLEVEL = 0; //myData.4464
+    uint16_t _PSENSCSTA = 0; //myData.4468
+    uint16_t _PSENSLEMP = 0; //myData.4472
 
     //dword_47101C //myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
 
