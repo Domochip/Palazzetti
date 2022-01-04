@@ -654,24 +654,24 @@ int Palazzetti::iGetStoveConfigurationAtech()
     }
 
     byte tmp = 1; //var_27
-    if (4208 == 5)
+    if (_HWTYPE == 5)
     {
-        if (4512 > 0x13)
+        if (_CORE > 0x13)
             tmp = 0x11;
     }
-    else if (4208 == 7)
+    else if (_HWTYPE == 7)
     {
         tmp = 3;
-        if (4512 > 0x1D)
+        if (_CORE > 0x1D)
             tmp = 0xD;
-        if (4512 > 0x21)
+        if (_CORE > 0x21)
             tmp = 0x11;
     }
     else
     {
-        if (4512 > 0x81)
+        if (_CORE > 0x81)
             tmp = 3;
-        if (4512 > 0x88)
+        if (_CORE > 0x88)
             tmp = 7;
     }
     _BLEMBMODE = tmp;
