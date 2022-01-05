@@ -2399,7 +2399,7 @@ bool Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
     return true;
 }
 
-bool Palazzetti::powerOff()
+bool Palazzetti::switchOff()
 {
     if (!initialize())
         return false;
@@ -2409,7 +2409,7 @@ bool Palazzetti::powerOff()
     return true;
 }
 
-bool Palazzetti::powerOn()
+bool Palazzetti::switchOn()
 {
     if (!initialize())
         return false;
