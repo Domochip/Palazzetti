@@ -1498,7 +1498,7 @@ int Palazzetti::iGetChronoDataAtech()
     //TODO : complete implementation (first part is missing)
 
     uint16_t buf;
-    int res = fumisComReadWord(0x2020, &buf);
+    int res = fumisComReadWord(0x207e, &buf);
     if (res < 0)
         return res;
     _CHRSTATUS = buf & 0x01;
