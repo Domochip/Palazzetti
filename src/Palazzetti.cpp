@@ -1295,7 +1295,7 @@ int Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
     }
     else
     {
-        if (_FAN2TYPE == 5)
+        if (_FAN2TYPE != 5)
             return -1;
         res = fumisComWriteWord(0x2004, roomFan3Speed);
         if (res < 0)
