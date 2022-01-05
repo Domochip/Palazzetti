@@ -254,6 +254,7 @@ class Palazzetti
     int iReadIOAtech();
     int iGetPumpRateAtech();
     int iGetChronoDataAtech();
+    int iSetChronoStatusAtech(bool chronoStatus);
     int iGetAllStatus(bool refreshStatus);
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
@@ -286,6 +287,7 @@ public:
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
     bool getDateTime(char (*STOVE_DATETIME)[20],byte *STOVE_WDAY);
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
+    bool setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);

@@ -1506,6 +1506,24 @@ int Palazzetti::iGetChronoDataAtech()
     return 0;
 }
 
+int Palazzetti::iSetChronoStatusAtech(bool chronoStatus)
+{
+    uint16_t buf;
+    int res = fumisComReadWord(0x207e, &buf);
+    if (res < 0)
+        return res;
+    if (chronoStatus)
+        buf |= 1;
+    else
+        buf &= 0xfffe;
+
+    res = fumisComWriteByte(0x207e, buf);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
@@ -2307,6 +2325,23 @@ bool Palazzetti::getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, b
         *OUT_O06 = _OUT_O06;
     if (OUT_O07)
         *OUT_O07 = _OUT_O07;
+
+    return true;
+}
+
+bool Palazzetti::setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iSetChronoStatusAtech(chronoStatus) < 0)
+        return false;
+
+    if (CHRSTATUSReturn)
+        *CHRSTATUSReturn = chronoStatus;
 
     return true;
 }
