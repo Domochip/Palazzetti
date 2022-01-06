@@ -88,7 +88,24 @@ class Palazzetti
     uint16_t _PSENSCSTA = 0; //myData.4468
     uint16_t _PSENSLEMP = 0; //myData.4472
 
-    //dword_47101C //myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
+    //myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
+    //0->5 : P1->P6
+    struct chronoDataProgram {
+        float CHRSETP; //chronoData[0->5 * 0x14]
+        byte STARTH;   //chronoData[0->5 * 0x14 + 4]
+        byte STARTM;   //chronoData[0->5 * 0x14 + 8]
+        byte STOPH;    //chronoData[0->5 * 0x14 + 0x0C]
+        byte STOPM;    //chronoData[0->5 * 0x14 + 0x10]
+    };
+    chronoDataProgram chronoDataPrograms[6];
+    //0->6 : D1->D7
+    struct chronoDataDay {
+        byte M1; //chronoData[0x78 + (0->6 * 3 + 0) * 4]
+        byte M2; //chronoData[0x78 + (0->6 * 3 + 1) * 4]
+        byte M3; //chronoData[0x78 + (0->6 * 3 + 2) * 4]
+    };
+    chronoDataDay chronoDataDays[7];
+    uint16_t chronoDataStatus; //chronoData[0xCC]
 
     //space of 0x16 size reserved by malloc in iInit
     uint16_t _IGN = 0; //myData.4480[0]
@@ -288,6 +305,7 @@ public:
     bool getDateTime(char (*STOVE_DATETIME)[20],byte *STOVE_WDAY);
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn);
+    bool getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PSTART)[6][2], byte (*PSTOP)[6][2], byte (*DM)[7][3]);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);

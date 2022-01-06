@@ -1495,13 +1495,48 @@ int Palazzetti::iGetPumpRateAtech()
 
 int Palazzetti::iGetChronoDataAtech()
 {
-    //TODO : complete implementation (first part is missing)
-
-    uint16_t buf;
-    int res = fumisComReadWord(0x207e, &buf);
+    byte CHRSETPList[8];
+    int res = fumisComReadBuff(0x802D, CHRSETPList, 8);
     if (res < 0)
         return res;
-    _CHRSTATUS = buf & 0x01;
+    
+    uint16_t addrToRead = 0x8000;
+    byte programTimes[8];
+    for (byte i = 0; i < 6; i++)
+    {
+        int res = fumisComReadBuff(addrToRead, programTimes, 8);
+        if (res < 0)
+            return res;
+        chronoDataPrograms[i].STARTH = programTimes[0];
+        chronoDataPrograms[i].STARTM = programTimes[1];
+        chronoDataPrograms[i].STOPH = programTimes[2];
+        chronoDataPrograms[i].STOPM = programTimes[3];
+        chronoDataPrograms[i].CHRSETP = (int8_t)CHRSETPList[i];
+        if (!_FLUID)
+            chronoDataPrograms[i].CHRSETP /= 5.0;
+
+        addrToRead += 4;
+    }
+
+    addrToRead = 0x8018;
+    byte dayPrograms[8];
+    for (byte i = 0; i < 7; i++)
+    {
+        int res = fumisComReadBuff(addrToRead, dayPrograms, 8);
+        if (res < 0)
+            return res;
+        
+        chronoDataDays[i].M1 = dayPrograms[0];
+        chronoDataDays[i].M2 = dayPrograms[1];
+        chronoDataDays[i].M3 = dayPrograms[2];
+
+        addrToRead += 3;
+    }
+
+    res = fumisComReadWord(0x207e, &chronoDataStatus);
+    if (res < 0)
+        return res;
+    _CHRSTATUS = chronoDataStatus & 0x01;
 
     return 0;
 }
@@ -2343,6 +2378,48 @@ bool Palazzetti::setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn)
     if (CHRSTATUSReturn)
         *CHRSTATUSReturn = chronoStatus;
 
+    return true;
+}
+
+bool Palazzetti::getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PSTART)[6][2], byte (*PSTOP)[6][2], byte (*DM)[7][3])
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iGetChronoDataAtech() < 0)
+        return false;
+
+    if (CHRSTATUS)
+        *CHRSTATUS = chronoDataStatus;
+    for (byte i = 0; i < 6; i++)
+    {
+        if (PCHRSETP)
+            (*PCHRSETP)[i] = chronoDataPrograms[i].CHRSETP;
+        if (PSTART)
+        {
+            (*PSTART)[i][0] = chronoDataPrograms[i].STARTH;
+            (*PSTART)[i][1] = chronoDataPrograms[i].STARTM;
+        }
+        if (PSTOP)
+        {
+            (*PSTOP)[i][0] = chronoDataPrograms[i].STOPH;
+            (*PSTOP)[i][1] = chronoDataPrograms[i].STOPM;
+        }
+    }
+
+    for (byte i = 0; i < 7; i++)
+    {
+        if (DM)
+        {
+            (*DM)[i][0] = chronoDataDays[i].M1;
+            (*DM)[i][1] = chronoDataDays[i].M2;
+            (*DM)[i][2] = chronoDataDays[i].M3;
+        }
+    }
+    
     return true;
 }
 
