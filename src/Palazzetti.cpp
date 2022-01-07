@@ -1559,6 +1559,54 @@ int Palazzetti::iSetChronoStatusAtech(bool chronoStatus)
     return 0;
 }
 
+int Palazzetti::iSetChronoStartHHAtech(byte programNumber, byte startHour)
+{
+    if (!programNumber || programNumber > 6 || startHour >= 24)
+        return -1;
+
+    int res = fumisComWriteByte((programNumber + 0x1FFF) * 4, startHour);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iSetChronoStartMMAtech(byte programNumber, byte startMinute)
+{
+    if (!programNumber || programNumber > 6 || startMinute >= 60)
+        return -1;
+
+    int res = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 1, startMinute);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iSetChronoStopHHAtech(byte programNumber, byte stopHour)
+{
+    if (!programNumber || programNumber > 6 || stopHour >= 24)
+        return -1;
+
+    int res = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 2, stopHour);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
+int Palazzetti::iSetChronoStopMMAtech(byte programNumber, byte stopMinute)
+{
+    if (!programNumber || programNumber > 6 || stopMinute >= 60)
+        return -1;
+
+    int res = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 3, stopMinute);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
@@ -2420,6 +2468,62 @@ bool Palazzetti::getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PST
         }
     }
     
+    return true;
+}
+
+bool Palazzetti::setChronoStartHH(byte programNumber, byte startHour)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+    
+    if (iSetChronoStartHHAtech(programNumber, startHour) < 0)
+        return false;
+
+    return true;
+}
+
+bool Palazzetti::setChronoStartMM(byte programNumber, byte startMinute)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+    
+    if (iSetChronoStartMMAtech(programNumber, startMinute) < 0)
+        return false;
+
+    return true;
+}
+
+bool Palazzetti::setChronoStopHH(byte programNumber, byte stopHour)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+    
+    if (iSetChronoStopHHAtech(programNumber, stopHour) < 0)
+        return false;
+
+    return true;
+}
+
+bool Palazzetti::setChronoStopMM(byte programNumber, byte stopMinute)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+    
+    if (iSetChronoStopMMAtech(programNumber, stopMinute) < 0)
+        return false;
+
     return true;
 }
 

@@ -272,6 +272,10 @@ class Palazzetti
     int iGetPumpRateAtech();
     int iGetChronoDataAtech();
     int iSetChronoStatusAtech(bool chronoStatus);
+    int iSetChronoStartHHAtech(byte programNumber, byte startHour);
+    int iSetChronoStartMMAtech(byte programNumber, byte startMinute);
+    int iSetChronoStopHHAtech(byte programNumber, byte stopHour);
+    int iSetChronoStopMMAtech(byte programNumber, byte stopMinute);
     int iGetAllStatus(bool refreshStatus);
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
@@ -306,6 +310,10 @@ public:
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn);
     bool getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PSTART)[6][2], byte (*PSTOP)[6][2], byte (*DM)[7][3]);
+    bool setChronoStartHH(byte programNumber, byte startHour);
+    bool setChronoStartMM(byte programNumber, byte startMinute);
+    bool setChronoStopHH(byte programNumber, byte stopHour);
+    bool setChronoStopMM(byte programNumber, byte stopMinute);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
