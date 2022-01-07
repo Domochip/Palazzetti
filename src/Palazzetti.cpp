@@ -1728,9 +1728,9 @@ int Palazzetti::iGetAllStatus(bool refreshStatus)
         res = iGetPelletQtUsedAtech();
         if (res < 0)
             return res;
-        // res = iGetChronoDataAtech();
-        // if (res < 0)
-        //     return res;
+        res = iGetChronoDataAtech();
+        if (res < 0)
+            return res;
         // res = iGetErrorFlagAtech();
         // if (res < 0)
         //     return res;
