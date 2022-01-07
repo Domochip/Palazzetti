@@ -1628,6 +1628,24 @@ int Palazzetti::iSetChronoSetpointAtech(byte programNumber, byte setPoint)
     return 0;
 }
 
+int Palazzetti::iSetChronoDayAtech(byte dayNumber,byte memoryNumber,byte programNumber)
+{
+    if (programNumber > 6)
+        return -3;
+
+    if (!dayNumber || dayNumber > 7)
+        return -3;
+    
+    if (!memoryNumber || memoryNumber > 3)
+        return -3;
+    
+    int res = fumisComWriteByte((dayNumber - 1) * 3 + memoryNumber + 0x8017, programNumber);
+    if (res < 0)
+        return -3;
+
+    return 0;
+}
+
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
@@ -2571,6 +2589,20 @@ bool Palazzetti::setChronoSetpoint(byte programNumber, byte setPoint)
     if (iSetChronoSetpointAtech(programNumber, setPoint) < 0)
         return false;
 
+    return true;
+}
+
+bool Palazzetti::setChronoDay(byte dayNumber,byte memoryNumber,byte programNumber)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iSetChronoDayAtech(dayNumber, memoryNumber, programNumber) < 0)
+        return false;
+    
     return true;
 }
 
