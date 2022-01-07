@@ -249,7 +249,7 @@ class Palazzetti
     int iUpdateStaticData();
     int iCloseUART();
     int iGetSetPointAtech();
-    int iSetSetPointAtech(uint16_t setPoint);
+    int iSetSetPointAtech(byte setPoint);
     int iSetSetPointAtech(float setPoint);
     int iReadTemperatureAtech();
     int iSwitchOnAtech();
@@ -295,6 +295,7 @@ public:
     bool getModelVersion(uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11]);
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint, float *SETPReturn = nullptr);
+    bool setSetpoint(float setPoint, float *SETPReturn = nullptr);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);

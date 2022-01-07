@@ -953,7 +953,7 @@ int Palazzetti::iGetSetPointAtech()
     return 0;
 }
 
-int Palazzetti::iSetSetPointAtech(uint16_t setPoint)
+int Palazzetti::iSetSetPointAtech(byte setPoint)
 {
     int res; //var_10
 
@@ -2032,7 +2032,19 @@ bool Palazzetti::setSetpoint(byte setPoint, float *SETPReturn)
     if (!initialize())
         return false;
 
-    if (iSetSetPointAtech((uint16_t)setPoint) < 0)
+    if (iSetSetPointAtech(setPoint) < 0)
+        return false;
+    if (SETPReturn)
+        *SETPReturn = _SETP;
+    return true;
+}
+
+bool Palazzetti::setSetpoint(float setPoint, float *SETPReturn)
+{
+    if (!initialize())
+        return false;
+
+    if (iSetSetPointAtech(setPoint) < 0)
         return false;
     if (SETPReturn)
         *SETPReturn = _SETP;
