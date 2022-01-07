@@ -1607,6 +1607,27 @@ int Palazzetti::iSetChronoStopMMAtech(byte programNumber, byte stopMinute)
     return 0;
 }
 
+int Palazzetti::iSetChronoSetpointAtech(byte programNumber, byte setPoint)
+{
+    if (!programNumber || programNumber > 6)
+        return -1;
+
+    if (setPoint < _SPLMIN)
+        setPoint = _SPLMIN;
+
+    if (setPoint > _SPLMAX)
+        setPoint = _SPLMAX;
+
+    if (!_FLUID)
+        setPoint *= 5;
+    
+    int res = fumisComWriteByte(0x802C + programNumber, setPoint);
+    if (res < 0)
+        return res;
+
+    return 0;
+}
+
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     int res = 0;
@@ -2522,6 +2543,20 @@ bool Palazzetti::setChronoStopMM(byte programNumber, byte stopMinute)
         return false;
     
     if (iSetChronoStopMMAtech(programNumber, stopMinute) < 0)
+        return false;
+
+    return true;
+}
+
+bool Palazzetti::setChronoSetpoint(byte programNumber, byte setPoint)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iSetChronoSetpointAtech(programNumber, setPoint) < 0)
         return false;
 
     return true;

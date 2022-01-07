@@ -276,6 +276,7 @@ class Palazzetti
     int iSetChronoStartMMAtech(byte programNumber, byte startMinute);
     int iSetChronoStopHHAtech(byte programNumber, byte stopHour);
     int iSetChronoStopMMAtech(byte programNumber, byte stopMinute);
+    int iSetChronoSetpointAtech(byte programNumber, byte setPoint);
     int iGetAllStatus(bool refreshStatus);
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     int iSetParameterAtech(byte paramToWrite, byte paramValue);
@@ -314,6 +315,7 @@ public:
     bool setChronoStartMM(byte programNumber, byte startMinute);
     bool setChronoStopHH(byte programNumber, byte stopHour);
     bool setChronoStopMM(byte programNumber, byte stopMinute);
+    bool setChronoSetpoint(byte programNumber, byte setPoint);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
     bool getHiddenParameter(byte hParamNumber, uint16_t *hParamValue);
