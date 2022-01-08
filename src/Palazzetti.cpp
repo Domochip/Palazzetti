@@ -2096,6 +2096,9 @@ bool Palazzetti::setSetpoint(byte setPoint, float *SETPReturn)
     if (!initialize())
         return false;
 
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
     if (iSetSetPointAtech(setPoint) < 0)
         return false;
     if (SETPReturn)
@@ -2106,6 +2109,9 @@ bool Palazzetti::setSetpoint(byte setPoint, float *SETPReturn)
 bool Palazzetti::setSetpoint(float setPoint, float *SETPReturn)
 {
     if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
         return false;
 
     if (iSetSetPointAtech(setPoint) < 0)
