@@ -955,39 +955,7 @@ int Palazzetti::iGetSetPointAtech()
 
 int Palazzetti::iSetSetPointAtech(byte setPoint)
 {
-    int res; //var_10
-
-    if (setPoint < _SPLMIN)
-        setPoint = _SPLMIN;
-
-    if (setPoint > _SPLMAX)
-        setPoint = _SPLMAX;
-
-    if (_FLUID > 2)
-        return 0;
-    if (_FLUID == 2)
-    {
-        res = fumisComWriteByte(0x1C54, setPoint);
-        if (res < 0)
-            return res;
-        _SETP = setPoint;
-    }
-    if (!_FLUID)
-    {
-        res = fumisComWriteByte(0x1C33, setPoint * 5);
-        if (res < 0)
-            return res;
-        _SETP = setPoint;
-    }
-    else
-    {
-        res = fumisComWriteByte(0x1C33, setPoint);
-        if (res < 0)
-            return res;
-        _SETP = setPoint;
-    }
-
-    return 0;
+    return iSetSetPointAtech((float)setPoint);
 }
 
 int Palazzetti::iSetSetPointAtech(float setPoint)
@@ -1011,7 +979,7 @@ int Palazzetti::iSetSetPointAtech(float setPoint)
     }
     if (!_FLUID)
     {
-        res = fumisComWriteByte(0x1C33, setPoint * 5);
+        res = fumisComWriteByte(0x1C33, setPoint * 5.0f);
         if (res < 0)
             return res;
         _SETP = setPoint;
