@@ -298,6 +298,8 @@ public:
     bool getSetPoint(float *setPoint);
     bool setSetpoint(byte setPoint, float *SETPReturn = nullptr);
     bool setSetpoint(float setPoint, float *SETPReturn = nullptr);
+    bool setSetPointUp(float *SETPReturn = nullptr);
+    bool setSetPointDown(float *SETPReturn = nullptr);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
     bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);

@@ -2115,6 +2115,34 @@ bool Palazzetti::setSetpoint(float setPoint, float *SETPReturn)
     return true;
 }
 
+bool Palazzetti::setSetPointUp(float *SETPReturn)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iGetSetPointAtech() < 0)
+        return false;
+
+    return setSetpoint(_SETP + 1.0f, SETPReturn);
+}
+
+bool Palazzetti::setSetPointDown(float *SETPReturn)
+{
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (iGetSetPointAtech() < 0)
+        return false;
+
+    return setSetpoint(_SETP - 1.0f, SETPReturn);
+}
+
 bool Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5)
 {
     if (!initialize())
