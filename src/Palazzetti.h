@@ -307,6 +307,8 @@ public:
     bool getPower(byte *PWR, float *FDR);
     bool setPower(byte powerLevel, byte *PWRReturn = nullptr, bool *isF2LReturnValid = nullptr, uint16_t *F2LReturn = nullptr, uint16_t (*FANLMINMAXReturn)[6] = nullptr);
     bool setRoomFan(byte roomFanSpeed, bool *isPWRReturnValid = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
+    bool setRoomFanUp(bool *isPWRReturnValid = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
+    bool setRoomFanDown(bool *isPWRReturnValid = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
     bool setRoomFan3(byte roomFan3Speed, uint16_t *F3LReturn = nullptr);
     bool setRoomFan4(byte roomFan4Speed, uint16_t *F4LReturn = nullptr);
     bool setSilentMode(byte silentMode, byte *SLNTReturn = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
