@@ -8,182 +8,186 @@ class Palazzetti
     unsigned long selectSerialTimeoutms = 3000;
 
     uint16_t wAddrFeederActiveTime = 0;
-    uint32_t fumisComStatus = 0; //sFumisComData.4
-    uint16_t dword_432618 = 0; //sFumisComData.8  Unused variable (always set but never get : DEBUG?)
+    uint32_t fumisComStatus = 0; // sFumisComData.4
+    uint16_t dword_432618 = 0;   // sFumisComData.8  Unused variable (always set but never get : DEBUG?)
 
-    uint16_t serialPortModel = 2; //myData.32  depend of board name : 1=omni-emb; 2=others
-    // time_t lastGetAllStatusTime; //myData.36  keep track of last iGetAllStatus
-    // msgbuf structure used by msgrcv function
-    // struct msgbufR {
-    //     long mtype; //myData.40
-    //     char mtext[2048]; //myData.44
+    uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others
+    // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
+    // // msgbuf structure used by msgrcv function
+    // struct msgbufR
+    // {
+    //     long mtype;       // myData.40
+    //     char mtext[2048]; // myData.44
     // } msgbufReceive;
-    // msgbuf structure used by msgsnd function
-    // struct msgbufS {
-    //     long mtype; //myData.2092
-    //     char mtext[2048]; //myData.2096
+    // // msgbuf structure used by msgsnd function
+    // struct msgbufS
+    // {
+    //     long mtype;       // myData.2092
+    //     char mtext[2048]; // myData.2096
     // } msgbufSend;
-    // char path[31] = "/tmp"; //myData.4144  file path to generate msgkey
-    // uint16_t verboseLevel = 0; //myData.4176
-    uint16_t comPortNumber = 0; //myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    //myData.4184  pointer to string "/dev/ttyS0"
-    //myData.4188  pointer to string "/dev/ttyUSB0"
-    //myData.4192  pointer to string "/dev/ttyUSB1"
-    //myData.4196  pointer to string "/dev/ttyACM0"
-    int _MBTYPE = 0; //myData.4200  0 for Fumis; 100(0x64) for Micronova
-    uint16_t dword_470F0C = 0; //myData.4204  MBTYPE (Micronova)
-    byte _HWTYPE = 0; //myData.4208 
-    //myData.4212
-    //myData.4216
-    //myData.4220
-    char _SN[28]; //myData.4224
+    // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
+    // uint16_t verboseLevel = 0;  // myData.4176
+    uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
+    // myData.4184  pointer to string "/dev/ttyS0"
+    // myData.4188  pointer to string "/dev/ttyUSB0"
+    // myData.4192  pointer to string "/dev/ttyUSB1"
+    // myData.4196  pointer to string "/dev/ttyACM0"
+    int _MBTYPE = 0;           // myData.4200  0 for Fumis; 100(0x64) for Micronova
+    uint16_t dword_470F0C = 0; // myData.4204  MBTYPE (Micronova)
+    byte _HWTYPE = 0;          // myData.4208
+    // myData.4212
+    // myData.4216
+    // myData.4220
+    char _SN[28]; // myData.4224
 
     // char _LABEL[32]; //myData.4280  Not Used
 
-    float _T1 = 0; //myData.4312
-    float _T2 = 0; //myData.4316
-    float _T3 = 0; //myData.4320
-    float _T4 = 0; //myData.4324
-    float _T5 = 0; //myData.4328
-    byte _IN_I01 = 0;   //myData.4332
-    byte _IN_I02 = 0;   //myData.4333
-    byte _IN_I03 = 0;   //myData.4334
-    byte _IN_I04 = 0;   //myData.4335
-    byte _OUT_O01 = 0;   //myData.4336
-    byte _OUT_O02 = 0;   //myData.4337
-    byte _OUT_O03 = 0;   //myData.4338
-    byte _OUT_O04 = 0;   //myData.4339
-    byte _OUT_O05 = 0;   //myData.4340
-    byte _OUT_O06 = 0;   //myData.4341
-    byte _OUT_O07 = 0;   //myData.4342
+    float _T1 = 0;     // myData.4312
+    float _T2 = 0;     // myData.4316
+    float _T3 = 0;     // myData.4320
+    float _T4 = 0;     // myData.4324
+    float _T5 = 0;     // myData.4328
+    byte _IN_I01 = 0;  // myData.4332
+    byte _IN_I02 = 0;  // myData.4333
+    byte _IN_I03 = 0;  // myData.4334
+    byte _IN_I04 = 0;  // myData.4335
+    byte _OUT_O01 = 0; // myData.4336
+    byte _OUT_O02 = 0; // myData.4337
+    byte _OUT_O03 = 0; // myData.4338
+    byte _OUT_O04 = 0; // myData.4339
+    byte _OUT_O05 = 0; // myData.4340
+    byte _OUT_O06 = 0; // myData.4341
+    byte _OUT_O07 = 0; // myData.4342
 
-    uint16_t _F1V = 0; //myData.4344
-    uint16_t _F2V = 0; //myData.4348
-    uint16_t _F1RPM = 0; //myData.4352
-    uint16_t _F2L = 0; //myData.4356 (transcode needed)
-    uint16_t _F3L = 0; //myData.4360
-    uint16_t _F4L = 0; //myData.4364
+    uint16_t _F1V = 0;   // myData.4344
+    uint16_t _F2V = 0;   // myData.4348
+    uint16_t _F1RPM = 0; // myData.4352
+    uint16_t _F2L = 0;   // myData.4356 (transcode needed)
+    uint16_t _F3L = 0;   // myData.4360
+    uint16_t _F4L = 0;   // myData.4364
 
-    byte _PWR = 0; //myData.4368
+    byte _PWR = 0; // myData.4368
 
-    float _FDR = 0; //myData.4372  (FeederActiveTime)
+    float _FDR = 0; // myData.4372  (FeederActiveTime)
 
-    byte _PUMP = 0; //myData.4376
-    uint16_t _DP_TARGET = 0; //myData.4380
-    uint16_t _DP_PRESS = 0; //myData.4384
+    byte _PUMP = 0;          // myData.4376
+    uint16_t _DP_TARGET = 0; // myData.4380
+    uint16_t _DP_PRESS = 0;  // myData.4384
 
-    uint16_t _STATUS = 0; //myData.4388
-    uint16_t _LSTATUS = 0; //myData.4392
-    uint16_t _MFSTATUS = 0; //myData.4396
+    uint16_t _STATUS = 0;   // myData.4388
+    uint16_t _LSTATUS = 0;  // myData.4392
+    uint16_t _MFSTATUS = 0; // myData.4396
 
-    float _SETP = 0;    //myData.4416  aka SetPoint
-    float _F3S = 0; //myData.4420
-    float _F4S = 0; //myData.4424
-    char _STOVE_DATETIME[20]; //myData.4428
-    uint16_t _STOVE_WDAY = 0; //myData.4448
-    byte _CHRSTATUS = 0; //myData.4452
-    uint16_t _EFLAGS = 0; //myData.4456
-    uint16_t _PQT = 0; //myData.4460
-    uint16_t _PLEVEL = 0; //myData.4464
-    uint16_t _PSENSCSTA = 0; //myData.4468
-    uint16_t _PSENSLEMP = 0; //myData.4472
+    float _SETP = 0;          // myData.4416  aka SetPoint
+    float _F3S = 0;           // myData.4420
+    float _F4S = 0;           // myData.4424
+    char _STOVE_DATETIME[20]; // myData.4428
+    uint16_t _STOVE_WDAY = 0; // myData.4448
+    byte _CHRSTATUS = 0;      // myData.4452
+    uint16_t _EFLAGS = 0;     // myData.4456
+    uint16_t _PQT = 0;        // myData.4460
+    uint16_t _PLEVEL = 0;     // myData.4464
+    uint16_t _PSENSCSTA = 0;  // myData.4468
+    uint16_t _PSENSLEMP = 0;  // myData.4472
 
-    //myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
-    //0->5 : P1->P6
-    struct chronoDataProgram {
-        float CHRSETP; //chronoData[0->5 * 0x14]
-        byte STARTH;   //chronoData[0->5 * 0x14 + 4]
-        byte STARTM;   //chronoData[0->5 * 0x14 + 8]
-        byte STOPH;    //chronoData[0->5 * 0x14 + 0x0C]
-        byte STOPM;    //chronoData[0->5 * 0x14 + 0x10]
+    // myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
+    // 0->5 : P1->P6
+    struct chronoDataProgram
+    {
+        float CHRSETP; // chronoData[0->5 * 0x14]
+        byte STARTH;   // chronoData[0->5 * 0x14 + 4]
+        byte STARTM;   // chronoData[0->5 * 0x14 + 8]
+        byte STOPH;    // chronoData[0->5 * 0x14 + 0x0C]
+        byte STOPM;    // chronoData[0->5 * 0x14 + 0x10]
     };
     chronoDataProgram chronoDataPrograms[6];
-    //0->6 : D1->D7
-    struct chronoDataDay {
-        byte M1; //chronoData[0x78 + (0->6 * 3 + 0) * 4]
-        byte M2; //chronoData[0x78 + (0->6 * 3 + 1) * 4]
-        byte M3; //chronoData[0x78 + (0->6 * 3 + 2) * 4]
+    // 0->6 : D1->D7
+    struct chronoDataDay
+    {
+        byte M1; // chronoData[0x78 + (0->6 * 3 + 0) * 4]
+        byte M2; // chronoData[0x78 + (0->6 * 3 + 1) * 4]
+        byte M3; // chronoData[0x78 + (0->6 * 3 + 2) * 4]
     };
     chronoDataDay chronoDataDays[7];
-    uint16_t chronoDataStatus; //chronoData[0xCC]
+    uint16_t chronoDataStatus; // chronoData[0xCC]
 
-    //space of 0x16 size reserved by malloc in iInit
-    uint16_t _IGN = 0; //myData.4480[0]
-    uint16_t _POWERTIMEH = 0; //myData.4480[1]
-    uint16_t _POWERTIMEM = 0; //myData.4480[2]
-    uint16_t _HEATTIMEH = 0; //myData.4480[3]
-    uint16_t _HEATTIMEM = 0; //myData.4480[4]
-    uint16_t _SERVICETIMEM = 0; //myData.4480[5]
-    uint16_t _SERVICETIMEH = 0; //myData.4480[6]
-    uint16_t _ONTIMEM = 0; //myData.4480[7]
-    uint16_t _ONTIMEH = 0; //myData.4480[8]
-    uint16_t _OVERTMPERRORS = 0; //myData.4480[9]
-    uint16_t _IGNERRORS = 0; //myData.4480[10]
+    // space of 0x16 size reserved by malloc in iInit
+    uint16_t _IGN = 0;           // myData.4480[0]
+    uint16_t _POWERTIMEH = 0;    // myData.4480[1]
+    uint16_t _POWERTIMEM = 0;    // myData.4480[2]
+    uint16_t _HEATTIMEH = 0;     // myData.4480[3]
+    uint16_t _HEATTIMEM = 0;     // myData.4480[4]
+    uint16_t _SERVICETIMEM = 0;  // myData.4480[5]
+    uint16_t _SERVICETIMEH = 0;  // myData.4480[6]
+    uint16_t _ONTIMEM = 0;       // myData.4480[7]
+    uint16_t _ONTIMEH = 0;       // myData.4480[8]
+    uint16_t _OVERTMPERRORS = 0; // myData.4480[9]
+    uint16_t _IGNERRORS = 0;     // myData.4480[10]
 
-    //dword_471024 //myData.4484 contains pointer from malloc(0x69) used to store Logs
+    // dword_471024 // myData.4484 contains pointer from malloc(0x69) used to store Logs
 
-    byte staticDataLoaded = 0; //myData.4488  (psStaticData) : indicates that Static Data are loaded
+    byte staticDataLoaded = 0; // myData.4488  (psStaticData) : indicates that Static Data are loaded
 
-    uint16_t _FWDATEY = 0; //myData.4492
-    uint16_t _FWDATEM = 0; //myData.4496
-    uint16_t _FWDATED = 0; //myData.4500
+    uint16_t _FWDATEY = 0; // myData.4492
+    uint16_t _FWDATEM = 0; // myData.4496
+    uint16_t _FWDATED = 0; // myData.4500
 
-    uint16_t _MOD = 0; //myData.4504
-    uint16_t _VER = 0; //myData.4508
-    uint16_t _CORE = 0; //myData.4512
-    // uint16_t pdword_471044 = 0; //myData.4516  Unused variable (always set but never get)
-    // uint16_t pdword_471048 = 0; //myData.4520  Unused variable (always set but never get)
-    // uint16_t pdword_47104C = 0; //myData.4524  Unused variable (always set but never get)
-    // uint16_t pdword_471050 = 0; //myData.4528  Unused variable (always set but never get)
-    
-    uint16_t _DSPFWVER = 0; //myData.4532
+    uint16_t _MOD = 0;  // myData.4504
+    uint16_t _VER = 0;  // myData.4508
+    uint16_t _CORE = 0; // myData.4512
+    // uint16_t pdword_471044 = 0; // myData.4516  Unused variable (always set but never get)
+    // uint16_t pdword_471048 = 0; // myData.4520  Unused variable (always set but never get)
+    // uint16_t pdword_47104C = 0; // myData.4524  Unused variable (always set but never get)
+    // uint16_t pdword_471050 = 0; // myData.4528  Unused variable (always set but never get)
 
-    //myData.4536 contains pointer to malloc(0x6A) (setted up in iInit)
-    byte _PARAMS[0x6A]; //myData.4536
-    // byte _PARAMS[0x4C] = 0; //CONFIG
-    // byte _PARAMS[0x5C] = 0; //PELLETTYPE
-    // byte _PARAMS[0x62] = 0; //PSENSLMAX (Pellet Level max)
-    // byte _PARAMS[0x63] = 0; //PSENSLTSH (Pellet Level threshold)
-    // byte _PARAMS[0x64] = 0; //PSENSLMIN (Pellet Level min)
+    uint16_t _DSPFWVER = 0; // myData.4532
 
-    byte paramsBufferSize = 0x6A; //myData.4540  setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    // myData.4536 contains pointer to malloc(0x6A) (setted up in iInit)
+    byte _PARAMS[0x6A]; // myData.4536
+    // byte _PARAMS[0x4C] = 0; // CONFIG
+    // byte _PARAMS[0x5C] = 0; // PELLETTYPE
+    // byte _PARAMS[0x62] = 0; // PSENSLMAX (Pellet Level max)
+    // byte _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
+    // byte _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    //myData.4544 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
-    uint16_t _HPARAMS[0x6F]; //myData.4544
+    byte paramsBufferSize = 0x6A; // myData.4540  setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
-    byte hparamsBufferSize = 0x6F; //myData.4548  setted up in iInit for sizing HPARAMS malloc
+    // myData.4544 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
+    uint16_t _HPARAMS[0x6F]; // myData.4544
 
-    uint16_t _FLUID = 0; //myData.4552
+    byte hparamsBufferSize = 0x6F; // myData.4548  setted up in iInit for sizing HPARAMS malloc
 
-    byte _LIMMAX[0x6A]; //mydata.4556
+    uint16_t _FLUID = 0; // myData.4552
+
+    byte _LIMMAX[0x6A]; // mydata.4556
     // byte _LIMMAX[0x33] or _LIMMAX[0x54] contains SPLMAX
 
-    byte _LIMMIN[0x6A]; //mydata.4560
+    byte _LIMMIN[0x6A]; // mydata.4560
     // byte _LIMMIN[0x33] or _LIMMIN[0x54] contains SPLMIN
 
-    byte _SPLMIN = 0; //myData.4564  (SetPointLimitMin)
-    byte _SPLMAX = 0;    //myData.4568  (SetPointLimitMax)
-    uint16_t _PSENSTYPE = 0; //myData.4572  (if 1 then Pellet level sensor)
+    byte _SPLMIN = 0;        // myData.4564  (SetPointLimitMin)
+    byte _SPLMAX = 0;        // myData.4568  (SetPointLimitMax)
+    uint16_t _PSENSTYPE = 0; // myData.4572  (if 1 then Pellet level sensor)
 
-    byte _UICONFIG = 0; //myData.4576
-    byte _BLEMBMODE = 0; //myData.4577
-    byte _BLEDSPMODE = 0; //myData.4578
-    byte _MAINTPROBE = 0; //myData.4579
-    byte _STOVETYPE = 0; //myData.4580
-    byte _FAN2TYPE = 0; //myData.4581
-    byte _FAN2MODE = 0; //myData.4582
-    // byte byte_471087 = 0; //myData.4583  Unused variable (always set but never get)
-    byte _AUTONOMYTYPE = 0; //myData.4584
-    byte _NOMINALPWR = 0; //myData.4585
-    byte byte_47108A = 0; //myData.4586  Fan related value used for calculation...
-    byte _FAN1LMIN = 0; //myData.4587  FANLMINMAX[0]
-    byte _FAN1LMAX = 0; //myData.4588  FANLMINMAX[1]
-    byte _FAN2LMIN = 0; //myData.4589  FANLMINMAX[2]
-    byte _FAN2LMAX = 0; //myData.4590  FANLMINMAX[3]
-    byte _FAN3LMIN = 0; //myData.4591  FANLMINMAX[4]
-    byte _FAN3LMAX = 0; //myData.4592  FANLMINMAX[5]
+    byte _UICONFIG = 0;   // myData.4576
+    byte _BLEMBMODE = 0;  // myData.4577
+    byte _BLEDSPMODE = 0; // myData.4578
+    byte _MAINTPROBE = 0; // myData.4579
+    byte _STOVETYPE = 0;  // myData.4580
+    byte _FAN2TYPE = 0;   // myData.4581
+    byte _FAN2MODE = 0;   // myData.4582
+    // byte byte_471087 = 0;   // myData.4583  Unused variable (always set but never get)
+    byte _AUTONOMYTYPE = 0; // myData.4584
+    byte _NOMINALPWR = 0;   // myData.4585
+    byte byte_47108A = 0;   // myData.4586  Fan related value used for calculation...
+    byte _FAN1LMIN = 0;     // myData.4587  FANLMINMAX[0]
+    byte _FAN1LMAX = 0;     // myData.4588  FANLMINMAX[1]
+    byte _FAN2LMIN = 0;     // myData.4589  FANLMINMAX[2]
+    byte _FAN2LMAX = 0;     // myData.4590  FANLMINMAX[3]
+    byte _FAN3LMIN = 0;     // myData.4591  FANLMINMAX[4]
+    byte _FAN3LMAX = 0;     // myData.4592  FANLMINMAX[5]
 
-    // char byte_471091[19]; //myData.4593  Mac address setted up by iUpdateStaticData
+    // char byte_471091[19]; // myData.4593  Mac address setted up by iUpdateStaticData
 
 #define OPENSERIAL_SIGNATURE std::function<int(uint32_t baudrate)>
 #define CLOSESERIAL_SIGNATURE std::function<void()>
@@ -194,28 +198,28 @@ class Palazzetti
 #define FLUSHSERIAL_SIGNATURE std::function<int()>
 #define USLEEP_SIGNATURE std::function<void(unsigned long usec)>
 
-    //Open a Serial
-    //Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
+    // Open a Serial
+    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
     OPENSERIAL_SIGNATURE m_openSerial = nullptr;
-    //Close Serial
+    // Close Serial
     CLOSESERIAL_SIGNATURE m_closeSerial = nullptr;
-    //Indicates that some data are available to read
-    //Shall return 1 if some data are available; 0 if no data are available. otherwise -1 for error
+    // Indicates that some data are available to read
+    // Shall return 1 if some data are available; 0 if no data are available. otherwise -1 for error
     SELECTSERIAL_SIGNATURE m_selectSerial = nullptr;
-    //Read from Serial
-    //Upon successful completion, shall return a non-negative integer indicating the number of bytes actually read. Otherwise, the functions shall return -1
+    // Read from Serial
+    // Upon successful completion, shall return a non-negative integer indicating the number of bytes actually read. Otherwise, the functions shall return -1
     READSERIAL_SIGNATURE m_readSerial = nullptr;
-    //Write to Serial
-    //Upon successful completion, shall return the number of bytes actually written. Otherwise, -1 shall be returned
+    // Write to Serial
+    // Upon successful completion, shall return the number of bytes actually written. Otherwise, -1 shall be returned
     WRITESERIAL_SIGNATURE m_writeSerial = nullptr;
-    //Wait for transmission of output
-    //Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
+    // Wait for transmission of output
+    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
     DRAINSERIAL_SIGNATURE m_drainSerial = nullptr;
-    //Flush both non-transmitted output data and non-read input data
-    //Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
+    // Flush both non-transmitted output data and non-read input data
+    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
     FLUSHSERIAL_SIGNATURE m_flushSerial = nullptr;
-    //Suspend execution for an interval (useconds)
-    //Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
+    // Suspend execution for an interval (useconds)
+    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
     USLEEP_SIGNATURE m_uSleep = nullptr;
 
     int SERIALCOM_OpenComport(uint32_t baudrate);
@@ -277,7 +281,7 @@ class Palazzetti
     int iSetChronoStopHHAtech(byte programNumber, byte stopHour);
     int iSetChronoStopMMAtech(byte programNumber, byte stopMinute);
     int iSetChronoSetpointAtech(byte programNumber, byte setPoint);
-    int iSetChronoDayAtech(byte dayNumber,byte memoryNumber,byte programNumber);
+    int iSetChronoDayAtech(byte dayNumber, byte memoryNumber, byte programNumber);
     int iSetChronoPrgAtech(byte prg[6]);
     int iGetAllStatus(bool refreshStatus);
     int iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
@@ -316,7 +320,7 @@ public:
     bool setSilentMode(byte silentMode, byte *SLNTReturn = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
-    bool getDateTime(char (*STOVE_DATETIME)[20],byte *STOVE_WDAY);
+    bool getDateTime(char (*STOVE_DATETIME)[20], byte *STOVE_WDAY);
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn);
     bool getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PSTART)[6][2], byte (*PSTOP)[6][2], byte (*DM)[7][3]);
@@ -325,7 +329,7 @@ public:
     bool setChronoStopHH(byte programNumber, byte stopHour);
     bool setChronoStopMM(byte programNumber, byte stopMinute);
     bool setChronoSetpoint(byte programNumber, byte setPoint);
-    bool setChronoDay(byte dayNumber,byte memoryNumber,byte programNumber);
+    bool setChronoDay(byte dayNumber, byte memoryNumber, byte programNumber);
     bool setChronoPrg(byte programNumber, byte setPoint, byte startHour, byte startMinute, byte stophour, byte stopMinute);
     bool getParameter(byte paramNumber, byte *paramValue);
     bool setParameter(byte paramNumber, byte paramValue);
