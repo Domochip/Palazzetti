@@ -38,7 +38,7 @@ class Palazzetti
     // myData.4212
     // myData.4216
     // myData.4220
-    char _SN[28]; // myData.4224
+    char _SN[28] = {0}; // myData.4224
 
     // char _LABEL[32]; //myData.4280  Not Used
 
