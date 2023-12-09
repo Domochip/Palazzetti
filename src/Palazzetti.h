@@ -81,7 +81,7 @@ class Palazzetti
     float _SETP = 0;          // myData.4416  aka SetPoint
     float _F3S = 0;           // myData.4420
     float _F4S = 0;           // myData.4424
-    char _STOVE_DATETIME[20]; // myData.4428
+    char _STOVE_DATETIME[25]; // myData.4428 //increased to 25 instead of 20 to avoid compilation warning
     uint16_t _STOVE_WDAY = 0; // myData.4448
     byte _CHRSTATUS = 0;      // myData.4452
     uint16_t _EFLAGS = 0;     // myData.4456
