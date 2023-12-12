@@ -9,7 +9,7 @@ class Palazzetti
 
     uint16_t wAddrFeederActiveTime = 0;
     uint32_t fumisComStatus = 0; // sFumisComData.4
-    uint16_t dword_432618 = 0;   // sFumisComData.8  Unused variable (always set but never get : DEBUG?)
+    uint16_t dword_432618 = 0;   // sFumisComData.8 (DEBUG?/Last Com Result?)
 
     uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
@@ -242,6 +242,7 @@ class Palazzetti
     int fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode);
     int fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     int fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
+    int fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second);
     int iGetStatusAtech();
     int iChkMBType();
     int iInit();
@@ -321,6 +322,7 @@ public:
     bool getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
     bool getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS);
     bool getDateTime(char (*STOVE_DATETIME)[20], byte *STOVE_WDAY);
+    bool setDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second, char (*STOVE_DATETIMEReturn)[20], byte *STOVE_WDAYReturn);
     bool getIO(byte *IN_I01, byte *IN_I02, byte *IN_I03, byte *IN_I04, byte *OUT_O01, byte *OUT_O02, byte *OUT_O03, byte *OUT_O04, byte *OUT_O05, byte *OUT_O06, byte *OUT_O07);
     bool setChronoStatus(bool chronoStatus, byte *CHRSTATUSReturn);
     bool getChronoData(byte *CHRSTATUS, float (*PCHRSETP)[6], byte (*PSTART)[6][2], byte (*PSTOP)[6][2], byte (*DM)[7][3]);

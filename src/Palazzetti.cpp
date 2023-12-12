@@ -391,6 +391,70 @@ int Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
     return fumisComWrite(addrToWrite, data, 1);
 }
 
+int Palazzetti::fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second)
+{
+    // The content of this function does not match strictly the original one
+
+    // Check if date is valid
+    // basic control
+    if (year < 2000 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59)
+        return -1;
+    // 30 days month control
+    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+        return -1;
+    // February leap year control
+    if (month == 2 && day > 29)
+        return -1;
+    // February not leap year control
+    if (month == 2 && day == 29 && !(((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
+        return -1;
+
+    // weekDay calculation (Tomohiko Sakamoto’s Algorithm)
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    uint16_t calcYear = year;
+    if (month < 3)
+        calcYear -= 1;
+    byte weekDay = (calcYear + calcYear / 4 - calcYear / 100 + calcYear / 400 + t[month - 1] + day) % 7;
+    if (weekDay == 0)
+        weekDay = 7;
+
+    int res;       // local_88
+    byte buf[0xB]; // local_60
+
+    for (int i = 3; i > 0; i--) // i as local_6c
+    {
+        if (!fumisComStatus)
+            return -1;
+
+        fumisComStatus = 2;
+        bzero(&buf, 0xB);
+        res = fumisWaitRequest(&buf);
+        if (res < 0)
+        {
+            dword_432618 = res;
+            continue;
+        }
+        bzero(&buf, 0xB);
+        buf[0] = 6;
+        buf[1] = second;
+        buf[2] = minute;
+        buf[3] = hour;
+        buf[4] = weekDay;
+        buf[5] = day;
+        buf[6] = month;
+        buf[7] = year - 2000;
+        buf[10] = buf[0] + buf[1] + buf[2] + buf[3] + buf[4] + buf[5] + buf[6] + buf[7];
+        res = fumisSendRequest(&buf);
+        if (res >= 0)
+            break;
+    }
+
+    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+    _STOVE_WDAY = weekDay;
+
+    return res;
+}
+
 int Palazzetti::iGetStatusAtech()
 {
     int res = 0;
@@ -2525,6 +2589,27 @@ bool Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], byte *STOVE_WDAY)
 
     if (STOVE_WDAY)
         *STOVE_WDAY = _STOVE_WDAY;
+
+    return true;
+}
+
+bool Palazzetti::setDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second, char (*STOVE_DATETIMEReturn)[20], byte *STOVE_WDAYReturn)
+{
+
+    if (!initialize())
+        return false;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return false;
+
+    if (fumisComSetDateTime(year, month, day, hour, minute, second) < 0)
+        return false;
+
+    if (STOVE_DATETIMEReturn)
+        strcpy(*STOVE_DATETIMEReturn, _STOVE_DATETIME);
+
+    if (STOVE_WDAYReturn)
+        *STOVE_WDAYReturn = _STOVE_WDAY;
 
     return true;
 }
