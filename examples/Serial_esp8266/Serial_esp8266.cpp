@@ -59,10 +59,10 @@ void loop()
         swSer.println("myPala.getSetPoint failed");
 
     float T1, T2, T3, T4, T5;
-    if (myPala.readTemperature(&T1, &T2, &T3, &T4, &T5))
-        swSer.printf("myPala.readTemperature : T1=%.2f T2=%.2f T3=%.2f T4=%.2f T5=%.2f\r\n", T1, T2, T3, T4, T5);
+    if (myPala.getAllTemps(&T1, &T2, &T3, &T4, &T5))
+        swSer.printf("myPala.getAllTemps : T1=%.2f T2=%.2f T3=%.2f T4=%.2f T5=%.2f\r\n", T1, T2, T3, T4, T5);
     else
-        swSer.println("myPala.readTemperature failed");
+        swSer.println("myPala.getAllTemps failed");
 
     uint16_t STATUS, LSTATUS;
     if (myPala.getStatus(&STATUS, &LSTATUS))
