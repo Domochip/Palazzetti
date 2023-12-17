@@ -2,18 +2,24 @@
 #include <SoftwareSerial.h>
 #include <Palazzetti.h>
 
-SoftwareSerial swSer(D1, D4); //SoftwareSerial is used for log (Serial is used for Stove communication on D7,D8)
+SoftwareSerial swSer(D1, D4); // SoftwareSerial is used for log (Serial is used for Stove communication on D7,D8)
 
 Palazzetti myPala;
 
-//Serial management functions
+// Serial management functions
 int myOpenSerial(uint32_t baudrate)
 {
     Serial.begin(baudrate);
-    Serial.pins(15, 13); //swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
+    Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
     return 0;
 }
-void myCloseSerial() { Serial.end(); }
+void myCloseSerial()
+{
+    Serial.end();
+    // TX/GPIO15 is pulled down and so block the stove bus by default...
+    pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
+    digitalWrite(15, HIGH);
+}
 int mySelectSerial(unsigned long timeout)
 {
     unsigned long startmillis = millis();
@@ -30,7 +36,7 @@ size_t myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, c
 size_t myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
 int myDrainSerial()
 {
-    Serial.flush();
+    Serial.flush(); // On ESP, Serial.flush() is drain
     return 0;
 }
 int myFlushSerial()
