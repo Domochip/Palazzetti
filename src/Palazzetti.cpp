@@ -19,7 +19,7 @@ int Palazzetti::SERIALCOM_Flush()
 
 int Palazzetti::SERIALCOM_ReceiveBuf(void *buf, size_t count)
 {
-    int res = m_selectSerial(selectSerialTimeoutms);
+    int res = m_selectSerial(selectSerialTimeoutMs);
     if (res < 0)
         return -1;
 
@@ -56,7 +56,7 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 
         while (totalBytesReaded < count)
         {
-            if (m_selectSerial(selectSerialTimeoutms) <= 0)
+            if (m_selectSerial(selectSerialTimeoutMs) <= 0)
                 return -1;
 
             bytesReaded = m_readSerial((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
@@ -130,7 +130,7 @@ int Palazzetti::fumisCloseSerial()
 
 int Palazzetti::fumisOpenSerial()
 {
-    selectSerialTimeoutms = 2300;
+    selectSerialTimeoutMs = 2300;
     int res = SERIALCOM_OpenComport(0x9600);
 
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))

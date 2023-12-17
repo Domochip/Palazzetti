@@ -5,8 +5,6 @@
 
 class Palazzetti
 {
-    unsigned long selectSerialTimeoutms = 3000;
-
     uint16_t wAddrFeederActiveTime = 0;
     uint32_t fumisComStatus = 0; // sFumisComData.4
     uint16_t dword_432618 = 0;   // sFumisComData.8 (DEBUG?/Last Com Result?)
@@ -36,9 +34,8 @@ class Palazzetti
     uint16_t dword_470F0C = 0; // myData.4204  MBTYPE (Micronova)
     byte _HWTYPE = 0;          // myData.4208
     // myData.4212
-    // myData.4216
-    // myData.4220
-    char _SN[28] = {0}; // myData.4224
+    unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
+    char _SN[28] = {0};                         // myData.4224
 
     // char _LABEL[32]; //myData.4280  Not Used
 
