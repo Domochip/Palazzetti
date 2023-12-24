@@ -130,7 +130,7 @@ int Palazzetti::fumisCloseSerial()
 
 int Palazzetti::fumisOpenSerial()
 {
-    selectSerialTimeoutMs = 2300;
+    selectSerialTimeoutMs = 100; // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
     int res = SERIALCOM_OpenComport(0x9600);
 
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
@@ -183,7 +183,7 @@ int Palazzetti::fumisWaitRequest(void *buf)
         bzero(buf, 0xB);
         while ((nbReceivedBytes = SERIALCOM_ReceiveBuf(buf, 0xB)) < 0xB)
         {
-            if (millis() - startTime > 3000)
+            if (millis() - startTime > 1000) // NOTE : the original value is 3000 but 1000ms and 2 tries of above functions is enough
                 return -601;
 
             if (nbReceivedBytes < 0)
@@ -203,7 +203,7 @@ int Palazzetti::fumisWaitRequest(void *buf)
         if (fumisComStatus == 4)
             return -601;
 
-        if (millis() - startTime > 3000)
+        if (millis() - startTime > 1000) // NOTE : the original value is 3000 but 1000ms and 2 tries of above functions is enough
             return -601;
 
         if (serialPortModel == 2 && SERIALCOM_Flush() < 0)
@@ -225,9 +225,9 @@ int Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
     uint8_t var_28[32];
     int res;
 
-    for (int i = 4; i > 0; i--)
+    for (int i = 2; i > 0; i--) //NOTE : the original value is 4
     {
-        if (i < 4)
+        if (i < 2) //NOTE : the original value is 4
         {
             fumisCloseSerial();
             SERIALCOM_Flush();
