@@ -190,7 +190,7 @@ int Palazzetti::fumisWaitRequest(void *buf)
                     ((uint8_t *)buf)[i] = ((uint8_t *)buf)[i + 1];
             }
 
-            nbReceivedBytes = SERIALCOM_ReceiveBuf(buf + bufPosition, 0xB - bufPosition);
+            nbReceivedBytes = SERIALCOM_ReceiveBuf((uint8_t *)buf + bufPosition, 0xB - bufPosition);
 
             bufPosition += nbReceivedBytes;
 
