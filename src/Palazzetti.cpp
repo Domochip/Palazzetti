@@ -170,6 +170,9 @@ int Palazzetti::fumisWaitRequest(void *buf)
     if (!fumisComStatus)
         return -1;
 
+    if (fumisComStatus == 2 && serialPortModel == 2 && SERIALCOM_Flush() < 0)
+        return -601;
+
     int nbReceivedBytes = 0; // var_18
 
     unsigned long startTime; // var_10
