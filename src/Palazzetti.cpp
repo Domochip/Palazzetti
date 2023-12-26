@@ -176,15 +176,23 @@ int Palazzetti::fumisWaitRequest(void *buf)
     startTime = millis();    // instead of time()
     do
     {
-        if (fumisComStatus == 5 || fumisComStatus == 3)
-            return nbReceivedBytes;
-
         nbReceivedBytes = 0;
         bzero(buf, 0xB);
-        while ((nbReceivedBytes = SERIALCOM_ReceiveBuf(buf, 0xB)) < 0xB)
+
+        uint8_t bufPosition = 0;
+
+        while (bufPosition < 0xB || parseRxBuffer((byte *)buf) < 0)
         {
-            if (millis() - startTime > 1000) // NOTE : the original value is 3000 but 1000ms and 2 tries of above functions is enough
-                return -601;
+            if (bufPosition == 0xB)
+            {
+                bufPosition--;
+                for (int i = 0; i < bufPosition; i++)
+                    ((uint8_t *)buf)[i] = ((uint8_t *)buf)[i + 1];
+            }
+
+            nbReceivedBytes = SERIALCOM_ReceiveBuf(buf + bufPosition, 0xB - bufPosition);
+
+            bufPosition += nbReceivedBytes;
 
             if (nbReceivedBytes < 0)
             {
@@ -193,22 +201,17 @@ int Palazzetti::fumisWaitRequest(void *buf)
                     return -1;
                 if (fumisOpenSerial() < 0)
                     return -1;
+                if (serialPortModel == 2 && SERIALCOM_Flush() < 0)
+                    return -601;
                 break;
             }
-        };
 
-        if (parseRxBuffer((byte *)buf) >= 0)
-            continue;
+            if (millis() - startTime > 1000) // NOTE : the original value is 3000 but the longest measured "fumisWaitRequest" is ~260ms
+                return -601;
+        }
 
-        if (fumisComStatus == 4)
-            return -601;
-
-        if (millis() - startTime > 1000) // NOTE : the original value is 3000 but 1000ms and 2 tries of above functions is enough
-            return -601;
-
-        if (serialPortModel == 2 && SERIALCOM_Flush() < 0)
-            return -601;
-
+        if (fumisComStatus == 5 || fumisComStatus == 3)
+            return nbReceivedBytes;
     } while (1);
 }
 
@@ -225,9 +228,9 @@ int Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
     uint8_t var_28[32];
     int res;
 
-    for (int i = 2; i > 0; i--) //NOTE : the original value is 4
+    for (int i = 2; i > 0; i--) // NOTE : the original value is 4
     {
-        if (i < 2) //NOTE : the original value is 4
+        if (i < 2) // NOTE : the original value is 4
         {
             fumisCloseSerial();
             SERIALCOM_Flush();
