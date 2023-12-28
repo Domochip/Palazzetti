@@ -22,15 +22,12 @@ void myCloseSerial()
 }
 int mySelectSerial(unsigned long timeout)
 {
+    size_t avail;
     unsigned long startmillis = millis();
-    while (!Serial.available() && (startmillis + timeout) > millis())
-    {
-        delay(10);
-    }
+    while ((avail = Serial.available()) == 0 && (startmillis + timeout) > millis())
+        ;
 
-    if (Serial.available())
-        return 1;
-    return 0;
+    return avail;
 }
 size_t myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
 size_t myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
@@ -42,6 +39,8 @@ int myDrainSerial()
 int myFlushSerial()
 {
     Serial.flush();
+    while (Serial.read() != -1)
+        ; // flush RX buffer
     return 0;
 }
 void myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
