@@ -220,7 +220,7 @@ int Palazzetti::fumisWaitRequest(void *buf)
                 break;
             }
 
-            if (millis() - startTime > 1000) // NOTE : the original value is 3000 but the longest measured "fumisWaitRequest" is ~260ms
+            if (millis() - startTime > 500) // NOTE : the original value is 3000 but 500ms should contains at least ~10 Request frames...
                 return -601;
         }
 
