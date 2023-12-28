@@ -170,6 +170,8 @@ int Palazzetti::fumisWaitRequest(void *buf)
     if (!fumisComStatus)
         return -1;
 
+    // fumisComStatus 2 means waiting for stove "Request" frame (first frame byte == 0)
+    // then we should discard RX buffer content
     if (fumisComStatus == 2 && serialPortModel == 2 && SERIALCOM_Flush() < 0)
         return -601;
 
@@ -186,16 +188,25 @@ int Palazzetti::fumisWaitRequest(void *buf)
 
         while (bufPosition < 0xB || parseRxBuffer((byte *)buf) < 0)
         {
-            if (bufPosition == 0xB)
+            // fumisComStatus 4 means direct read of stove answer
+            // if buffer contains 11 bytes and fumisComStatus is still equal to 4, it means that the parseRxBuffer failed
+            if (bufPosition == 0xB && fumisComStatus == 4)
+                return -601;
+
+            nbReceivedBytes = SERIALCOM_ReceiveBuf((uint8_t *)buf + bufPosition, 0xB - bufPosition);
+
+            bufPosition += nbReceivedBytes;
+
+            // Stove "Request" frames are always followed by a 28ms delay
+            // longest measured delay for other frames is ~9ms
+            // so if we are in fumisComStatus 2, already received 11 bytes and some bytes are received before 18ms have passed
+            // we should slide the buffer to the left by one byte to continue reading
+            if (fumisComStatus == 2 && bufPosition == 0xB && m_selectSerial(18))
             {
                 bufPosition--;
                 for (int i = 0; i < bufPosition; i++)
                     ((uint8_t *)buf)[i] = ((uint8_t *)buf)[i + 1];
             }
-
-            nbReceivedBytes = SERIALCOM_ReceiveBuf((uint8_t *)buf + bufPosition, 0xB - bufPosition);
-
-            bufPosition += nbReceivedBytes;
 
             if (nbReceivedBytes < 0)
             {
