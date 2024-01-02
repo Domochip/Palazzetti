@@ -2914,24 +2914,26 @@ bool Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
     return true;
 }
 
-bool Palazzetti::switchOff()
+bool Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS)
 {
     if (!initialize())
         return false;
 
     if (iSwitchOffAtech() < 0)
         return false;
-    return true;
+
+    return getStatus(STATUS, LSTATUS);
 }
 
-bool Palazzetti::switchOn()
+bool Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS)
 {
     if (!initialize())
         return false;
 
     if (iSwitchOnAtech() < 0)
         return false;
-    return true;
+
+    return getStatus(STATUS, LSTATUS);
 }
 
 //------------------------------------------

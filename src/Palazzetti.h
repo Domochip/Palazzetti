@@ -336,8 +336,8 @@ public:
     bool setHiddenParameter(byte hParamNumber, uint16_t hParamValue);
     bool getAllParameters(byte (*params)[0x6A]);
     bool getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
-    bool switchOff();
-    bool switchOn();
+    bool switchOff(uint16_t *STATUS, uint16_t *LSTATUS);
+    bool switchOn(uint16_t *STATUS, uint16_t *LSTATUS);
     Palazzetti();
 };
 
