@@ -2922,6 +2922,9 @@ bool Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS)
     if (iSwitchOffAtech() < 0)
         return false;
 
+    // give the stove time to switch off and reach the final status
+    m_uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
+
     return getStatus(STATUS, LSTATUS);
 }
 
@@ -2932,6 +2935,11 @@ bool Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS)
 
     if (iSwitchOnAtech() < 0)
         return false;
+
+    // give the stove time to switch on and reach the "final" status
+    // (if stove need to heat up, it stays on STATUS=3 for more than 1.2s)
+    // (otherwise it switch to STATUS=9 in less than 0.5s)
+    m_uSleep(500000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
 
     return getStatus(STATUS, LSTATUS);
 }
