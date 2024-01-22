@@ -2350,7 +2350,7 @@ bool Palazzetti::setPower(byte powerLevel, byte *PWRReturn, bool *isF2LReturnVal
             *isF2LReturnValid = false;
     }
 
-    // if (dword_470F0C != 0xB) //Micronova MBTYPE always equals 0
+    // if (_MBTYPEMicronova != 0xB) //Micronova MBTYPE always equals 0
     iGetFanLimits();
 
     if (FANLMINMAXReturn)

@@ -30,9 +30,9 @@ class Palazzetti
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
     // myData.4196  pointer to string "/dev/ttyACM0"
-    int _MBTYPE = 0;           // myData.4200  0 for Fumis; 100(0x64) for Micronova
-    uint16_t dword_470F0C = 0; // myData.4204  MBTYPE (Micronova)
-    byte _HWTYPE = 0;          // myData.4208
+    int _MBTYPE = 0; // myData.4200  0 for Fumis; 100(0x64) for Micronova
+    // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE (Micronova)
+    byte _HWTYPE = 0; // myData.4208
     // myData.4212
     unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
     char _SN[28] = {0};                         // myData.4224
