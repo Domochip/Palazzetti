@@ -309,7 +309,7 @@ public:
     bool setSetPointUp(float *SETPReturn = nullptr);
     bool setSetPointDown(float *SETPReturn = nullptr);
     bool getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
-    bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS);
+    bool getStatus(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
     bool getPelletQtUsed(uint16_t *PQT);
     bool getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3SF4SValid, float *F3S, float *F4S, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L);
     bool getPower(byte *PWR, float *FDR);

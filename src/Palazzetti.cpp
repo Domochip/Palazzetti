@@ -498,7 +498,7 @@ int Palazzetti::iGetStatusAtech()
         {
             _LSTATUS = _MFSTATUS + 500;
             if (_LSTATUS == 0x1FC)
-                _LSTATUS = _MFSTATUS +  0x5DC;
+                _LSTATUS = _MFSTATUS + 0x5DC;
         }
     }
 
@@ -2222,7 +2222,7 @@ bool Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *
     return true;
 }
 
-bool Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTATUS)
+bool Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
 {
     if (!initialize())
         return false;
@@ -2233,6 +2233,8 @@ bool Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTATUS)
         *STATUS = _STATUS;
     if (LSTATUS)
         *LSTATUS = _LSTATUS;
+    if (FSTATUS)
+        *FSTATUS = _FSTATUS;
     return true;
 }
 
