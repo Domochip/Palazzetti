@@ -481,19 +481,24 @@ int Palazzetti::iGetStatusAtech()
 
     _LSTATUS = _STATUS;
 
-    if (_STATUS >= 0xC9)
-        _LSTATUS = _STATUS + 0x3E8;
+    if (200 < _STATUS)
+    {
+        _LSTATUS = _STATUS + 1000;
+        res = fumisComReadByte(0x2081, &_FSTATUS);
+        if (res < 0)
+            return res;
+    }
 
     if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
         res = fumisComReadWord(0x2008, &_MFSTATUS);
         if (res < 0)
             return res;
-        if (_MFSTATUS >= 2)
+        if (1 < _MFSTATUS)
         {
-            _LSTATUS = _MFSTATUS + 0x1F4;
-            if (_MFSTATUS == 0x1FC)
-                _LSTATUS += 0x3e8;
+            _LSTATUS = _MFSTATUS + 500;
+            if (_LSTATUS == 0x1FC)
+                _LSTATUS = _MFSTATUS +  0x5DC;
         }
     }
 
