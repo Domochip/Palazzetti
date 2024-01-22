@@ -135,14 +135,14 @@ int Palazzetti::fumisOpenSerial()
 
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
     {
-        dword_432618 = 0;
+        dword_433248 = 0;
         fumisComStatus = 1;
         return 0;
     }
     else
     {
         fumisComStatus = 0;
-        dword_432618 = res;
+        dword_433248 = res;
     }
 
     return res;
@@ -161,7 +161,7 @@ int Palazzetti::fumisSendRequest(void *buf)
         totalSentBytes += sentBytes;
     }
     if (sentBytes < 0)
-        dword_432618 = sentBytes;
+        dword_433248 = sentBytes;
     return sentBytes; // not totalSentBytes...
 }
 
@@ -210,7 +210,7 @@ int Palazzetti::fumisWaitRequest(void *buf)
 
             if (nbReceivedBytes < 0)
             {
-                dword_432618 = nbReceivedBytes;
+                dword_433248 = nbReceivedBytes;
                 if (fumisCloseSerial() < 0)
                     return -1;
                 if (fumisOpenSerial() < 0)
@@ -263,7 +263,7 @@ int Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
                     continue;
                 else
                 {
-                    dword_432618 = res;
+                    dword_433248 = res;
                     return res;
                 }
             }
@@ -291,7 +291,7 @@ int Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
 
         if (res != -601)
         {
-            dword_432618 = res;
+            dword_433248 = res;
             return res;
         }
     }
@@ -299,7 +299,7 @@ int Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
     if (res >= 0)
         memcpy(buf, var_28 + 1, count);
     else
-        dword_432618 = res;
+        dword_433248 = res;
     return res;
 }
 
@@ -350,7 +350,7 @@ int Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
         res = fumisWaitRequest(&buf);
         if (res < 0)
         {
-            dword_432618 = res;
+            dword_433248 = res;
             continue;
         }
         bzero(&buf, 0xB);
@@ -377,7 +377,7 @@ int Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
         res = fumisWaitRequest(&buf);
         if (res < 0)
         {
-            dword_432618 = res;
+            dword_433248 = res;
             return res;
         }
         bzero(&buf, 0xB);
@@ -448,7 +448,7 @@ int Palazzetti::fumisComSetDateTime(uint16_t year, byte month, byte day, byte ho
         res = fumisWaitRequest(&buf);
         if (res < 0)
         {
-            dword_432618 = res;
+            dword_433248 = res;
             continue;
         }
         bzero(&buf, 0xB);

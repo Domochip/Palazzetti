@@ -7,7 +7,7 @@ class Palazzetti
 {
     uint16_t wAddrFeederActiveTime = 0;
     uint32_t fumisComStatus = 0; // sFumisComData.4
-    uint16_t dword_432618 = 0;   // sFumisComData.8 (DEBUG?/Last Com Result?)
+    int dword_433248 = 0;        // sFumisComData.8 (DEBUG?/Last Com Result?)
 
     uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
