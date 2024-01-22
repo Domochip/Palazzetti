@@ -31,7 +31,7 @@ class Palazzetti
     // myData.4192  pointer to string "/dev/ttyUSB1"
     // myData.4196  pointer to string "/dev/ttyACM0"
     int _MBTYPE = 0; // myData.4200  0 for Fumis; 100(0x64) for Micronova
-    // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE (Micronova)
+    // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     byte _HWTYPE = 0; // myData.4208
     // myData.4212
     unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
@@ -63,31 +63,36 @@ class Palazzetti
     uint16_t _F3L = 0;   // myData.4360
     uint16_t _F4L = 0;   // myData.4364
 
-    byte _PWR = 0; // myData.4368
+    byte _BECO = 0; // myData.4368
 
-    float _FDR = 0; // myData.4372  (FeederActiveTime)
+    byte _PWR = 0; // myData.4369
+    // byte _RPWR = 0; // myData.4370 (Micronova Only)
+
+    float _FDR = 0; // myData.4372
 
     byte _PUMP = 0;          // myData.4376
     uint16_t _DP_TARGET = 0; // myData.4380
     uint16_t _DP_PRESS = 0;  // myData.4384
 
     uint16_t _STATUS = 0;   // myData.4388
-    uint16_t _LSTATUS = 0;  // myData.4392
-    uint16_t _MFSTATUS = 0; // myData.4396
+    uint16_t _FSTATUS = 0;  // myData.4392
+    uint16_t _LSTATUS = 0;  // myData.4396
+    uint16_t _MFSTATUS = 0; // myData.4400
 
-    float _SETP = 0;          // myData.4416  aka SetPoint
-    float _F3S = 0;           // myData.4420
-    float _F4S = 0;           // myData.4424
-    char _STOVE_DATETIME[25]; // myData.4428 //increased to 25 instead of 20 to avoid compilation warning
-    uint16_t _STOVE_WDAY = 0; // myData.4448
-    byte _CHRSTATUS = 0;      // myData.4452
-    uint16_t _EFLAGS = 0;     // myData.4456
-    uint16_t _PQT = 0;        // myData.4460
-    uint16_t _PLEVEL = 0;     // myData.4464
-    uint16_t _PSENSCSTA = 0;  // myData.4468
-    uint16_t _PSENSLEMP = 0;  // myData.4472
+    float _SETP = 0;          // myData.4420  aka SetPoint
+    float _F3S = 0;           // myData.4424
+    float _F4S = 0;           // myData.4428
+    float _SECO = 0;          // myData.4432
+    char _STOVE_DATETIME[25]; // myData.4436 //increased to 25 instead of 20 to avoid compilation warning
+    uint16_t _STOVE_WDAY = 0; // myData.4456
+    byte _CHRSTATUS = 0;      // myData.4460
+    uint16_t _EFLAGS = 0;     // myData.4464
+    uint16_t _PQT = 0;        // myData.4468
+    uint16_t _PLEVEL = 0;     // myData.4472
+    uint16_t _PSENSCSTA = 0;  // myData.4476
+    uint16_t _PSENSLEMP = 0;  // myData.4480
 
-    // myData.4476  contains pointer from malloc(0xD0) used to store ChronoData
+    // myData.4484  contains pointer from malloc(0xD0) used to store ChronoData
     // 0->5 : P1->P6
     struct chronoDataProgram
     {
@@ -109,82 +114,83 @@ class Palazzetti
     uint16_t chronoDataStatus; // chronoData[0xCC]
 
     // space of 0x16 size reserved by malloc in iInit
-    uint16_t _IGN = 0;           // myData.4480[0]
-    uint16_t _POWERTIMEH = 0;    // myData.4480[1]
-    uint16_t _POWERTIMEM = 0;    // myData.4480[2]
-    uint16_t _HEATTIMEH = 0;     // myData.4480[3]
-    uint16_t _HEATTIMEM = 0;     // myData.4480[4]
-    uint16_t _SERVICETIMEM = 0;  // myData.4480[5]
-    uint16_t _SERVICETIMEH = 0;  // myData.4480[6]
-    uint16_t _ONTIMEM = 0;       // myData.4480[7]
-    uint16_t _ONTIMEH = 0;       // myData.4480[8]
-    uint16_t _OVERTMPERRORS = 0; // myData.4480[9]
-    uint16_t _IGNERRORS = 0;     // myData.4480[10]
+    uint16_t _IGN = 0;           // myData.4488[0]
+    uint16_t _POWERTIMEH = 0;    // myData.4488[1]
+    uint16_t _POWERTIMEM = 0;    // myData.4488[2]
+    uint16_t _HEATTIMEH = 0;     // myData.4488[3]
+    uint16_t _HEATTIMEM = 0;     // myData.4488[4]
+    uint16_t _SERVICETIMEM = 0;  // myData.4488[5]
+    uint16_t _SERVICETIMEH = 0;  // myData.4488[6]
+    uint16_t _ONTIMEM = 0;       // myData.4488[7]
+    uint16_t _ONTIMEH = 0;       // myData.4488[8]
+    uint16_t _OVERTMPERRORS = 0; // myData.4488[9]
+    uint16_t _IGNERRORS = 0;     // myData.4488[10]
 
-    // dword_471024 // myData.4484 contains pointer from malloc(0x69) used to store Logs
+    // dword_471C5C // myData.4492 contains pointer from malloc(0x69) used to store Logs
 
-    byte staticDataLoaded = 0; // myData.4488  (psStaticData) : indicates that Static Data are loaded
+    byte staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
 
-    uint16_t _FWDATEY = 0; // myData.4492
-    uint16_t _FWDATEM = 0; // myData.4496
-    uint16_t _FWDATED = 0; // myData.4500
+    uint16_t _FWDATEY = 0; // myData.4500 (psStaticData[4])
+    uint16_t _FWDATEM = 0; // myData.4504 (psStaticData[8])
+    uint16_t _FWDATED = 0; // myData.4508 (psStaticData[0xC])
 
-    uint16_t _MOD = 0;  // myData.4504
-    uint16_t _VER = 0;  // myData.4508
-    uint16_t _CORE = 0; // myData.4512
-    // uint16_t pdword_471044 = 0; // myData.4516  Unused variable (always set but never get)
-    // uint16_t pdword_471048 = 0; // myData.4520  Unused variable (always set but never get)
-    // uint16_t pdword_47104C = 0; // myData.4524  Unused variable (always set but never get)
-    // uint16_t pdword_471050 = 0; // myData.4528  Unused variable (always set but never get)
+    uint16_t _MOD = 0;  // myData.4512 (psStaticData[0x10])
+    uint16_t _VER = 0;  // myData.4516 (psStaticData[0x14])
+    uint16_t _CORE = 0; // myData.4520 (psStaticData[0x18])
+    // uint16_t pdword_471044 = 0; // myData.4524  Unused variable (always set but never get)
+    // uint16_t pdword_471048 = 0; // myData.4528  Unused variable (always set but never get)
+    // uint16_t pdword_47104C = 0; // myData.4532  Unused variable (always set but never get)
+    // uint16_t pdword_471050 = 0; // myData.4536  Unused variable (always set but never get)
 
-    uint16_t _DSPFWVER = 0; // myData.4532
+    byte _DSPFWVER = 0; // myData.4540 (psStaticData[0x2C])
+    byte _DSPTYPE = 0;  // myData.4541 (psStaticData[0x2D])
 
-    // myData.4536 contains pointer to malloc(0x6A) (setted up in iInit)
-    byte _PARAMS[0x6A]; // myData.4536
+    // myData.4544 contains pointer to malloc(0x6A) (setted up in iInit)
+    byte _PARAMS[0x6A]; // myData.4544 (psStaticData[0x30])
     // byte _PARAMS[0x4C] = 0; // CONFIG
     // byte _PARAMS[0x5C] = 0; // PELLETTYPE
     // byte _PARAMS[0x62] = 0; // PSENSLMAX (Pellet Level max)
     // byte _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
     // byte _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    byte paramsBufferSize = 0x6A; // myData.4540  setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    byte paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
-    // myData.4544 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
-    uint16_t _HPARAMS[0x6F]; // myData.4544
+    // myData.4552 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
+    uint16_t _HPARAMS[0x6F]; // myData.4552 (psStaticData[0x38])
 
-    byte hparamsBufferSize = 0x6F; // myData.4548  setted up in iInit for sizing HPARAMS malloc
+    byte hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) setted up in iInit for sizing HPARAMS malloc
 
-    uint16_t _FLUID = 0; // myData.4552
+    uint16_t _FLUID = 0; // myData.4560 (psStaticData[0x40])
 
-    byte _LIMMAX[0x6A]; // mydata.4556
+    byte _LIMMAX[0x6A]; // mydata.4564 (psStaticData[0x44])
     // byte _LIMMAX[0x33] or _LIMMAX[0x54] contains SPLMAX
 
-    byte _LIMMIN[0x6A]; // mydata.4560
+    byte _LIMMIN[0x6A]; // mydata.4568 (psStaticData[0x48])
     // byte _LIMMIN[0x33] or _LIMMIN[0x54] contains SPLMIN
 
-    byte _SPLMIN = 0;        // myData.4564  (SetPointLimitMin)
-    byte _SPLMAX = 0;        // myData.4568  (SetPointLimitMax)
-    uint16_t _PSENSTYPE = 0; // myData.4572  (if 1 then Pellet level sensor)
+    byte _SPLMIN = 0;        // myData.4572 (psStaticData[0x4C])  (SetPointLimitMin)
+    byte _SPLMAX = 0;        // myData.4576 (psStaticData[0x50])  (SetPointLimitMax)
+    uint16_t _PSENSTYPE = 0; // myData.4580 (psStaticData[0x54])  (if 1 then Pellet level sensor)
 
-    byte _UICONFIG = 0;   // myData.4576
-    byte _BLEMBMODE = 0;  // myData.4577
-    byte _BLEDSPMODE = 0; // myData.4578
-    byte _MAINTPROBE = 0; // myData.4579
-    byte _STOVETYPE = 0;  // myData.4580
-    byte _FAN2TYPE = 0;   // myData.4581
-    byte _FAN2MODE = 0;   // myData.4582
-    // byte byte_471087 = 0;   // myData.4583  Unused variable (always set but never get)
-    byte _AUTONOMYTYPE = 0; // myData.4584
-    byte _NOMINALPWR = 0;   // myData.4585
-    byte byte_47108A = 0;   // myData.4586  Fan related value used for calculation...
-    byte _FAN1LMIN = 0;     // myData.4587  FANLMINMAX[0]
-    byte _FAN1LMAX = 0;     // myData.4588  FANLMINMAX[1]
-    byte _FAN2LMIN = 0;     // myData.4589  FANLMINMAX[2]
-    byte _FAN2LMAX = 0;     // myData.4590  FANLMINMAX[3]
-    byte _FAN3LMIN = 0;     // myData.4591  FANLMINMAX[4]
-    byte _FAN3LMAX = 0;     // myData.4592  FANLMINMAX[5]
+    byte _UICONFIG = 0;   // myData.4584 (psStaticData[0x58])
+    byte _BLEMBMODE = 0;  // myData.4585 (psStaticData[0x59])
+    byte _BLEDSPMODE = 0; // myData.4586 (psStaticData[0x5A])
+    byte _MAINTPROBE = 0; // myData.4587 (psStaticData[0x5B])
+    byte _STOVETYPE = 0;  // myData.4588 (psStaticData[0x5C])
+    byte _FAN2TYPE = 0;   // myData.4589 (psStaticData[0x5D])
+    byte _FAN2MODE = 0;   // myData.4590 (psStaticData[0x5E])
+    // byte byte_471CBF = 0;   // myData.4591  Unused variable (always set but never get)
+    byte _AUTONOMYTYPE = 0; // myData.4592 (psStaticData[0x60])
+    byte _NOMINALPWR = 0;   // myData.4593 (psStaticData[0x61])
+    byte byte_47108A = 0;   // myData.4594 (psStaticData[0x62]) Fan related value used for calculation...
+    byte _FAN1LMIN = 0;     // myData.4595 (psStaticData[0x63]) FANLMINMAX[0]
+    byte _FAN1LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
+    byte _FAN2LMIN = 0;     // myData.4597 (psStaticData[0x65]) FANLMINMAX[2]
+    byte _FAN2LMAX = 0;     // myData.4598 (psStaticData[0x66]) FANLMINMAX[3]
+    byte _FAN3LMIN = 0;     // myData.4599 (psStaticData[0x67]) FANLMINMAX[4]
+    byte _FAN3LMAX = 0;     // myData.4600 (psStaticData[0x68]) FANLMINMAX[5]
 
-    // char byte_471091[19]; // myData.4593  Mac address setted up by iUpdateStaticData
+    // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
 #define OPENSERIAL_SIGNATURE std::function<int(uint32_t baudrate)>
 #define CLOSESERIAL_SIGNATURE std::function<void()>
