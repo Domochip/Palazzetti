@@ -1021,22 +1021,33 @@ int Palazzetti::iGetSetPointAtech()
     if (_STOVETYPE == 1 && _PARAMS[0x4C] == 2)
     {
         _SETP = 0;
-        return 0;
     }
-
-    uint16_t data;
-    int res;
-
-    if (_FLUID <= 2)
+    else if (_FLUID < 2)
     {
-        res = fumisComReadByte((_FLUID < 2) ? 0x1C33 : 0x1C54, &data);
+        byte buf[8]; // var_1c
+        int res = fumisComReadBuff(0x1C32, buf, 8);
         if (res < 0)
             return res;
-        float dataFloat = (int16_t)data;
+        _SECO = buf[0];
+        _SETP = buf[1];
+
         if (!_FLUID)
-            dataFloat /= 5.0;
-        _SETP = dataFloat;
+        {
+            _SECO /= 10.0;
+            _SETP /= 5.0;
+        }
+
+        _BECO = (buf[3] > 0) ? 1 : 0;
     }
+    else if (_FLUID == 2)
+    {
+        uint16_t data;
+        int res = fumisComReadByte(0x1C54, &data);
+        if (res < 0)
+            return res;
+        _SETP = (int16_t)data;
+    }
+
     return 0;
 }
 
