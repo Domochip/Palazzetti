@@ -1138,9 +1138,8 @@ int Palazzetti::iReadTemperatureAtech()
 int Palazzetti::iSwitchOnAtech()
 {
     int res; // var_10
-    if (_MOD < 0x1F4 || _MOD >= 0x258)
+    if (_MOD < 500 || 599 < _MOD)
         res = fumisComWriteWord(0x2044, 2);
-
     else
         res = fumisComWriteWord(0x2044, 0x12);
 
@@ -1152,9 +1151,8 @@ int Palazzetti::iSwitchOnAtech()
 int Palazzetti::iSwitchOffAtech()
 {
     int res; // var_10
-    if (_MOD < 0x1F4 || _MOD >= 0x258)
+    if (_MOD < 500 || 599 < _MOD)
         res = fumisComWriteWord(0x2044, 1);
-
     else
         res = fumisComWriteWord(0x2044, 0x11);
 
