@@ -1757,6 +1757,10 @@ int Palazzetti::iSetChronoPrgAtech(byte prg[6])
 
 int Palazzetti::iGetAllStatus(bool refreshStatus)
 {
+
+    if (_MBTYPE)
+        return -10;
+
     int res = 0;
 
     if (refreshStatus)
