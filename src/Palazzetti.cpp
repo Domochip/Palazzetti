@@ -1278,7 +1278,7 @@ int Palazzetti::iGetPowerAtech()
     if (res < 0)
         return res;
 
-    _FDR = var_C;
+    _FDR = (int16_t)var_C;
     _FDR /= 10.0f;
 
     return 0;
