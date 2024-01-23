@@ -1315,8 +1315,8 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
         return 7;
     if (roomFanSpeed == 7)
         return 0;
-    if (roomFanSpeed == 6)
-        return 6;
+    // if (roomFanSpeed == 6)
+    //     return 6;
 
     return roomFanSpeed;
 }
