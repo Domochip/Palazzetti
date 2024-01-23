@@ -2936,7 +2936,7 @@ bool Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
     return true;
 }
 
-bool Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS)
+bool Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
 {
     if (!initialize())
         return false;
@@ -2947,10 +2947,10 @@ bool Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS)
     // give the stove time to switch off and reach the final status
     m_uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
 
-    return getStatus(STATUS, LSTATUS);
+    return getStatus(STATUS, LSTATUS, FSTATUS);
 }
 
-bool Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS)
+bool Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
 {
     if (!initialize())
         return false;
@@ -2963,7 +2963,7 @@ bool Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS)
     // (otherwise it switch to STATUS=9 in less than 0.5s)
     m_uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
 
-    return getStatus(STATUS, LSTATUS);
+    return getStatus(STATUS, LSTATUS, FSTATUS);
 }
 
 //------------------------------------------
