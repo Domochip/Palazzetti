@@ -182,7 +182,7 @@ class Palazzetti
     // byte byte_471CBF = 0;   // myData.4591  Unused variable (always set but never get)
     byte _AUTONOMYTYPE = 0; // myData.4592 (psStaticData[0x60])
     byte _NOMINALPWR = 0;   // myData.4593 (psStaticData[0x61])
-    byte byte_47108A = 0;   // myData.4594 (psStaticData[0x62]) Fan related value used for calculation...
+    byte byte_471CC2 = 0;   // myData.4594 (psStaticData[0x62]) Fan related value used for calculation...
     byte _FAN1LMIN = 0;     // myData.4595 (psStaticData[0x63]) FANLMINMAX[0]
     byte _FAN1LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
     byte _FAN2LMIN = 0;     // myData.4597 (psStaticData[0x65]) FANLMINMAX[2]
