@@ -1328,7 +1328,7 @@ int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 
     int res;
 
-    if (byte_47108A == 0 || _PWR < 4 || roomFanSpeed != 7 || (res = iSetPowerAtech(3)) >= 0)
+    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || iSetPowerAtech(3) >= 0)
     {
         res = fumisComWriteByte(0x2036, roomFanSpeed);
         if (res < 0)
