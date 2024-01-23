@@ -655,7 +655,7 @@ int Palazzetti::iGetMBTypeAtech()
     }
     else
         _HWTYPE = 5;
-    return 0;
+    return _HWTYPE;
 }
 
 int Palazzetti::iGetStoveConfigurationAtech()
