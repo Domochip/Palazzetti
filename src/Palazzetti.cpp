@@ -975,8 +975,8 @@ int Palazzetti::iUpdateStaticDataAtech()
 
 int Palazzetti::iUpdateStaticData()
 {
-    // copy mac address in byte_46DC6F[19]
-    // look for \n in byte_46DC6F
+    // copy mac address in _MAC
+    // look for \n in _MAC
     // then replace it by 0
 
     if (_MBTYPE < 0)
