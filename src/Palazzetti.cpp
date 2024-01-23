@@ -660,12 +660,14 @@ int Palazzetti::iGetMBTypeAtech()
 
 int Palazzetti::iGetStoveConfigurationAtech()
 {
-    uint16_t buf; // var_10
+    uint16_t buf; // local_20
     int res = 0;  // var_24
     res = fumisComReadByte(0x2006, &buf);
     if (res < 0)
         return res;
     _DSPFWVER = buf;
+    if (_DSPFWVER > 0)
+        _DSPTYPE = ((float)buf) / pow(10, log10(buf));
 
     iGetMBTypeAtech();
 
@@ -675,7 +677,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
     res = fumisComReadWord(0x1ED4, &buf);
     if (res < 0)
         return res;
-    byte buf2[8]; // var_18
+    byte buf2[8]; // local_28
     res = fumisComReadBuff(0x1E25, buf2, 8);
     if (res < 0)
         return res;
@@ -686,19 +688,22 @@ int Palazzetti::iGetStoveConfigurationAtech()
     else
         _AUTONOMYTYPE = 1;
 
-    byte var_1F = _PARAMS[0x4C];
-    _UICONFIG = var_1F;
+    byte bVar1 = _PARAMS[0x4C];
+    _UICONFIG = bVar1;
 
-    res = fumisComReadBuff(((var_1F - 1) << 2) + 0x1E36, buf2, 8);
+    res = fumisComReadBuff(((bVar1 - 1) * 4) + 0x1E36, buf2, 8);
     if (res < 0)
         return res;
 
-    byte var_1E = ((buf2[0] & 0x20) > 0);
+    bool bVar2 = ((buf2[0] & 0x20) != 0);
 
     _FAN2TYPE = 1;
     _MAINTPROBE = 0;
 
-    if ((buf2[0] & 8) > 0)
+    if (buf2[0] & 0x40)
+        _MAINTPROBE = 4;
+
+    if (buf2[0] & 8)
     {
         if ((buf2[2] & 0x80) == 0)
             _FAN2TYPE = 2;
@@ -716,10 +721,10 @@ int Palazzetti::iGetStoveConfigurationAtech()
         }
     }
 
-    byte_47108A = 0;
+    byte_471CC2 = 0;
 
-    if (_PARAMS[0x69] > 0 && _PARAMS[0x69] < 6)
-        byte_47108A = _PARAMS[0x69];
+    if (_PARAMS[0x69] != 0 && _PARAMS[0x69] < 6)
+        byte_471CC2 = _PARAMS[0x69];
 
     _FAN1LMIN = 1;
     _FAN1LMAX = 5;
@@ -732,7 +737,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
     if (_HPARAMS[0x26 / 2] & 0x10)
         _FAN1LMIN = 0;
 
-    if (((_HPARAMS[0x38 / 2] + ((var_1F - 1) << 1)) & 0x800) == 0)
+    if (((_HPARAMS[0x38 / 2] + ((bVar1 - 1) * 2)) & 0x800) == 0)
         _FAN2MODE = 3;
 
     if (_FAN2TYPE == 5 || _FAN2TYPE == 3)
@@ -741,7 +746,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
         _FAN3LMAX = 5;
     }
 
-    byte tmp = 1; // var_27
+    byte tmp = 1; // local_37
     if (_HWTYPE == 5)
     {
         if (_CORE > 0x13)
@@ -764,59 +769,57 @@ int Palazzetti::iGetStoveConfigurationAtech()
     }
     _BLEMBMODE = tmp;
 
-    if (_DSPFWVER < 0x2E)
+    if (_DSPTYPE != 2 && (_DSPTYPE != 4 || _DSPFWVER < 0x2E))
     {
-        if (_DSPFWVER < 0x2A)
+        if (_DSPTYPE == 4 && _DSPFWVER > 0x29)
+        {
+            if (tmp > 6)
+                tmp -= 4;
+        }
+        else
             tmp = 1;
-        else if (tmp > 6)
-            tmp -= 4;
     }
     _BLEDSPMODE = tmp;
 
-    if (var_1E)
+    if (bVar2)
         _STOVETYPE = 2;
     else
         _STOVETYPE = 1;
 
-    if (var_1F < 3)
+    if (bVar1 < 3)
     {
         res = fumisComReadBuff(0x1E36, buf2, 8);
         if (res < 0)
             return res;
         byte var_28;
-        if (var_1F == 2)
-            var_28 = buf2[5] & 4;
-        else
-            var_28 = buf2[1] & 4;
+        if (bVar1 == 2)
+            buf2[1] = buf2[5];
 
-        if (var_28)
+        if (buf2[1] & 4)
         {
             _FLUID = 0;
-            if (var_1E)
+            if (bVar2)
                 _MAINTPROBE = 4;
         }
         else
             _FLUID = 1;
     }
+    else if (bVar1 == 5)
+    {
+        _FLUID = 0;
+        _STOVETYPE = 2;
+        _MAINTPROBE = 4;
+        _FAN2TYPE = 2;
+        _FAN2MODE = 3;
+    }
     else
     {
-        if (var_1F == 5)
-        {
-            _FLUID = 0;
-            _STOVETYPE = 2;
-            _MAINTPROBE = 4;
-            _FAN2TYPE = 2;
-            _FAN2MODE = 3;
-        }
-        else
-        {
-            _FLUID = 2;
-            _STOVETYPE = 2;
-            _MAINTPROBE = 4;
-        }
+        _FLUID = 2;
+        _STOVETYPE = 2;
+        _MAINTPROBE = 4;
     }
 
-    if (_MOD >= 0x1F5 && _MOD < 0x258)
+    if (500 < _MOD && _MOD < 600)
     {
         if (_STOVETYPE == 1)
         {
@@ -825,14 +828,12 @@ int Palazzetti::iGetStoveConfigurationAtech()
         }
         else
         {
-            if (_STOVETYPE == 2)
-            {
-                _STOVETYPE = 4;
-                if (var_1F == 2)
-                    _MAINTPROBE = 4;
-            }
-            else
+            if (_STOVETYPE != 2)
                 return -1;
+
+            _STOVETYPE = 4;
+            if (bVar1 == 2)
+                _MAINTPROBE = 4;
         }
     }
 
