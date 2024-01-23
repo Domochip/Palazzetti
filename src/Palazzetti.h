@@ -130,9 +130,9 @@ class Palazzetti
 
     byte staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
 
-    uint16_t _FWDATEY = 0; // myData.4500 (psStaticData[4])
+    uint16_t _FWDATED = 0; // myData.4500 (psStaticData[4])
     uint16_t _FWDATEM = 0; // myData.4504 (psStaticData[8])
-    uint16_t _FWDATED = 0; // myData.4508 (psStaticData[0xC])
+    uint16_t _FWDATEY = 0; // myData.4508 (psStaticData[0xC])
 
     uint16_t _MOD = 0;  // myData.4512 (psStaticData[0x10])
     uint16_t _VER = 0;  // myData.4516 (psStaticData[0x14])
@@ -170,7 +170,7 @@ class Palazzetti
 
     byte _SPLMIN = 0;        // myData.4572 (psStaticData[0x4C])  (SetPointLimitMin)
     byte _SPLMAX = 0;        // myData.4576 (psStaticData[0x50])  (SetPointLimitMax)
-    uint16_t _PSENSTYPE = 0; // myData.4580 (psStaticData[0x54])  (if 1 then Pellet level sensor)
+    uint16_t _PSENSTYPE = 0; // myData.4580 (psStaticData[0x54])
 
     byte _UICONFIG = 0;   // myData.4584 (psStaticData[0x58])
     byte _BLEMBMODE = 0;  // myData.4585 (psStaticData[0x59])

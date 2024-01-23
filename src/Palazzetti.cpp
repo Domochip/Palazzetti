@@ -866,7 +866,7 @@ int Palazzetti::iUpdateStaticDataAtech()
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < hparamsBufferSize)
     {
-        res = fumisComReadBuff((nbTotalBytesReaded + 0xF00) << 1, buf, 8);
+        res = fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf, 8);
         if (res < 0)
             return res;
 
@@ -887,26 +887,24 @@ int Palazzetti::iUpdateStaticDataAtech()
     _FWDATED = _HPARAMS[0xA / 2];
     _FWDATEM = _HPARAMS[0xC / 2];
     _FWDATEY = _HPARAMS[0xE / 2];
-    // pdword_471050 = _HPARAMS[0x1E / 2]; //Not Used elsewhere
-    // pdword_471044 = _HPARAMS[0x88 / 2]; //Not Used elsewhere
-    // pdword_471048 = _HPARAMS[0x8C / 2]; //Not Used elsewhere
-    // pdword_47104C = _HPARAMS[0x8E / 2]; //Not Used elsewhere
+    // pdword_471C88 = _HPARAMS[0x1E / 2]; //Not Used
+    // pdword_471C7C = _HPARAMS[0x88 / 2]; //Not Used
+    // pdword_471C80 = _HPARAMS[0x8C / 2]; //Not Used
+    // pdword_471C84 = _HPARAMS[0x8E / 2]; //Not Used
 
     res = iGetStoveConfigurationAtech();
     if (res < 0)
         return res;
 
-    if (_MOD < 0x1F4 || _MOD >= 0x258)
+    if (_MOD < 500 || 599 < _MOD)
     {
         if (_VER < 0x1F)
             wAddrFeederActiveTime = 0x1FAE;
+        else if (_VER < 0x28)
+            wAddrFeederActiveTime = 0x1FAC;
         else
-        {
-            if (_VER < 0x28)
-                wAddrFeederActiveTime = 0x1FAC;
-            else
-                wAddrFeederActiveTime = 0x209A;
-        }
+            wAddrFeederActiveTime = 0x209A;
+
         uint16_t var_18;
         res = fumisComReadWord(0x203A, &var_18);
         if (res < 0)
@@ -968,7 +966,7 @@ int Palazzetti::iUpdateStaticDataAtech()
 
     ///*iGetLimitsAtech OK*/
 
-    // JSON not build and so not savec in /tmp/appliance_params.json
+    // JSON not build and so not saved in /tmp/appliance_params.json
 
     ///*iUpdateStaticDataAtech OK*/
 
