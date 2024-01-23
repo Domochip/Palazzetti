@@ -1300,16 +1300,12 @@ int Palazzetti::iSetPowerAtech(uint16_t powerLevel)
 
 void Palazzetti::iGetFanLimits()
 {
-    if (byte_47108A)
+    if (byte_471CC2)
     {
-        if (byte_47108A < _PWR)
-        {
-            _FAN1LMIN = _PWR - byte_47108A;
-        }
+        if (byte_471CC2 < _PWR)
+            _FAN1LMIN = _PWR - byte_471CC2;
         else
-        {
             _FAN1LMIN = 0;
-        }
     }
 }
 
