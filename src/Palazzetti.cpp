@@ -516,13 +516,15 @@ int Palazzetti::iGetStatusAtech()
 int Palazzetti::iChkMBType()
 {
 
-    _MBTYPE = 0x64;
+    // _MBTYPE = 100;
     // No Implementation of Micronova device there
     // skip directly to fumis detection
 
     _MBTYPE = 0;
-    if (fumisOpenSerial() < 0)
-        return -1;
+    int res = 0;
+    res = fumisOpenSerial();
+    if (res < 0)
+        return res;
 
     ///*Trying to find MBTYPE_FUMIS_ALPHA65...*/
     if (iGetStatusAtech() < 0)
