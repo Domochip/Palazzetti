@@ -1344,7 +1344,7 @@ int Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 
 int Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 {
-    if (roomFan3Speed > 5)
+    if (roomFan3Speed < 0 || roomFan3Speed > 5)
         return -1;
 
     int res;
