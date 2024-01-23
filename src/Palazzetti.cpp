@@ -1733,7 +1733,7 @@ int Palazzetti::iSetChronoPrgAtech(byte prg[6])
     if (res < 0)
         return res;
 
-    if (_FLUID)
+    if (!_FLUID)
         prg[1] /= 5;
 
     res = fumisComWriteByte((prg[0] + 0x1fff) * 4, prg[2]);
