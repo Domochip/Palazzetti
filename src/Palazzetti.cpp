@@ -1102,6 +1102,7 @@ int Palazzetti::iReadTemperatureAtech()
     res = fumisComReadBuff(0x200A, buf, 8);
     if (res < 0)
         return res;
+
     conv = buf[1];
     conv <<= 8;
     conv += buf[0];
@@ -1115,19 +1116,20 @@ int Palazzetti::iReadTemperatureAtech()
     conv = buf[5];
     conv <<= 8;
     conv += buf[4];
-    _T1 = conv;
+    _T1 = (int16_t)conv;
     _T1 /= 10.0f;
 
     conv = buf[7];
     conv <<= 8;
     conv += buf[6];
-    _T2 = conv;
+    _T2 = (int16_t)conv;
     _T2 /= 10.0f;
 
     uint16_t var_18;
     res = fumisComReadWord(0x2012, &var_18);
     if (res < 0)
         return res;
+
     _T5 = (int16_t)var_18;
     _T5 /= 10.0f;
     return 0;
