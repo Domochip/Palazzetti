@@ -1933,7 +1933,7 @@ bool Palazzetti::getStaticData(char (*SN)[28], byte *SNCHK, int *MBTYPE, uint16_
     }
 
     // read LABEL : not needed
-    // get network infos by running nwdata.sh : not needed
+    // get network infos by running "lua /www/cgi-bin/syscmd.lua \"netdata\" > /dev/null" : not needed
 
     if (SN)
         strcpy(*SN, _SN);
