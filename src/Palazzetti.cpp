@@ -791,7 +791,7 @@ int Palazzetti::iGetStoveConfigurationAtech()
         res = fumisComReadBuff(0x1E36, buf2, 8);
         if (res < 0)
             return res;
-        byte var_28;
+
         if (bVar1 == 2)
             buf2[1] = buf2[5];
 
