@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+//Based on version 2.2.1 2022-10-24 11:13:21
+
 class Palazzetti
 {
     uint16_t wAddrFeederActiveTime = 0;
