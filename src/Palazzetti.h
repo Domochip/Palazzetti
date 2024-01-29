@@ -298,14 +298,14 @@ class Palazzetti
     bool _isInitialized;
 
 public:
-    enum class CommandResult
+    enum class CommandResult : byte
     {
-        COMMUNICATION_ERROR = -30, // default value for negative result if it doesn't match following ones
-        BUSY = -20,
-        UNSUPPORTED = -10,
-        PARSER_ERROR = -3,
-        ERROR = -1,
-        OK = 0
+        COMMUNICATION_ERROR, // = -30 default value for negative result if it doesn't match following ones
+        BUSY,                // = -20
+        UNSUPPORTED,         // = -10
+        PARSER_ERROR,        // = -3
+        ERROR,               // = -1
+        OK                   // = 0
     };
 
     CommandResult getCommandResult(int res);
