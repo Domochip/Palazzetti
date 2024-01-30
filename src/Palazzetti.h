@@ -253,17 +253,18 @@ private:
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
     CommandResult fumisCloseSerial();
-    CommandResult fumisOpenSerial();
-    CommandResult fumisSendRequest(void *buf);
-    CommandResult fumisWaitRequest(void *buf);
-    CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count);
     CommandResult fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode);
+    CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count);
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
+    CommandResult fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second);
     CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
-    CommandResult fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second);
+    CommandResult fumisOpenSerial();
+    CommandResult fumisSendRequest(void *buf);
+    CommandResult fumisWaitRequest(void *buf);
+
     CommandResult iGetStatusAtech();
     CommandResult iChkMBType();
     CommandResult iInit();

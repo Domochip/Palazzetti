@@ -168,6 +168,248 @@ Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
     return CommandResult::OK;
 }
 
+Palazzetti::CommandResult Palazzetti::fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode)
+{
+    byte var_10[8];
+    CommandResult cmdRes = fumisComReadBuff(addrToRead, var_10, 8);
+    if (cmdRes == CommandResult::OK)
+    {
+        // *data = 0; //useless
+
+        if (!wordMode)
+            *data = var_10[0];
+        else
+        {
+            *data = var_10[1];
+            *data <<= 8;
+            *data += var_10[0];
+        }
+    }
+
+    return cmdRes;
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
+{
+    if (count != 8)
+        return CommandResult::ERROR;
+
+    bzero(buf, count);
+
+    if (!fumisComStatus)
+        return CommandResult::ERROR;
+
+    uint8_t var_28[32];
+    CommandResult cmdRes;
+
+    for (int i = 2; i > 0; i--) // NOTE : the original value is 4
+    {
+        if (i < 2) // NOTE : the original value is 4
+        {
+            fumisCloseSerial();
+            SERIALCOM_Flush();
+            m_uSleep(1);
+            fumisOpenSerial();
+            m_uSleep(1);
+        }
+
+        if (_MBTYPE != 1)
+        {
+            fumisComStatus = 2;
+            cmdRes = fumisWaitRequest((void *)var_28);
+            if (cmdRes != CommandResult::OK)
+            {
+                if (cmdRes == CommandResult::COMMUNICATION_ERROR)
+                    continue;
+                else
+                {
+                    dword_433248 = cmdRes;
+                    return cmdRes;
+                }
+            }
+        }
+
+        fumisComStatus = 3;
+        bzero(var_28, 0xB);
+        var_28[0] = 2;
+        var_28[1] = addrToRead & 0xFF;
+        var_28[2] = (addrToRead >> 8) & 0xFF;
+
+        var_28[10] = var_28[0] + var_28[1] + var_28[2];
+        cmdRes = fumisSendRequest(var_28);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+
+        bzero(var_28, 32);
+        fumisComStatus = 4;
+        cmdRes = fumisWaitRequest(var_28);
+        if (cmdRes == CommandResult::OK)
+        {
+            memcpy(buf, var_28 + 1, count);
+            return cmdRes;
+        }
+
+        if (cmdRes != CommandResult::COMMUNICATION_ERROR)
+        {
+            dword_433248 = cmdRes;
+            return cmdRes;
+        }
+    }
+
+    if (cmdRes == CommandResult::OK)
+        memcpy(buf, var_28 + 1, count);
+    else
+        dword_433248 = cmdRes;
+    return cmdRes;
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint16_t *data)
+{
+    return fumisComRead(addrToRead, data, 0);
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
+{
+    return fumisComRead(addrToRead, data, 1);
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second)
+{
+    // The content of this function does not match strictly the original one
+
+    // Check if date is valid
+    // basic control
+    if (year < 2000 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59)
+        return CommandResult::ERROR;
+    // 30 days month control
+    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+        return CommandResult::ERROR;
+    // February leap year control
+    if (month == 2 && day > 29)
+        return CommandResult::ERROR;
+    // February not leap year control
+    if (month == 2 && day == 29 && !(((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
+        return CommandResult::ERROR;
+
+    // weekDay calculation (Tomohiko Sakamoto’s Algorithm)
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    uint16_t calcYear = year;
+    if (month < 3)
+        calcYear -= 1;
+    byte weekDay = (calcYear + calcYear / 4 - calcYear / 100 + calcYear / 400 + t[month - 1] + day) % 7;
+    if (weekDay == 0)
+        weekDay = 7;
+
+    CommandResult cmdRes; // local_88
+    byte buf[0xB];        // local_60
+
+    for (int i = 2; i > 0; i--) // i as local_6c
+    {
+        if (!fumisComStatus)
+            return CommandResult::ERROR;
+
+        fumisComStatus = 2;
+        bzero(&buf, 0xB);
+        cmdRes = fumisWaitRequest(&buf);
+        if (cmdRes != CommandResult::OK)
+        {
+            dword_433248 = cmdRes;
+            continue;
+        }
+        bzero(&buf, 0xB);
+        buf[0] = 6;
+        buf[1] = second;
+        buf[2] = minute;
+        buf[3] = hour;
+        buf[4] = weekDay;
+        buf[5] = day;
+        buf[6] = month;
+        buf[7] = year - 2000;
+        buf[10] = buf[0] + buf[1] + buf[2] + buf[3] + buf[4] + buf[5] + buf[6] + buf[7];
+        cmdRes = fumisSendRequest(&buf);
+        if (cmdRes == CommandResult::OK)
+            break;
+    }
+
+    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+    _STOVE_WDAY = weekDay;
+
+    return cmdRes;
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
+{
+    if (!fumisComStatus)
+        return CommandResult::ERROR;
+
+    CommandResult cmdRes; // var_38
+    byte buf[0xB];        // var_2C
+
+    for (int i = 2; i > 0; i--) // i as var_34
+    {
+        fumisComStatus = 2;
+        bzero(&buf, 0xB);
+        cmdRes = fumisWaitRequest(&buf);
+        if (cmdRes != CommandResult::OK)
+        {
+            dword_433248 = cmdRes;
+            continue;
+        }
+        bzero(&buf, 0xB);
+        buf[0] = 1;
+        buf[1] = addrToWrite & 0xFF;
+        buf[2] = addrToWrite >> 8;
+        buf[3] = data & 0xFF;
+        buf[10] = buf[0] + buf[1] + buf[2] + buf[3];
+        cmdRes = fumisSendRequest(&buf);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+
+        if (!wordMode)
+        {
+            uint16_t var_30 = 0;
+            fumisComRead(addrToWrite, &var_30, 0);
+            if (var_30 == data)
+                return cmdRes;
+            else
+                continue;
+        }
+
+        fumisComStatus = 2;
+        cmdRes = fumisWaitRequest(&buf);
+        if (cmdRes != CommandResult::OK)
+        {
+            dword_433248 = cmdRes;
+            return cmdRes;
+        }
+        bzero(&buf, 0xB);
+        buf[0] = 1;
+        buf[1] = (addrToWrite + 1) & 0xFF;
+        buf[2] = (addrToWrite + 1) >> 8;
+        buf[3] = data >> 8;
+        buf[10] = buf[0] + buf[1] + buf[2] + buf[3];
+        cmdRes = fumisSendRequest(&buf);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+
+        uint16_t var_30 = 0;
+        fumisComRead(addrToWrite, &var_30, 1);
+        if (var_30 == data)
+            return cmdRes;
+    }
+    return cmdRes;
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComWriteByte(uint16_t addrToWrite, uint16_t data)
+{
+    return fumisComWrite(addrToWrite, data, 0);
+}
+
+Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
+{
+    return fumisComWrite(addrToWrite, data, 1);
+}
+
 Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 {
     selectSerialTimeoutMs = 100; // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
@@ -267,248 +509,6 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
         if (fumisComStatus == 5 || fumisComStatus == 3)
             return CommandResult::OK;
     } while (1);
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
-{
-    if (count != 8)
-        return CommandResult::ERROR;
-
-    bzero(buf, count);
-
-    if (!fumisComStatus)
-        return CommandResult::ERROR;
-
-    uint8_t var_28[32];
-    CommandResult cmdRes;
-
-    for (int i = 2; i > 0; i--) // NOTE : the original value is 4
-    {
-        if (i < 2) // NOTE : the original value is 4
-        {
-            fumisCloseSerial();
-            SERIALCOM_Flush();
-            m_uSleep(1);
-            fumisOpenSerial();
-            m_uSleep(1);
-        }
-
-        if (_MBTYPE != 1)
-        {
-            fumisComStatus = 2;
-            cmdRes = fumisWaitRequest((void *)var_28);
-            if (cmdRes != CommandResult::OK)
-            {
-                if (cmdRes == CommandResult::COMMUNICATION_ERROR)
-                    continue;
-                else
-                {
-                    dword_433248 = cmdRes;
-                    return cmdRes;
-                }
-            }
-        }
-
-        fumisComStatus = 3;
-        bzero(var_28, 0xB);
-        var_28[0] = 2;
-        var_28[1] = addrToRead & 0xFF;
-        var_28[2] = (addrToRead >> 8) & 0xFF;
-
-        var_28[10] = var_28[0] + var_28[1] + var_28[2];
-        cmdRes = fumisSendRequest(var_28);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-
-        bzero(var_28, 32);
-        fumisComStatus = 4;
-        cmdRes = fumisWaitRequest(var_28);
-        if (cmdRes == CommandResult::OK)
-        {
-            memcpy(buf, var_28 + 1, count);
-            return cmdRes;
-        }
-
-        if (cmdRes != CommandResult::COMMUNICATION_ERROR)
-        {
-            dword_433248 = cmdRes;
-            return cmdRes;
-        }
-    }
-
-    if (cmdRes == CommandResult::OK)
-        memcpy(buf, var_28 + 1, count);
-    else
-        dword_433248 = cmdRes;
-    return cmdRes;
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode)
-{
-    byte var_10[8];
-    CommandResult cmdRes = fumisComReadBuff(addrToRead, var_10, 8);
-    if (cmdRes == CommandResult::OK)
-    {
-        // *data = 0; //useless
-
-        if (!wordMode)
-            *data = var_10[0];
-        else
-        {
-            *data = var_10[1];
-            *data <<= 8;
-            *data += var_10[0];
-        }
-    }
-
-    return cmdRes;
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint16_t *data)
-{
-    return fumisComRead(addrToRead, data, 0);
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
-{
-    return fumisComRead(addrToRead, data, 1);
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
-{
-    if (!fumisComStatus)
-        return CommandResult::ERROR;
-
-    CommandResult cmdRes; // var_38
-    byte buf[0xB];        // var_2C
-
-    for (int i = 2; i > 0; i--) // i as var_34
-    {
-        fumisComStatus = 2;
-        bzero(&buf, 0xB);
-        cmdRes = fumisWaitRequest(&buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            dword_433248 = cmdRes;
-            continue;
-        }
-        bzero(&buf, 0xB);
-        buf[0] = 1;
-        buf[1] = addrToWrite & 0xFF;
-        buf[2] = addrToWrite >> 8;
-        buf[3] = data & 0xFF;
-        buf[10] = buf[0] + buf[1] + buf[2] + buf[3];
-        cmdRes = fumisSendRequest(&buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-
-        if (!wordMode)
-        {
-            uint16_t var_30 = 0;
-            fumisComRead(addrToWrite, &var_30, 0);
-            if (var_30 == data)
-                return cmdRes;
-            else
-                continue;
-        }
-
-        fumisComStatus = 2;
-        cmdRes = fumisWaitRequest(&buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            dword_433248 = cmdRes;
-            return cmdRes;
-        }
-        bzero(&buf, 0xB);
-        buf[0] = 1;
-        buf[1] = (addrToWrite + 1) & 0xFF;
-        buf[2] = (addrToWrite + 1) >> 8;
-        buf[3] = data >> 8;
-        buf[10] = buf[0] + buf[1] + buf[2] + buf[3];
-        cmdRes = fumisSendRequest(&buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-
-        uint16_t var_30 = 0;
-        fumisComRead(addrToWrite, &var_30, 1);
-        if (var_30 == data)
-            return cmdRes;
-    }
-    return cmdRes;
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComWriteByte(uint16_t addrToWrite, uint16_t data)
-{
-    return fumisComWrite(addrToWrite, data, 0);
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
-{
-    return fumisComWrite(addrToWrite, data, 1);
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, byte month, byte day, byte hour, byte minute, byte second)
-{
-    // The content of this function does not match strictly the original one
-
-    // Check if date is valid
-    // basic control
-    if (year < 2000 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59)
-        return CommandResult::ERROR;
-    // 30 days month control
-    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
-        return CommandResult::ERROR;
-    // February leap year control
-    if (month == 2 && day > 29)
-        return CommandResult::ERROR;
-    // February not leap year control
-    if (month == 2 && day == 29 && !(((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
-        return CommandResult::ERROR;
-
-    // weekDay calculation (Tomohiko Sakamoto’s Algorithm)
-    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
-    uint16_t calcYear = year;
-    if (month < 3)
-        calcYear -= 1;
-    byte weekDay = (calcYear + calcYear / 4 - calcYear / 100 + calcYear / 400 + t[month - 1] + day) % 7;
-    if (weekDay == 0)
-        weekDay = 7;
-
-    CommandResult cmdRes; // local_88
-    byte buf[0xB];        // local_60
-
-    for (int i = 2; i > 0; i--) // i as local_6c
-    {
-        if (!fumisComStatus)
-            return CommandResult::ERROR;
-
-        fumisComStatus = 2;
-        bzero(&buf, 0xB);
-        cmdRes = fumisWaitRequest(&buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            dword_433248 = cmdRes;
-            continue;
-        }
-        bzero(&buf, 0xB);
-        buf[0] = 6;
-        buf[1] = second;
-        buf[2] = minute;
-        buf[3] = hour;
-        buf[4] = weekDay;
-        buf[5] = day;
-        buf[6] = month;
-        buf[7] = year - 2000;
-        buf[10] = buf[0] + buf[1] + buf[2] + buf[3] + buf[4] + buf[5] + buf[6] + buf[7];
-        cmdRes = fumisSendRequest(&buf);
-        if (cmdRes == CommandResult::OK)
-            break;
-    }
-
-    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
-    _STOVE_WDAY = weekDay;
-
-    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
