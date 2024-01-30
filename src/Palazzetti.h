@@ -239,13 +239,14 @@ private:
     // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
     USLEEP_SIGNATURE m_uSleep = nullptr;
 
-    int SERIALCOM_OpenComport(uint32_t baudrate);
     void SERIALCOM_CloseComport();
     int SERIALCOM_Flush();
+    int SERIALCOM_OpenComport(uint32_t baudrate);
     int SERIALCOM_ReceiveBuf(void *buf, size_t count);
-    int SERIALCOM_SendBuf(void *buf, size_t count);
     int SERIALCOM_ReceiveByte(byte *buf);
+    int SERIALCOM_SendBuf(void *buf, size_t count);
     void SERIALCOM_SendByte(byte *buf);
+
     int iChkSum(byte *datasToCheck);
     int parseRxBuffer(byte *rxBuffer);
     CommandResult fumisCloseSerial();

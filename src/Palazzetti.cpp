@@ -1,12 +1,5 @@
 #include "Palazzetti.h"
 
-// original signature is (filename,baudrate,databitnumber,stopbitnumber,)
-// always 8 data bits and 1 stop bits
-int Palazzetti::SERIALCOM_OpenComport(uint32_t baudrate)
-{
-    return m_openSerial(baudrate);
-}
-
 void Palazzetti::SERIALCOM_CloseComport()
 {
     m_closeSerial();
@@ -15,6 +8,13 @@ void Palazzetti::SERIALCOM_CloseComport()
 int Palazzetti::SERIALCOM_Flush()
 {
     return m_flushSerial();
+}
+
+// original signature is (filename,baudrate,databitnumber,stopbitnumber,)
+// always 8 data bits and 1 stop bits
+int Palazzetti::SERIALCOM_OpenComport(uint32_t baudrate)
+{
+    return m_openSerial(baudrate);
 }
 
 int Palazzetti::SERIALCOM_ReceiveBuf(void *buf, size_t count)
@@ -34,6 +34,15 @@ int Palazzetti::SERIALCOM_ReceiveBuf(void *buf, size_t count)
     if (serialPortModel == 2)
         m_uSleep(1);
     return res;
+}
+
+int Palazzetti::SERIALCOM_ReceiveByte(byte *buf)
+{
+    int res = SERIALCOM_ReceiveBuf(buf, 1);
+    if (res < 0)
+        return res;
+
+    return 0;
 }
 
 int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
@@ -67,15 +76,6 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
     }
 
     return bytesSent;
-}
-
-int Palazzetti::SERIALCOM_ReceiveByte(byte *buf)
-{
-    int res = SERIALCOM_ReceiveBuf(buf, 1);
-    if (res < 0)
-        return res;
-
-    return 0;
 }
 
 void Palazzetti::SERIALCOM_SendByte(byte *buf)
