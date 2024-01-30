@@ -248,7 +248,10 @@ private:
     void SERIALCOM_SendByte(byte *buf);
 
     int iChkSum(byte *datasToCheck);
+    int isValidSerialNumber(char *SN);
     int parseRxBuffer(byte *rxBuffer);
+    uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
+
     CommandResult fumisCloseSerial();
     CommandResult fumisOpenSerial();
     CommandResult fumisSendRequest(void *buf);
@@ -264,7 +267,6 @@ private:
     CommandResult iGetStatusAtech();
     CommandResult iChkMBType();
     CommandResult iInit();
-    int isValidSerialNumber(char *SN);
     CommandResult iGetSNAtech();
     CommandResult iGetMBTypeAtech();
     CommandResult iGetStoveConfigurationAtech();
@@ -283,7 +285,6 @@ private:
     CommandResult iGetPowerAtech();
     CommandResult iSetPowerAtech(uint16_t powerLevel);
     void iGetFanLimits();
-    uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
     CommandResult iSetRoomFanAtech(uint16_t roomFanSpeed);
     CommandResult iSetRoomFan3Atech(uint16_t roomFan3Speed);
     CommandResult iSetRoomFan4Atech(uint16_t roomFan4Speed);

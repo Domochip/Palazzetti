@@ -94,6 +94,34 @@ int Palazzetti::iChkSum(byte *datasToCheck)
     return 0;
 }
 
+int Palazzetti::isValidSerialNumber(char *SN)
+{
+    if (!SN)
+        return 0;
+
+    size_t snLength = strlen(SN);
+
+    if (snLength < 1)
+        return 0;
+
+    if (snLength < 10)
+        return 1;
+
+    if (SN[0] == 'L' && SN[1] == 'T' && snLength < 0x17)
+        return 0;
+
+    if (SN[0] == 'F' && SN[1] == 'F' && (strcmp(SN + snLength - 4, "0000") == 0 || strcmp(SN + snLength - 4, "FFFF") == 0))
+        return 0;
+
+    if (SN[0] == 'L' && SN[1] == 'T' && strcmp(SN + snLength - 4, "0000") == 0)
+        return 0;
+
+    if (SN[0] == '0' && SN[1] == '0' && strcmp(SN + snLength - 4, "0000") == 0)
+        return 0;
+
+    return 1;
+}
+
 int Palazzetti::parseRxBuffer(byte *rxBuffer)
 {
     int res; // var_10;
@@ -119,6 +147,18 @@ int Palazzetti::parseRxBuffer(byte *rxBuffer)
         break;
     }
     return -1;
+}
+
+uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
+{
+    if (roomFanSpeed == 0)
+        return 7;
+    if (roomFanSpeed == 7)
+        return 0;
+    // if (roomFanSpeed == 6)
+    //     return 6;
+
+    return roomFanSpeed;
 }
 
 Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
@@ -558,34 +598,6 @@ Palazzetti::CommandResult Palazzetti::iInit()
     // rest of iInit concerns Micronova which is not implemented
 
     return CommandResult::OK;
-}
-
-int Palazzetti::isValidSerialNumber(char *SN)
-{
-    if (!SN)
-        return 0;
-
-    size_t snLength = strlen(SN);
-
-    if (snLength < 1)
-        return 0;
-
-    if (snLength < 10)
-        return 1;
-
-    if (SN[0] == 'L' && SN[1] == 'T' && snLength < 0x17)
-        return 0;
-
-    if (SN[0] == 'F' && SN[1] == 'F' && (strcmp(SN + snLength - 4, "0000") == 0 || strcmp(SN + snLength - 4, "FFFF") == 0))
-        return 0;
-
-    if (SN[0] == 'L' && SN[1] == 'T' && strcmp(SN + snLength - 4, "0000") == 0)
-        return 0;
-
-    if (SN[0] == '0' && SN[1] == '0' && strcmp(SN + snLength - 4, "0000") == 0)
-        return 0;
-
-    return 1;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetSNAtech()
@@ -1308,18 +1320,6 @@ void Palazzetti::iGetFanLimits()
         else
             _FAN1LMIN = 0;
     }
-}
-
-uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
-{
-    if (roomFanSpeed == 0)
-        return 7;
-    if (roomFanSpeed == 7)
-        return 0;
-    // if (roomFanSpeed == 6)
-    //     return 6;
-
-    return roomFanSpeed;
 }
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
