@@ -1600,11 +1600,8 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 
     CommandResult cmdRes;
 
-    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7)
+    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = iSetPowerAtech(3)) == CommandResult::OK)
     {
-        cmdRes = iSetPowerAtech(3);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
         cmdRes = fumisComWriteByte(0x2036, roomFanSpeed);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
@@ -1614,7 +1611,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
         _F2L = roomFanSpeed;
         return CommandResult::OK;
     }
-    return CommandResult::OK;
+    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(byte setPoint)
