@@ -49,7 +49,7 @@ void setup()
 {
     swSer.begin(38400);
     swSer.println("Start Of swSer");
-    if (myPala.initialize(myOpenSerial, myCloseSerial, mySelectSerial, myReadSerial, myWriteSerial, myDrainSerial, myFlushSerial, myUSleep))
+    if (myPala.initialize(myOpenSerial, myCloseSerial, mySelectSerial, myReadSerial, myWriteSerial, myDrainSerial, myFlushSerial, myUSleep) == Palazzetti::CommandResult::OK)
         swSer.println("initialize OK");
     else
         swSer.println("initialize Failed");
@@ -58,19 +58,19 @@ void setup()
 void loop()
 {
     float setPoint;
-    if (myPala.getSetPoint(&setPoint))
+    if (myPala.getSetPoint(&setPoint) == Palazzetti::CommandResult::OK)
         swSer.printf("myPala.getSetPoint : %.2f\r\n", setPoint);
     else
         swSer.println("myPala.getSetPoint failed");
 
     float T1, T2, T3, T4, T5;
-    if (myPala.getAllTemps(&T1, &T2, &T3, &T4, &T5))
+    if (myPala.getAllTemps(&T1, &T2, &T3, &T4, &T5) == Palazzetti::CommandResult::OK)
         swSer.printf("myPala.getAllTemps : T1=%.2f T2=%.2f T3=%.2f T4=%.2f T5=%.2f\r\n", T1, T2, T3, T4, T5);
     else
         swSer.println("myPala.getAllTemps failed");
 
     uint16_t STATUS, LSTATUS;
-    if (myPala.getStatus(&STATUS, &LSTATUS))
+    if (myPala.getStatus(&STATUS, &LSTATUS) == Palazzetti::CommandResult::OK)
         swSer.printf("myPala.GetStatus : STATUS=%d LSTATUS=%d\r\n", STATUS, LSTATUS);
     else
         swSer.println("myPala.GetStatus failed");
