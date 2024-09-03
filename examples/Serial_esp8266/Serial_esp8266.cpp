@@ -69,9 +69,9 @@ void loop()
     else
         swSer.println("myPala.getAllTemps failed");
 
-    uint16_t STATUS, LSTATUS;
-    if (myPala.getStatus(&STATUS, &LSTATUS) == Palazzetti::CommandResult::OK)
-        swSer.printf("myPala.GetStatus : STATUS=%d LSTATUS=%d\r\n", STATUS, LSTATUS);
+    uint16_t STATUS, LSTATUS, FSTATUS;
+    if (myPala.getStatus(&STATUS, &LSTATUS, &FSTATUS) == Palazzetti::CommandResult::OK)
+        swSer.printf("myPala.GetStatus : STATUS=%d LSTATUS=%d FSTATUS=%d\r\n", STATUS, LSTATUS, FSTATUS);
     else
         swSer.println("myPala.GetStatus failed");
 
