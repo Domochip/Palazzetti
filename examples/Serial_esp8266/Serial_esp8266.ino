@@ -48,7 +48,7 @@ void myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
 void setup()
 {
     swSer.begin(38400);
-    swSer.println("Start Of swSer");
+    swSer.println("swSer started");
     if (myPala.initialize(myOpenSerial, myCloseSerial, mySelectSerial, myReadSerial, myWriteSerial, myDrainSerial, myFlushSerial, myUSleep) == Palazzetti::CommandResult::OK)
         swSer.println("initialize OK");
     else
