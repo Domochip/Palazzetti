@@ -16,8 +16,8 @@ int myOpenSerial(uint32_t baudrate)
 void myCloseSerial()
 {
     Serial.end();
-    // TX/GPIO15 is pulled down and so block the stove bus by default...
-    pinMode(15, OUTPUT); // set TX PIN to OUTPUT HIGH
+    // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
+    pinMode(15, OUTPUT);
     digitalWrite(15, HIGH);
 }
 int mySelectSerial(unsigned long timeout)
