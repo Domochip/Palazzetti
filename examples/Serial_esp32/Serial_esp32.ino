@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Palazzetti.h>
 
-// Serial is used for log
+// Serial is used for log (baudrate=38400)
 // Serial2 is used for stove communication
 
 Palazzetti myPala;
