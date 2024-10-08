@@ -366,7 +366,7 @@ public:
     CommandResult setSilentMode(byte silentMode, byte *SLNTReturn = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
     CommandResult switchOff(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
     CommandResult switchOn(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
-    CommandResult writeData(uint16_t addrToWrite, uint16_t data, bool wordMode);
+    CommandResult writeData(uint16_t addrToWrite, uint16_t data, bool wordMode) __attribute__((warning("/!\\ writeData is a dangerous function and may arm your stove if not used carefully /!\\")));
     Palazzetti();
 };
 
