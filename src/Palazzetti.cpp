@@ -1882,6 +1882,14 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     return CommandResult::OK;
 }
 
+Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint16_t data, bool wordMode)
+{
+    if (!wordMode)
+        return fumisComWriteByte(addrToWrite, data & 0xFF);
+    else
+        return fumisComWriteWord(addrToWrite, data);
+}
+
 //------------------------------------------
 // Public part
 
@@ -3102,6 +3110,20 @@ Palazzetti::CommandResult Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTAT
     m_uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
 
     return getStatus(STATUS, LSTATUS, FSTATUS);
+}
+
+Palazzetti::CommandResult Palazzetti::writeData(uint16_t addrToWrite, uint16_t data, bool wordMode)
+{
+    CommandResult cmdRes = initialize();
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return CommandResult::UNSUPPORTED;
+
+    return iWriteDataAtech(addrToWrite, data, wordMode);
+    // the original code return the data untouched (even if its value is over 255 and wordMode is false...)
+    // considered as useless because CommandResult is enough to know if the command was successful
 }
 
 //------------------------------------------

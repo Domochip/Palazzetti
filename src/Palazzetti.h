@@ -310,6 +310,7 @@ private:
     CommandResult iSwitchOnAtech();
     CommandResult iUpdateStaticData();
     CommandResult iUpdateStaticDataAtech();
+    CommandResult iWriteDataAtech(uint16_t addrToWrite, uint16_t data, bool wordMode);
 
     bool _isInitialized;
 
@@ -365,6 +366,7 @@ public:
     CommandResult setSilentMode(byte silentMode, byte *SLNTReturn = nullptr, byte *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
     CommandResult switchOff(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
     CommandResult switchOn(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
+    CommandResult writeData(uint16_t addrToWrite, uint16_t data, bool wordMode);
     Palazzetti();
 };
 
