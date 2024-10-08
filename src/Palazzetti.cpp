@@ -1228,6 +1228,14 @@ Palazzetti::CommandResult Palazzetti::iInit()
     return CommandResult::OK;
 }
 
+Palazzetti::CommandResult Palazzetti::iReadDataAtech(uint16_t addrToRead, uint16_t *data, bool wordMode)
+{
+    if (!wordMode)
+        return fumisComReadByte(addrToRead, data);
+    else
+        return fumisComReadWord(addrToRead, data);
+}
+
 Palazzetti::CommandResult Palazzetti::iReadFansAtech()
 {
     byte buf[8];
@@ -2554,6 +2562,18 @@ Palazzetti::CommandResult Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTA
         *FSTATUS = _FSTATUS;
 
     return CommandResult::OK;
+}
+
+Palazzetti::CommandResult Palazzetti::readData(uint16_t addrToRead, bool wordMode, uint16_t *ADDR_DATA)
+{
+    CommandResult cmdRes = initialize();
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return CommandResult::UNSUPPORTED;
+
+    return iReadDataAtech(addrToRead, ADDR_DATA, wordMode);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoDay(byte dayNumber, byte memoryNumber, byte programNumber)
