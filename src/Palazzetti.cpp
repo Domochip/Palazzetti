@@ -1893,7 +1893,7 @@ Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint
 //------------------------------------------
 // Public part
 
-Palazzetti::CommandResult Palazzetti::initialize()
+Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
 {
     if (m_openSerial == nullptr ||
         m_closeSerial == nullptr ||
@@ -1909,6 +1909,9 @@ Palazzetti::CommandResult Palazzetti::initialize()
 
     if (_isInitialized)
         return CommandResult::OK;
+
+    // comPortNumber affects loopBack processing
+    comPortNumber = loopBack ? 0 : 1;
 
     CommandResult cmdRes = iChkMBType();
     if (cmdRes != CommandResult::OK)
@@ -1935,7 +1938,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep)
+Palazzetti::CommandResult Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep, bool loopBack /* = false*/)
 {
     m_openSerial = openSerial;
     m_closeSerial = closeSerial;
@@ -1946,7 +1949,7 @@ Palazzetti::CommandResult Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial
     m_flushSerial = flushSerial;
     m_uSleep = uSleep;
 
-    return initialize();
+    return initialize(loopBack);
 }
 
 Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
