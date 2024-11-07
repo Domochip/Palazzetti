@@ -1866,11 +1866,11 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
             _SPLMIN = (uint8_t)((double)_SPLMIN / 5.0);
             _SPLMAX = (uint8_t)((double)_SPLMAX / 5.0);
         }
-        else if (_FLUID == 2)
-        {
-            _SPLMIN = _LIMMIN[0x54];
-            _SPLMAX = _LIMMAX[0x54];
-        }
+    }
+    else if (_FLUID == 2)
+    {
+        _SPLMIN = _LIMMIN[0x54];
+        _SPLMAX = _LIMMAX[0x54];
     }
 
     ///*iGetLimitsAtech OK*/
