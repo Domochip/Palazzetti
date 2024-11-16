@@ -1667,12 +1667,6 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
 
 Palazzetti::CommandResult Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
 {
-
-    // Custom code not in original one
-    // Silent mode should be available only for stove with more than 2 Fans/Pumps
-    if (_FAN2TYPE < 3)
-        return CommandResult::UNSUPPORTED;
-
     if (silentMode > 0)
     {
         CommandResult cmdRes = iSetRoomFanAtech(7);
