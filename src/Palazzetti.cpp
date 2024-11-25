@@ -2137,7 +2137,7 @@ Palazzetti::CommandResult Palazzetti::getChronoData(byte *CHRSTATUS, float (*PCH
         return cmdRes;
 
     if (CHRSTATUS)
-        *CHRSTATUS = chronoDataStatus;
+        *CHRSTATUS = chronoDataStatus & 0x01;
     for (byte i = 0; i < 6; i++)
     {
         if (PCHRSETP)
