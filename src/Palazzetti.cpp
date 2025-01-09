@@ -1090,8 +1090,8 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
 
     _FAN1LMIN = 1;
     _FAN1LMAX = 5;
-    _FAN2LMIN = 0;
-    _FAN2LMAX = 1;
+    _FAN3LMIN = 0;
+    _FAN3LMAX = 1;
     _FAN4LMIN = 0;
     _FAN4LMAX = 1;
     _FAN2MODE = 1;
@@ -1104,7 +1104,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
 
     if (_FAN2TYPE == 5 || _FAN2TYPE == 3)
     {
-        _FAN2LMAX = 5;
+        _FAN3LMAX = 5;
         _FAN4LMAX = 5;
     }
 
@@ -2043,8 +2043,8 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, int *MBTY
     {
         (*FANLMINMAX)[0] = _FAN1LMIN;
         (*FANLMINMAX)[1] = _FAN1LMAX;
-        (*FANLMINMAX)[2] = _FAN2LMIN;
-        (*FANLMINMAX)[3] = _FAN2LMAX;
+        (*FANLMINMAX)[2] = _FAN3LMIN;
+        (*FANLMINMAX)[3] = _FAN3LMAX;
         (*FANLMINMAX)[4] = _FAN4LMIN;
         (*FANLMINMAX)[5] = _FAN4LMAX;
     }
@@ -2815,8 +2815,8 @@ Palazzetti::CommandResult Palazzetti::setPower(byte powerLevel, byte *PWRReturn,
     {
         (*FANLMINMAXReturn)[0] = _FAN1LMIN;
         (*FANLMINMAXReturn)[1] = _FAN1LMAX;
-        (*FANLMINMAXReturn)[2] = _FAN2LMIN;
-        (*FANLMINMAXReturn)[3] = _FAN2LMAX;
+        (*FANLMINMAXReturn)[2] = _FAN3LMIN;
+        (*FANLMINMAXReturn)[3] = _FAN3LMAX;
         (*FANLMINMAXReturn)[4] = _FAN4LMIN;
         (*FANLMINMAXReturn)[5] = _FAN4LMAX;
     }
