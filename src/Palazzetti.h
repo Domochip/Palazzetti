@@ -197,8 +197,8 @@ private:
     byte _AUTONOMYTYPE = 0; // myData.4592 (psStaticData[0x60])
     byte _NOMINALPWR = 0;   // myData.4593 (psStaticData[0x61])
     byte byte_471CC2 = 0;   // myData.4594 (psStaticData[0x62]) Fan related value used for calculation...
-    byte _FAN1LMIN = 0;     // myData.4595 (psStaticData[0x63]) FANLMINMAX[0]
-    byte _FAN1LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
+    byte _FAN2LMIN = 0;     // myData.4595 (psStaticData[0x63]) FANLMINMAX[0]
+    byte _FAN2LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
     byte _FAN3LMIN = 0;     // myData.4597 (psStaticData[0x65]) FANLMINMAX[2]
     byte _FAN3LMAX = 0;     // myData.4598 (psStaticData[0x66]) FANLMINMAX[3]
     byte _FAN4LMIN = 0;     // myData.4599 (psStaticData[0x67]) FANLMINMAX[4]
