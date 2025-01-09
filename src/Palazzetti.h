@@ -201,8 +201,8 @@ private:
     byte _FAN1LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
     byte _FAN2LMIN = 0;     // myData.4597 (psStaticData[0x65]) FANLMINMAX[2]
     byte _FAN2LMAX = 0;     // myData.4598 (psStaticData[0x66]) FANLMINMAX[3]
-    byte _FAN3LMIN = 0;     // myData.4599 (psStaticData[0x67]) FANLMINMAX[4]
-    byte _FAN3LMAX = 0;     // myData.4600 (psStaticData[0x68]) FANLMINMAX[5]
+    byte _FAN4LMIN = 0;     // myData.4599 (psStaticData[0x67]) FANLMINMAX[4]
+    byte _FAN4LMAX = 0;     // myData.4600 (psStaticData[0x68]) FANLMINMAX[5]
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
