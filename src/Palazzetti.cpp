@@ -933,7 +933,7 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
     int currentPosInSN = 0;   // var_24
     byte buf[8];              // var_14
     char *pSN = (char *)&_SN; // var_18
-    byte checkSum = 0;
+    int8_t checkSum = 0; // must be signed
     while (currentPosInSN < 0xE)
     {
         cmdRes = fumisComReadBuff(0x2100 + currentPosInSN, buf, 8);
