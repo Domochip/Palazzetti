@@ -972,9 +972,11 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
             strcpy((char *)&_SN + 2, (char *)&_SN + 4);
             _SN[23] = 0;
         }
+        return CommandResult::OK;
     }
 
-    return CommandResult::OK;
+    _SN[0] = 0;
+    return CommandResult::ERROR;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
