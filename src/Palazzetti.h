@@ -209,8 +209,8 @@ private:
 #define OPENSERIAL_SIGNATURE std::function<int(uint32_t baudrate)>
 #define CLOSESERIAL_SIGNATURE std::function<void()>
 #define SELECTSERIAL_SIGNATURE std::function<int(unsigned long timeout)>
-#define READSERIAL_SIGNATURE std::function<size_t(void *buf, size_t count)>
-#define WRITESERIAL_SIGNATURE std::function<size_t(const void *buf, size_t count)>
+#define READSERIAL_SIGNATURE std::function<ssize_t(void *buf, size_t count)>
+#define WRITESERIAL_SIGNATURE std::function<ssize_t(const void *buf, size_t count)>
 #define DRAINSERIAL_SIGNATURE std::function<int()>
 #define FLUSHSERIAL_SIGNATURE std::function<int()>
 #define USLEEP_SIGNATURE std::function<void(unsigned long usec)>

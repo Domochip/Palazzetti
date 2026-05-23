@@ -29,8 +29,8 @@ int mySelectSerial(unsigned long timeout)
 
     return avail;
 }
-size_t myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
-size_t myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
+ssize_t myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
+ssize_t myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
 int myDrainSerial()
 {
     Serial.flush(); // On ESP, Serial.flush() is drain
