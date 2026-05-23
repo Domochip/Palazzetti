@@ -755,7 +755,7 @@ Palazzetti::CommandResult Palazzetti::iGetDPressDataAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    _DP_PRESS = buf;
+    _DP_PRESS = (int16_t)buf;
 
     return CommandResult::OK;
 }
