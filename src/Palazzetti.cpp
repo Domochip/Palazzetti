@@ -1512,7 +1512,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoStopMMAtech(byte programNumber, 
 
 Palazzetti::CommandResult Palazzetti::iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue)
 {
-    if (hParamToWrite >= 0x6E)
+    if (hParamToWrite > 0x6E)
         return CommandResult::ERROR;
 
     CommandResult cmdRes = fumisComWriteWord((hParamToWrite + 0xF00) * 2, hParamValue);
