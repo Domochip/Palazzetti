@@ -1591,10 +1591,13 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
     }
     else
     {
-        if (_FAN2TYPE != 5 && _FAN2TYPE != 3)
+        if (_FAN2TYPE == 5)
+            cmdRes = fumisComWriteByte(0x2005, roomFan4Speed);
+        else if (_FAN2TYPE == 3)
+            cmdRes = fumisComWriteWord(0x2004, roomFan4Speed);  // Fix: WriteWord matches firmware
+        else
             return CommandResult::ERROR;
 
-        cmdRes = fumisComWriteByte((_FAN2TYPE == 5 ? 0x2005 : 0x2004), roomFan4Speed);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
         _F4L = roomFan4Speed;
