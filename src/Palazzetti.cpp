@@ -1566,7 +1566,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
     {
         if (_FAN2TYPE != 5)
             return CommandResult::ERROR;
-        cmdRes = fumisComWriteWord(0x2004, roomFan3Speed);
+        cmdRes = fumisComWriteByte(0x2004, roomFan3Speed);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
         _F3L = roomFan3Speed;
