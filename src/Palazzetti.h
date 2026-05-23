@@ -49,7 +49,7 @@ private:
     byte _HWTYPE = 0; // myData.4208
     // myData.4212
     unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
-    char _SN[28] = {0};                         // myData.4224
+    char _SN[33] = {0};                         // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
 
