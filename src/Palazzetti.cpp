@@ -624,7 +624,7 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
         chronoDataPrograms[i].STARTM = programTimes[1];
         chronoDataPrograms[i].STOPH = programTimes[2];
         chronoDataPrograms[i].STOPM = programTimes[3];
-        chronoDataPrograms[i].CHRSETP = (int8_t)CHRSETPList[i];
+        chronoDataPrograms[i].CHRSETP = CHRSETPList[i];
         if (!_FLUID)
             chronoDataPrograms[i].CHRSETP /= 5.0;
 
