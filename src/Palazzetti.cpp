@@ -1981,7 +1981,7 @@ Palazzetti::CommandResult Palazzetti::getAllParameters(byte (*params)[0x6A])
 }
 
 // refreshStatus shoud be true if last call is over ~15sec
-Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, uint16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28])
+Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, byte *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, byte *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, byte *PWR, float *FDR, uint16_t *DPT, int16_t *DP, byte *IN, byte *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28])
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2234,7 +2234,7 @@ Palazzetti::CommandResult Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], by
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getDPressData(uint16_t *DP_TARGET, uint16_t *DP_PRESS)
+Palazzetti::CommandResult Palazzetti::getDPressData(uint16_t *DP_TARGET, int16_t *DP_PRESS)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
