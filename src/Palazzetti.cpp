@@ -303,7 +303,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, byte mo
     CommandResult cmdRes; // local_88
     byte buf[0xB];        // local_60
 
-    for (int i = 2; i > 0; i--) // i as local_6c
+    for (int i = 3; i > 0; i--) // i as local_6c
     {
         if (!fumisComStatus)
             return CommandResult::ERROR;
