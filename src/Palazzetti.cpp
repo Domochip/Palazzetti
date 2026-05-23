@@ -838,8 +838,7 @@ Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    _FDR = (int16_t)var_C;
-    _FDR /= 10.0f;
+    _FDR = var_C / 10.0f;
 
     return CommandResult::OK;
 }
