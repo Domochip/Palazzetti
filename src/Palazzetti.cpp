@@ -1936,7 +1936,7 @@ Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep, bool loopBack /* = false*/)
+Palazzetti::CommandResult Palazzetti::initialize(OpenSerialFn openSerial, CloseSerialFn closeSerial, SelectSerialFn selectSerial, ReadSerialFn readSerial, WriteSerialFn writeSerial, DrainSerialFn drainSerial, FlushSerialFn flushSerial, USleepFn uSleep, bool loopBack /* = false*/)
 {
     m_openSerial = openSerial;
     m_closeSerial = closeSerial;

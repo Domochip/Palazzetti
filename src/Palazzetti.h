@@ -206,38 +206,38 @@ private:
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
-#define OPENSERIAL_SIGNATURE std::function<int(uint32_t baudrate)>
-#define CLOSESERIAL_SIGNATURE std::function<void()>
-#define SELECTSERIAL_SIGNATURE std::function<int(unsigned long timeout)>
-#define READSERIAL_SIGNATURE std::function<ssize_t(void *buf, size_t count)>
-#define WRITESERIAL_SIGNATURE std::function<ssize_t(const void *buf, size_t count)>
-#define DRAINSERIAL_SIGNATURE std::function<int()>
-#define FLUSHSERIAL_SIGNATURE std::function<int()>
-#define USLEEP_SIGNATURE std::function<void(unsigned long usec)>
+    using OpenSerialFn   = std::function<int(uint32_t baudrate)>;
+    using CloseSerialFn  = std::function<void()>;
+    using SelectSerialFn = std::function<int(unsigned long timeout)>;
+    using ReadSerialFn   = std::function<ssize_t(void *buf, size_t count)>;
+    using WriteSerialFn  = std::function<ssize_t(const void *buf, size_t count)>;
+    using DrainSerialFn  = std::function<int()>;
+    using FlushSerialFn  = std::function<int()>;
+    using USleepFn       = std::function<void(unsigned long usec)>;
 
     // Open a Serial
     // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    OPENSERIAL_SIGNATURE m_openSerial = nullptr;
+    OpenSerialFn m_openSerial = nullptr;
     // Close Serial
-    CLOSESERIAL_SIGNATURE m_closeSerial = nullptr;
+    CloseSerialFn m_closeSerial = nullptr;
     // Indicates that some data are available to read
     // Shall return 1 if some data are available; 0 if no data are available. otherwise -1 for error
-    SELECTSERIAL_SIGNATURE m_selectSerial = nullptr;
+    SelectSerialFn m_selectSerial = nullptr;
     // Read from Serial
     // Upon successful completion, shall return a non-negative integer indicating the number of bytes actually read. Otherwise, the functions shall return -1
-    READSERIAL_SIGNATURE m_readSerial = nullptr;
+    ReadSerialFn m_readSerial = nullptr;
     // Write to Serial
     // Upon successful completion, shall return the number of bytes actually written. Otherwise, -1 shall be returned
-    WRITESERIAL_SIGNATURE m_writeSerial = nullptr;
+    WriteSerialFn m_writeSerial = nullptr;
     // Wait for transmission of output
     // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    DRAINSERIAL_SIGNATURE m_drainSerial = nullptr;
+    DrainSerialFn m_drainSerial = nullptr;
     // Flush both non-transmitted output data and non-read input data
     // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    FLUSHSERIAL_SIGNATURE m_flushSerial = nullptr;
+    FlushSerialFn m_flushSerial = nullptr;
     // Suspend execution for an interval (useconds)
     // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    USLEEP_SIGNATURE m_uSleep = nullptr;
+    USleepFn m_uSleep = nullptr;
 
     void SERIALCOM_CloseComport();
     int SERIALCOM_Flush();
@@ -316,7 +316,7 @@ private:
 
 public:
     CommandResult initialize(bool loopBack = false);
-    CommandResult initialize(OPENSERIAL_SIGNATURE openSerial, CLOSESERIAL_SIGNATURE closeSerial, SELECTSERIAL_SIGNATURE selectSerial, READSERIAL_SIGNATURE readSerial, WRITESERIAL_SIGNATURE writeSerial, DRAINSERIAL_SIGNATURE drainSerial, FLUSHSERIAL_SIGNATURE flushSerial, USLEEP_SIGNATURE uSleep, bool loopBack = false);
+    CommandResult initialize(OpenSerialFn openSerial, CloseSerialFn closeSerial, SelectSerialFn selectSerial, ReadSerialFn readSerial, WriteSerialFn writeSerial, DrainSerialFn drainSerial, FlushSerialFn flushSerial, USleepFn uSleep, bool loopBack = false);
     bool isInitialized() { return _isInitialized; };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
