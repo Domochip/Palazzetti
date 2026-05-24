@@ -48,7 +48,19 @@ void setup()
 {
     Serial.begin(38400);
     Serial.println("Serial started");
-    if (myPala.initialize(myOpenSerial, myCloseSerial, mySelectSerial, myReadSerial, myWriteSerial, myDrainSerial, myFlushSerial, myUSleep) == Palazzetti::CommandResult::OK)
+
+    Palazzetti::SerialAdapter serial = {
+        .open   = myOpenSerial,
+        .close  = myCloseSerial,
+        .select = mySelectSerial,
+        .read   = myReadSerial,
+        .write  = myWriteSerial,
+        .drain  = myDrainSerial,
+        .flush  = myFlushSerial,
+        .uSleep = myUSleep
+    };
+
+    if (myPala.initialize(serial) == Palazzetti::CommandResult::OK)
         Serial.println("initialize OK");
     else
         Serial.println("initialize Failed");

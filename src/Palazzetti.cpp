@@ -2,37 +2,37 @@
 
 void Palazzetti::SERIALCOM_CloseComport()
 {
-    m_closeSerial();
+    m_serial.close();
 }
 
 int Palazzetti::SERIALCOM_Flush()
 {
-    return m_flushSerial();
+    return m_serial.flush();
 }
 
 // original signature is (filename,baudrate,databitnumber,stopbitnumber,)
 // always 8 data bits and 1 stop bits
 int Palazzetti::SERIALCOM_OpenComport(uint32_t baudrate)
 {
-    return m_openSerial(baudrate);
+    return m_serial.open(baudrate);
 }
 
 int Palazzetti::SERIALCOM_ReceiveBuf(void *buf, size_t count)
 {
-    int res = m_selectSerial(selectSerialTimeoutMs);
+    int res = m_serial.select(selectSerialTimeoutMs);
     if (res < 0)
         return -1;
 
     if (!res)
         return res;
 
-    res = m_readSerial(buf, count);
+    res = m_serial.read(buf, count);
 
     if (res < 1)
         return -1;
 
     if (serialPortModel == 2)
-        m_uSleep(1);
+        m_serial.uSleep(1);
     return res;
 }
 
@@ -52,11 +52,11 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 
     while (totalBytesWritten < count)
     {
-        bytesSent = m_writeSerial((void *)((uint8_t *)buf + totalBytesWritten), count - totalBytesWritten);
+        bytesSent = m_serial.write((void *)((uint8_t *)buf + totalBytesWritten), count - totalBytesWritten);
         totalBytesWritten += bytesSent;
     }
 
-    m_drainSerial();
+    m_serial.drain();
 
     if (!comPortNumber && !_MBTYPE)
     {
@@ -65,10 +65,10 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 
         while (totalBytesReaded < count)
         {
-            if (m_selectSerial(selectSerialTimeoutMs) <= 0)
+            if (m_serial.select(selectSerialTimeoutMs) <= 0)
                 return -1;
 
-            bytesReaded = m_readSerial((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
+            bytesReaded = m_serial.read((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
             if (bytesReaded < 0)
                 return bytesReaded;
             totalBytesReaded += bytesReaded;
@@ -208,9 +208,9 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
         {
             fumisCloseSerial();
             SERIALCOM_Flush();
-            m_uSleep(1);
+            m_serial.uSleep(1);
             fumisOpenSerial();
-            m_uSleep(1);
+            m_serial.uSleep(1);
         }
 
         if (_MBTYPE != 1)
@@ -483,7 +483,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
             // longest measured delay for other frames is ~9ms
             // so if we are in fumisComStatus 2, already received 11 bytes and some bytes are received before 18ms have passed
             // we should slide the buffer to the left by one byte to continue reading
-            if (fumisComStatus == 2 && bufPosition == 0xB && m_selectSerial(18))
+            if (fumisComStatus == 2 && bufPosition == 0xB && m_serial.select(18))
             {
                 bufPosition--;
                 for (int i = 0; i < bufPosition; i++)
@@ -1893,14 +1893,14 @@ Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint
 
 Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
 {
-    if (m_openSerial == nullptr ||
-        m_closeSerial == nullptr ||
-        m_selectSerial == nullptr ||
-        m_readSerial == nullptr ||
-        m_writeSerial == nullptr ||
-        m_drainSerial == nullptr ||
-        m_flushSerial == nullptr ||
-        m_uSleep == nullptr)
+    if (!m_serial.open   ||
+        !m_serial.close  ||
+        !m_serial.select ||
+        !m_serial.read   ||
+        !m_serial.write  ||
+        !m_serial.drain  ||
+        !m_serial.flush  ||
+        !m_serial.uSleep)
     {
         return CommandResult::ERROR;
     }
@@ -1936,17 +1936,9 @@ Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(OpenSerialFn openSerial, CloseSerialFn closeSerial, SelectSerialFn selectSerial, ReadSerialFn readSerial, WriteSerialFn writeSerial, DrainSerialFn drainSerial, FlushSerialFn flushSerial, USleepFn uSleep, bool loopBack /* = false*/)
+Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack /* = false*/)
 {
-    m_openSerial = openSerial;
-    m_closeSerial = closeSerial;
-    m_selectSerial = selectSerial;
-    m_readSerial = readSerial;
-    m_writeSerial = writeSerial;
-    m_drainSerial = drainSerial;
-    m_flushSerial = flushSerial;
-    m_uSleep = uSleep;
-
+    m_serial = serial;
     return initialize(loopBack);
 }
 
@@ -3090,7 +3082,7 @@ Palazzetti::CommandResult Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTA
         return cmdRes;
 
     // give the stove time to switch off and reach the final status
-    m_uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
+    m_serial.uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
 
     return getStatus(STATUS, LSTATUS, FSTATUS);
 }
@@ -3108,7 +3100,7 @@ Palazzetti::CommandResult Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTAT
     // give the stove time to switch on and reach the "final" status
     // (if stove need to heat up, it stays on STATUS=3 for more than 3.6s)
     // (otherwise it switch to STATUS=9 in less than 0.5s)
-    m_uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
+    m_serial.uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
 
     return getStatus(STATUS, LSTATUS, FSTATUS);
 }

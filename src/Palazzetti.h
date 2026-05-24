@@ -18,6 +18,35 @@ public:
         OK                   // = 0
     };
 
+    using OpenSerialFn   = std::function<int(uint32_t baudrate)>;
+    using CloseSerialFn  = std::function<void()>;
+    using SelectSerialFn = std::function<int(unsigned long timeout)>;
+    using ReadSerialFn   = std::function<ssize_t(void *buf, size_t count)>;
+    using WriteSerialFn  = std::function<ssize_t(const void *buf, size_t count)>;
+    using DrainSerialFn  = std::function<int()>;
+    using FlushSerialFn  = std::function<int()>;
+    using USleepFn       = std::function<void(unsigned long usec)>;
+
+    struct SerialAdapter
+    {
+        // Open a Serial. Returns 0 on success, -1 on error.
+        OpenSerialFn   open;
+        // Close Serial.
+        CloseSerialFn  close;
+        // Returns 1 if data available, 0 if none, -1 on error.
+        SelectSerialFn select;
+        // Returns bytes read (>= 0) or -1 on error.
+        ReadSerialFn   read;
+        // Returns bytes written (>= 0) or -1 on error.
+        WriteSerialFn  write;
+        // Wait for transmission. Returns 0 on success, -1 on error.
+        DrainSerialFn  drain;
+        // Flush pending I/O. Returns 0 on success, -1 on error.
+        FlushSerialFn  flush;
+        // Suspend execution for usec microseconds.
+        USleepFn       uSleep;
+    };
+
 private:
     uint16_t wAddrFeederActiveTime = 0;
     uint32_t fumisComStatus = 0;                    // sFumisComData.4
@@ -206,38 +235,7 @@ private:
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
-    using OpenSerialFn   = std::function<int(uint32_t baudrate)>;
-    using CloseSerialFn  = std::function<void()>;
-    using SelectSerialFn = std::function<int(unsigned long timeout)>;
-    using ReadSerialFn   = std::function<ssize_t(void *buf, size_t count)>;
-    using WriteSerialFn  = std::function<ssize_t(const void *buf, size_t count)>;
-    using DrainSerialFn  = std::function<int()>;
-    using FlushSerialFn  = std::function<int()>;
-    using USleepFn       = std::function<void(unsigned long usec)>;
-
-    // Open a Serial
-    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    OpenSerialFn m_openSerial = nullptr;
-    // Close Serial
-    CloseSerialFn m_closeSerial = nullptr;
-    // Indicates that some data are available to read
-    // Shall return 1 if some data are available; 0 if no data are available. otherwise -1 for error
-    SelectSerialFn m_selectSerial = nullptr;
-    // Read from Serial
-    // Upon successful completion, shall return a non-negative integer indicating the number of bytes actually read. Otherwise, the functions shall return -1
-    ReadSerialFn m_readSerial = nullptr;
-    // Write to Serial
-    // Upon successful completion, shall return the number of bytes actually written. Otherwise, -1 shall be returned
-    WriteSerialFn m_writeSerial = nullptr;
-    // Wait for transmission of output
-    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    DrainSerialFn m_drainSerial = nullptr;
-    // Flush both non-transmitted output data and non-read input data
-    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    FlushSerialFn m_flushSerial = nullptr;
-    // Suspend execution for an interval (useconds)
-    // Upon successful completion, 0 shall be returned. Otherwise, -1 shall be returned
-    USleepFn m_uSleep = nullptr;
+    SerialAdapter m_serial;
 
     void SERIALCOM_CloseComport();
     int SERIALCOM_Flush();
@@ -316,7 +314,7 @@ private:
 
 public:
     CommandResult initialize(bool loopBack = false);
-    CommandResult initialize(OpenSerialFn openSerial, CloseSerialFn closeSerial, SelectSerialFn selectSerial, ReadSerialFn readSerial, WriteSerialFn writeSerial, DrainSerialFn drainSerial, FlushSerialFn flushSerial, USleepFn uSleep, bool loopBack = false);
+    CommandResult initialize(SerialAdapter serial, bool loopBack = false);
     bool isInitialized() { return _isInitialized; };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
