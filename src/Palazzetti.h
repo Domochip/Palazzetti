@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-// Based on version 2.2.1 2022-10-24 11:13:21
+// Based on version 2.2.1 2024-11-06 15:47:08
 
 class Palazzetti
 {
