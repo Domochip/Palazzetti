@@ -301,7 +301,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
         weekDay = 7;
 
     CommandResult cmdRes; // local_88
-    uint8_t buf[0xB];        // local_60
+    uint8_t buf[0xB];     // local_60
 
     for (int i = 3; i > 0; i--) // i as local_6c
     {
@@ -343,7 +343,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
         return CommandResult::ERROR;
 
     CommandResult cmdRes; // var_38
-    uint8_t buf[0xB];        // var_2C
+    uint8_t buf[0xB];     // var_2C
 
     for (int i = 2; i > 0; i--) // i as var_34
     {
@@ -930,7 +930,7 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
 {
     CommandResult cmdRes;
     int currentPosInSN = 0;   // var_24
-    uint8_t buf[8];              // var_14
+    uint8_t buf[8];           // var_14
     char *pSN = (char *)&_SN; // var_18
     int8_t checkSum = 0;      // must be signed
     while (currentPosInSN < 0xE)
@@ -1320,7 +1320,7 @@ Palazzetti::CommandResult Palazzetti::iReadIOAtech()
 Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
 {
     CommandResult cmdRes; // var_1C
-    uint8_t buf[8];          // var_14
+    uint8_t buf[8];       // var_14
     uint16_t conv = 0;
     cmdRes = fumisComReadBuff(0x200A, buf, 8);
     if (cmdRes != CommandResult::OK)
@@ -1753,7 +1753,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     iGetSNAtech();
 
     uint16_t nbTotalBytesReaded = 0; // var_838
-    uint8_t buf[8];                     // var_820
+    uint8_t buf[8];                  // var_820
     CommandResult cmdRes;            // var_830
 
     while (nbTotalBytesReaded < paramsBufferSize)
@@ -1893,13 +1893,13 @@ Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint
 
 Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
 {
-    if (!m_serial.open   ||
-        !m_serial.close  ||
+    if (!m_serial.open ||
+        !m_serial.close ||
         !m_serial.select ||
-        !m_serial.read   ||
-        !m_serial.write  ||
-        !m_serial.drain  ||
-        !m_serial.flush  ||
+        !m_serial.read ||
+        !m_serial.write ||
+        !m_serial.drain ||
+        !m_serial.flush ||
         !m_serial.uSleep)
     {
         return CommandResult::ERROR;

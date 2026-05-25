@@ -18,33 +18,33 @@ public:
         OK                   // = 0
     };
 
-    using OpenSerialFn   = std::function<int(uint32_t baudrate)>;
-    using CloseSerialFn  = std::function<void()>;
+    using OpenSerialFn = std::function<int(uint32_t baudrate)>;
+    using CloseSerialFn = std::function<void()>;
     using SelectSerialFn = std::function<int(unsigned long timeout)>;
-    using ReadSerialFn   = std::function<ssize_t(void *buf, size_t count)>;
-    using WriteSerialFn  = std::function<ssize_t(const void *buf, size_t count)>;
-    using DrainSerialFn  = std::function<int()>;
-    using FlushSerialFn  = std::function<int()>;
-    using USleepFn       = std::function<void(unsigned long usec)>;
+    using ReadSerialFn = std::function<ssize_t(void *buf, size_t count)>;
+    using WriteSerialFn = std::function<ssize_t(const void *buf, size_t count)>;
+    using DrainSerialFn = std::function<int()>;
+    using FlushSerialFn = std::function<int()>;
+    using USleepFn = std::function<void(unsigned long usec)>;
 
     struct SerialAdapter
     {
         // Open a Serial. Returns 0 on success, -1 on error.
-        OpenSerialFn   open;
+        OpenSerialFn open;
         // Close Serial.
-        CloseSerialFn  close;
+        CloseSerialFn close;
         // Returns 1 if data available, 0 if none, -1 on error.
         SelectSerialFn select;
         // Returns bytes read (>= 0) or -1 on error.
-        ReadSerialFn   read;
+        ReadSerialFn read;
         // Returns bytes written (>= 0) or -1 on error.
-        WriteSerialFn  write;
+        WriteSerialFn write;
         // Wait for transmission. Returns 0 on success, -1 on error.
-        DrainSerialFn  drain;
+        DrainSerialFn drain;
         // Flush pending I/O. Returns 0 on success, -1 on error.
-        FlushSerialFn  flush;
+        FlushSerialFn flush;
         // Suspend execution for usec microseconds.
-        USleepFn       uSleep;
+        USleepFn uSleep;
     };
 
 private:
@@ -82,11 +82,11 @@ private:
 
     // char _LABEL[32]; //myData.4280  Not Used
 
-    float _T1 = 0;     // myData.4312
-    float _T2 = 0;     // myData.4316
-    float _T3 = 0;     // myData.4320
-    float _T4 = 0;     // myData.4324
-    float _T5 = 0;     // myData.4328
+    float _T1 = 0;        // myData.4312
+    float _T2 = 0;        // myData.4316
+    float _T3 = 0;        // myData.4320
+    float _T4 = 0;        // myData.4324
+    float _T5 = 0;        // myData.4328
     uint8_t _IN_I01 = 0;  // myData.4332
     uint8_t _IN_I02 = 0;  // myData.4333
     uint8_t _IN_I03 = 0;  // myData.4334
@@ -113,7 +113,7 @@ private:
 
     float _FDR = 0; // myData.4372
 
-    uint8_t _PUMP = 0;          // myData.4376
+    uint8_t _PUMP = 0;       // myData.4376
     uint16_t _DP_TARGET = 0; // myData.4380
     int16_t _DP_PRESS = 0;   // myData.4384
 
@@ -128,7 +128,7 @@ private:
     float _SECO = 0;          // myData.4432
     char _STOVE_DATETIME[25]; // myData.4436 //increased to 25 instead of 20 to avoid compilation warning
     uint16_t _STOVE_WDAY = 0; // myData.4456
-    uint8_t _CHRSTATUS = 0;      // myData.4460
+    uint8_t _CHRSTATUS = 0;   // myData.4460
     uint16_t _EFLAGS = 0;     // myData.4464
     uint16_t _PQT = 0;        // myData.4468
     uint16_t _PLEVEL = 0;     // myData.4472
@@ -139,11 +139,11 @@ private:
     // 0->5 : P1->P6
     struct chronoDataProgram
     {
-        float CHRSETP; // chronoData[0->5 * 0x14]
-        uint8_t STARTH;   // chronoData[0->5 * 0x14 + 4]
-        uint8_t STARTM;   // chronoData[0->5 * 0x14 + 8]
-        uint8_t STOPH;    // chronoData[0->5 * 0x14 + 0x0C]
-        uint8_t STOPM;    // chronoData[0->5 * 0x14 + 0x10]
+        float CHRSETP;  // chronoData[0->5 * 0x14]
+        uint8_t STARTH; // chronoData[0->5 * 0x14 + 4]
+        uint8_t STARTM; // chronoData[0->5 * 0x14 + 8]
+        uint8_t STOPH;  // chronoData[0->5 * 0x14 + 0x0C]
+        uint8_t STOPM;  // chronoData[0->5 * 0x14 + 0x10]
     };
     chronoDataProgram chronoDataPrograms[6];
     // 0->6 : D1->D7
@@ -211,8 +211,8 @@ private:
     uint8_t _LIMMIN[0x6A]; // mydata.4568 (psStaticData[0x48])
     // uint8_t _LIMMIN[0x33] or _LIMMIN[0x54] contains SPLMIN
 
-    uint8_t _SPLMIN = 0;        // myData.4572 (psStaticData[0x4C])  (SetPointLimitMin)
-    uint8_t _SPLMAX = 0;        // myData.4576 (psStaticData[0x50])  (SetPointLimitMax)
+    uint8_t _SPLMIN = 0;     // myData.4572 (psStaticData[0x4C])  (SetPointLimitMin)
+    uint8_t _SPLMAX = 0;     // myData.4576 (psStaticData[0x50])  (SetPointLimitMax)
     uint16_t _PSENSTYPE = 0; // myData.4580 (psStaticData[0x54])
 
     uint8_t _UICONFIG = 0;   // myData.4584 (psStaticData[0x58])
