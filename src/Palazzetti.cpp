@@ -1973,7 +1973,7 @@ Palazzetti::CommandResult Palazzetti::getAllParameters(uint8_t (*params)[0x6A])
 }
 
 // refreshStatus shoud be true if last call is over ~15sec
-Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, uint8_t *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint8_t *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, uint8_t *PWR, float *FDR, uint16_t *DPT, int16_t *DP, uint8_t *IN, uint8_t *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28])
+Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatusData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -1983,119 +1983,71 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, int *MBTY
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (MBTYPE)
-        *MBTYPE = _MBTYPE;
+    out.MBTYPE = _MBTYPE;
     // MAC not needed
-    if (MOD)
-        *MOD = _MOD;
-    if (VER)
-        *VER = _VER;
-    if (CORE)
-        *CORE = _CORE;
-    if (FWDATE)
-        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
-    if (APLTS)
-        strcpy(*APLTS, _STOVE_DATETIME);
-    if (APLWDAY)
-        *APLWDAY = _STOVE_WDAY;
-    if (CHRSTATUS)
-        *CHRSTATUS = _CHRSTATUS;
-    if (STATUS)
-        *STATUS = _STATUS;
-    if (LSTATUS)
-        *LSTATUS = _LSTATUS;
-    if (isMFSTATUSValid && MFSTATUS)
+    out.MOD = _MOD;
+    out.VER = _VER;
+    out.CORE = _CORE;
+    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    strcpy(out.APLTS, _STOVE_DATETIME);
+    out.APLWDAY = _STOVE_WDAY;
+    out.CHRSTATUS = _CHRSTATUS;
+    out.STATUS = _STATUS;
+    out.LSTATUS = _LSTATUS;
+    if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
-        if (_STOVETYPE == 3 || _STOVETYPE == 4)
-        {
-            *isMFSTATUSValid = true;
-            *MFSTATUS = _MFSTATUS;
-        }
-        else
-            *isMFSTATUSValid = false;
+        out.isMFSTATUSValid = true;
+        out.MFSTATUS = _MFSTATUS;
     }
-    if (SETP)
-        *SETP = _SETP;
-    if (PUMP)
-        *PUMP = _PUMP;
-    if (PQT)
-        *PQT = _PQT;
-    if (F1V)
-        *F1V = _F1V;
-    if (F1RPM)
-        *F1RPM = _F1RPM;
-    if (F2L)
-        *F2L = transcodeRoomFanSpeed(_F2L, true);
-    if (F2LF)
-    {
-        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
-        if (tmp < 6)
-            *F2LF = 0;
-        else
-            *F2LF = tmp - 5;
-    }
+    else
+        out.isMFSTATUSValid = false;
+    out.SETP = _SETP;
+    out.PUMP = _PUMP;
+    out.PQT = _PQT;
+    out.F1V = _F1V;
+    out.F1RPM = _F1RPM;
+    out.F2L = transcodeRoomFanSpeed(_F2L, true);
+    uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
+    out.F2LF = (tmp < 6) ? 0 : tmp - 5;
     iGetFanLimits();
-    if (FANLMINMAX)
+    out.FANLMINMAX[0] = _FAN2LMIN;
+    out.FANLMINMAX[1] = _FAN2LMAX;
+    out.FANLMINMAX[2] = _FAN3LMIN;
+    out.FANLMINMAX[3] = _FAN3LMAX;
+    out.FANLMINMAX[4] = _FAN4LMIN;
+    out.FANLMINMAX[5] = _FAN4LMAX;
+    out.F2V = _F2V;
+    if (_FAN2TYPE > 2)
     {
-        (*FANLMINMAX)[0] = _FAN2LMIN;
-        (*FANLMINMAX)[1] = _FAN2LMAX;
-        (*FANLMINMAX)[2] = _FAN3LMIN;
-        (*FANLMINMAX)[3] = _FAN3LMAX;
-        (*FANLMINMAX)[4] = _FAN4LMIN;
-        (*FANLMINMAX)[5] = _FAN4LMAX;
+        out.isF3LF4LValid = true;
+        out.F3L = _F3L;
+        out.F4L = _F4L;
     }
-    if (F2V)
-        *F2V = _F2V;
-    if (isF3LF4LValid)
+    else
+        out.isF3LF4LValid = false;
+    out.PWR = _PWR;
+    out.FDR = _FDR;
+    out.DPT = _DP_TARGET;
+    out.DP = _DP_PRESS;
+    out.IN = _IN_I04 << 3 | _IN_I03 << 2 | _IN_I02 << 1 | _IN_I01;
+    out.OUT = _OUT_O07 << 6 | _OUT_O06 << 5 | _OUT_O05 << 4 | _OUT_O04 << 3 | _OUT_O03 << 2 | _OUT_O02 << 1 | _OUT_O01;
+    out.T1 = _T1;
+    out.T2 = _T2;
+    out.T3 = _T3;
+    out.T4 = _T4;
+    out.T5 = _T5;
+    if (isValidSerialNumber(_SN))
     {
-        if (_FAN2TYPE > 2)
-        {
-            *isF3LF4LValid = true;
-            if (F3L)
-                *F3L = _F3L;
-            if (F4L)
-                *F4L = _F4L;
-        }
-        else
-            *isF3LF4LValid = false;
+        out.isSNValid = true;
+        strcpy(out.SN, _SN);
     }
-    if (PWR)
-        *PWR = _PWR;
-    if (FDR)
-        *FDR = _FDR;
-    if (DPT)
-        *DPT = _DP_TARGET;
-    if (DP)
-        *DP = _DP_PRESS;
-    if (IN)
-        *IN = _IN_I04 << 3 | _IN_I03 << 2 | _IN_I02 << 1 | _IN_I01;
-    if (OUT)
-        *OUT = _OUT_O07 << 6 | _OUT_O06 << 5 | _OUT_O05 << 4 | _OUT_O04 << 3 | _OUT_O03 << 2 | _OUT_O02 << 1 | _OUT_O01;
-    if (T1)
-        *T1 = _T1;
-    if (T2)
-        *T2 = _T2;
-    if (T3)
-        *T3 = _T3;
-    if (T4)
-        *T4 = _T4;
-    if (T5)
-        *T5 = _T5;
-    if (isSNValid && SN)
-    {
-        if (isValidSerialNumber(_SN))
-        {
-            *isSNValid = true;
-            strcpy(*SN, _SN);
-        }
-        else
-            *isSNValid = false;
-    }
+    else
+        out.isSNValid = false;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5)
+Palazzetti::CommandResult Palazzetti::getAllTemps(AllTempsData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2105,21 +2057,16 @@ Palazzetti::CommandResult Palazzetti::getAllTemps(float *T1, float *T2, float *T
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (T1)
-        *T1 = _T1;
-    if (T2)
-        *T2 = _T2;
-    if (T3)
-        *T3 = _T3;
-    if (T4)
-        *T4 = _T4;
-    if (T5)
-        *T5 = _T5;
+    out.T1 = _T1;
+    out.T2 = _T2;
+    out.T3 = _T3;
+    out.T4 = _T4;
+    out.T5 = _T5;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getChronoData(uint8_t *CHRSTATUS, float (*PCHRSETP)[6], uint8_t (*PSTART)[6][2], uint8_t (*PSTOP)[6][2], uint8_t (*DM)[7][3])
+Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2132,38 +2079,26 @@ Palazzetti::CommandResult Palazzetti::getChronoData(uint8_t *CHRSTATUS, float (*
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (CHRSTATUS)
-        *CHRSTATUS = _CHRSTATUS; // original code should have been "chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
+    out.CHRSTATUS = _CHRSTATUS; // original code should have been "chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
     for (uint8_t i = 0; i < 6; i++)
     {
-        if (PCHRSETP)
-            (*PCHRSETP)[i] = chronoDataPrograms[i].CHRSETP;
-        if (PSTART)
-        {
-            (*PSTART)[i][0] = chronoDataPrograms[i].STARTH;
-            (*PSTART)[i][1] = chronoDataPrograms[i].STARTM;
-        }
-        if (PSTOP)
-        {
-            (*PSTOP)[i][0] = chronoDataPrograms[i].STOPH;
-            (*PSTOP)[i][1] = chronoDataPrograms[i].STOPM;
-        }
+        out.PCHRSETP[i] = chronoDataPrograms[i].CHRSETP;
+        out.PSTART[i][0] = chronoDataPrograms[i].STARTH;
+        out.PSTART[i][1] = chronoDataPrograms[i].STARTM;
+        out.PSTOP[i][0] = chronoDataPrograms[i].STOPH;
+        out.PSTOP[i][1] = chronoDataPrograms[i].STOPM;
     }
-
     for (uint8_t i = 0; i < 7; i++)
     {
-        if (DM)
-        {
-            (*DM)[i][0] = chronoDataDays[i].M1;
-            (*DM)[i][1] = chronoDataDays[i].M2;
-            (*DM)[i][2] = chronoDataDays[i].M3;
-        }
+        out.DM[i][0] = chronoDataDays[i].M1;
+        out.DM[i][1] = chronoDataDays[i].M2;
+        out.DM[i][2] = chronoDataDays[i].M3;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT)
+Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2176,35 +2111,23 @@ Palazzetti::CommandResult Palazzetti::getCounters(uint16_t *IGN, uint16_t *POWER
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (IGN)
-        *IGN = _IGN;
-    if (POWERTIMEh)
-        *POWERTIMEh = _POWERTIMEH;
-    if (POWERTIMEm)
-        *POWERTIMEm = _POWERTIMEM;
-    if (HEATTIMEh)
-        *HEATTIMEh = _HEATTIMEH;
-    if (HEATTIMEm)
-        *HEATTIMEm = _HEATTIMEM;
-    if (SERVICETIMEh)
-        *SERVICETIMEh = _SERVICETIMEH;
-    if (SERVICETIMEm)
-        *SERVICETIMEm = _SERVICETIMEM;
-    if (ONTIMEh)
-        *ONTIMEh = _ONTIMEH;
-    if (ONTIMEm)
-        *ONTIMEm = _ONTIMEM;
-    if (OVERTMPERRORS)
-        *OVERTMPERRORS = _OVERTMPERRORS;
-    if (IGNERRORS)
-        *IGNERRORS = _IGNERRORS;
-    if (PQT)
-        *PQT = _PQT;
+    out.IGN = _IGN;
+    out.POWERTIMEh = _POWERTIMEH;
+    out.POWERTIMEm = _POWERTIMEM;
+    out.HEATTIMEh = _HEATTIMEH;
+    out.HEATTIMEm = _HEATTIMEM;
+    out.SERVICETIMEh = _SERVICETIMEH;
+    out.SERVICETIMEm = _SERVICETIMEM;
+    out.ONTIMEh = _ONTIMEH;
+    out.ONTIMEm = _ONTIMEM;
+    out.OVERTMPERRORS = _OVERTMPERRORS;
+    out.IGNERRORS = _IGNERRORS;
+    out.PQT = _PQT;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], uint8_t *STOVE_WDAY)
+Palazzetti::CommandResult Palazzetti::getDateTime(DateTimeData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2217,16 +2140,13 @@ Palazzetti::CommandResult Palazzetti::getDateTime(char (*STOVE_DATETIME)[20], ui
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (STOVE_DATETIME)
-        strcpy(*STOVE_DATETIME, _STOVE_DATETIME);
-
-    if (STOVE_WDAY)
-        *STOVE_WDAY = _STOVE_WDAY;
+    strcpy(out.STOVE_DATETIME, _STOVE_DATETIME);
+    out.STOVE_WDAY = _STOVE_WDAY;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getDPressData(uint16_t *DP_TARGET, int16_t *DP_PRESS)
+Palazzetti::CommandResult Palazzetti::getDPressData(DPressData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2239,15 +2159,13 @@ Palazzetti::CommandResult Palazzetti::getDPressData(uint16_t *DP_TARGET, int16_t
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (DP_TARGET)
-        *DP_TARGET = _DP_TARGET;
-    if (DP_PRESS)
-        *DP_PRESS = _DP_PRESS;
+    out.DP_TARGET = _DP_TARGET;
+    out.DP_PRESS = _DP_PRESS;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3SF4SValid, float *F3S, float *F4S, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L)
+Palazzetti::CommandResult Palazzetti::getFanData(FanData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2260,52 +2178,30 @@ Palazzetti::CommandResult Palazzetti::getFanData(uint16_t *F1V, uint16_t *F2V, u
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (F1V)
-        *F1V = _F1V;
-    if (F2V)
-        *F2V = _F2V;
-    if (F1RPM)
-        *F1RPM = _F1RPM;
-    if (F2L)
-        *F2L = transcodeRoomFanSpeed(_F2L, true);
-
-    if (F2LF)
+    out.F1V = _F1V;
+    out.F2V = _F2V;
+    out.F1RPM = _F1RPM;
+    out.F2L = transcodeRoomFanSpeed(_F2L, true);
+    uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
+    out.F2LF = (tmp < 6) ? 0 : tmp - 5;
+    if (_BLEMBMODE > 0xC)
     {
-        uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
-        if (tmp < 6)
-            *F2LF = 0;
-        else
-            *F2LF = tmp - 5;
+        out.isF3SF4SValid = true;
+        out.F3S = _F3S;
+        out.F4S = _F4S;
     }
-
-    if (isF3SF4SValid)
-    {
-        if (_BLEMBMODE > 0xC)
-        {
-            *isF3SF4SValid = true;
-            if (F3S)
-                *F3S = _F3S;
-            if (F4S)
-                *F4S = _F4S;
-        }
-        else
-            *isF3SF4SValid = false;
-    }
+    else
+        out.isF3SF4SValid = false;
 
     // Custom convenient code
-    if (isF3LF4LValid)
+    if (_FAN2TYPE > 2)
     {
-        if (_FAN2TYPE > 2)
-        {
-            *isF3LF4LValid = true;
-            if (F3L)
-                *F3L = _F3L;
-            if (F4L)
-                *F4L = _F4L;
-        }
-        else
-            *isF3LF4LValid = false;
+        out.isF3LF4LValid = true;
+        out.F3L = _F3L;
+        out.F4L = _F4L;
     }
+    else
+        out.isF3LF4LValid = false;
 
     return CommandResult::OK;
 }
@@ -2326,7 +2222,7 @@ Palazzetti::CommandResult Palazzetti::getHiddenParameter(uint8_t hParamNumber, u
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getIO(uint8_t *IN_I01, uint8_t *IN_I02, uint8_t *IN_I03, uint8_t *IN_I04, uint8_t *OUT_O01, uint8_t *OUT_O02, uint8_t *OUT_O03, uint8_t *OUT_O04, uint8_t *OUT_O05, uint8_t *OUT_O06, uint8_t *OUT_O07)
+Palazzetti::CommandResult Palazzetti::getIO(IOData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2339,46 +2235,31 @@ Palazzetti::CommandResult Palazzetti::getIO(uint8_t *IN_I01, uint8_t *IN_I02, ui
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (IN_I01)
-        *IN_I01 = _IN_I01;
-    if (IN_I02)
-        *IN_I02 = _IN_I02;
-    if (IN_I03)
-        *IN_I03 = _IN_I03;
-    if (IN_I04)
-        *IN_I04 = _IN_I04;
-    if (OUT_O01)
-        *OUT_O01 = _OUT_O01;
-    if (OUT_O02)
-        *OUT_O02 = _OUT_O02;
-    if (OUT_O03)
-        *OUT_O03 = _OUT_O03;
-    if (OUT_O04)
-        *OUT_O04 = _OUT_O04;
-    if (OUT_O05)
-        *OUT_O05 = _OUT_O05;
-    if (OUT_O06)
-        *OUT_O06 = _OUT_O06;
-    if (OUT_O07)
-        *OUT_O07 = _OUT_O07;
+    out.IN_I01 = _IN_I01;
+    out.IN_I02 = _IN_I02;
+    out.IN_I03 = _IN_I03;
+    out.IN_I04 = _IN_I04;
+    out.OUT_O01 = _OUT_O01;
+    out.OUT_O02 = _OUT_O02;
+    out.OUT_O03 = _OUT_O03;
+    out.OUT_O04 = _OUT_O04;
+    out.OUT_O05 = _OUT_O05;
+    out.OUT_O06 = _OUT_O06;
+    out.OUT_O07 = _OUT_O07;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getModelVersion(uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11])
+Palazzetti::CommandResult Palazzetti::getModelVersion(ModelVersionData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (MOD)
-        *MOD = _MOD;
-    if (VER)
-        *VER = _VER;
-    if (CORE)
-        *CORE = _CORE;
-    if (FWDATE)
-        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
+    out.MOD = _MOD;
+    out.VER = _VER;
+    out.CORE = _CORE;
+    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
 
     return CommandResult::OK;
 }
@@ -2420,7 +2301,7 @@ Palazzetti::CommandResult Palazzetti::getPelletQtUsed(uint16_t *PQT)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getPower(uint8_t *PWR, float *FDR)
+Palazzetti::CommandResult Palazzetti::getPower(PowerData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2430,10 +2311,8 @@ Palazzetti::CommandResult Palazzetti::getPower(uint8_t *PWR, float *FDR)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (PWR)
-        *PWR = _PWR;
-    if (FDR)
-        *FDR = _FDR;
+    out.PWR = _PWR;
+    out.FDR = _FDR;
 
     return CommandResult::OK;
 }
@@ -2464,7 +2343,7 @@ Palazzetti::CommandResult Palazzetti::getSN(char (*SN)[28])
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getStaticData(char (*SN)[28], uint8_t *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, uint8_t *UICONFIG, uint8_t *HWTYPE, uint8_t *DSPTYPE, uint8_t *DSPFWVER, uint8_t *CONFIG, uint8_t *PELLETTYPE, uint16_t *PSENSTYPE, uint8_t *PSENSLMAX, uint8_t *PSENSLTSH, uint8_t *PSENSLMIN, uint8_t *MAINTPROBE, uint8_t *STOVETYPE, uint8_t *FAN2TYPE, uint8_t *FAN2MODE, uint8_t *BLEMBMODE, uint8_t *BLEDSPMODE, uint8_t *CHRONOTYPE, uint8_t *AUTONOMYTYPE, uint8_t *NOMINALPWR)
+Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2480,72 +2359,43 @@ Palazzetti::CommandResult Palazzetti::getStaticData(char (*SN)[28], uint8_t *SNC
     // read LABEL : not needed
     // get network infos by running "lua /www/cgi-bin/syscmd.lua \"netdata\" > /dev/null" : not needed
 
-    if (SN)
-        strcpy(*SN, _SN);
-    if (SNCHK)
-        *SNCHK = isValidSerialNumber(_SN);
-    if (MBTYPE)
-        *MBTYPE = _MBTYPE;
+    strcpy(out.SN, _SN);
+    out.SNCHK = isValidSerialNumber(_SN);
+    out.MBTYPE = _MBTYPE;
 
     // APLCONN : useless because overwritten by CBox lua code
 
-    if (MOD)
-        *MOD = _MOD;
-    if (VER)
-        *VER = _VER;
-    if (CORE)
-        *CORE = _CORE;
-    if (FWDATE)
-        sprintf(*FWDATE, "%d-%02d-%02d", _FWDATEY, _FWDATEM, _FWDATED);
-    if (FLUID)
-        *FLUID = _FLUID;
-    if (SPLMIN)
-        *SPLMIN = _SPLMIN;
-    if (SPLMAX)
-        *SPLMAX = _SPLMAX;
-    if (UICONFIG)
-        *UICONFIG = _UICONFIG;
-    if (HWTYPE)
-        *HWTYPE = _HWTYPE;
-    if (DSPTYPE)
-        *DSPTYPE = _DSPTYPE;
-    if (DSPFWVER)
-        *DSPFWVER = _DSPFWVER;
-    if (CONFIG)
-        *CONFIG = _PARAMS[0x4C];
-    if (PELLETTYPE)
-        *PELLETTYPE = _PARAMS[0x5C];
-    if (PSENSTYPE)
-        *PSENSTYPE = _PSENSTYPE;
-    if (PSENSLMAX)
-        *PSENSLMAX = _PARAMS[0x62];
-    if (PSENSLTSH)
-        *PSENSLTSH = _PARAMS[0x63];
-    if (PSENSLMIN)
-        *PSENSLMIN = _PARAMS[0x64];
-    if (MAINTPROBE)
-        *MAINTPROBE = _MAINTPROBE;
-    if (STOVETYPE)
-        *STOVETYPE = _STOVETYPE;
-    if (FAN2TYPE)
-        *FAN2TYPE = _FAN2TYPE;
-    if (FAN2MODE)
-        *FAN2MODE = _FAN2MODE;
-    if (BLEMBMODE)
-        *BLEMBMODE = _BLEMBMODE;
-    if (BLEDSPMODE)
-        *BLEDSPMODE = _BLEDSPMODE;
-    if (CHRONOTYPE)
-        *CHRONOTYPE = 5; // hardcoded value
-    if (AUTONOMYTYPE)
-        *AUTONOMYTYPE = _AUTONOMYTYPE;
-    if (NOMINALPWR)
-        *NOMINALPWR = _NOMINALPWR;
+    out.MOD = _MOD;
+    out.VER = _VER;
+    out.CORE = _CORE;
+    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    out.FLUID = _FLUID;
+    out.SPLMIN = _SPLMIN;
+    out.SPLMAX = _SPLMAX;
+    out.UICONFIG = _UICONFIG;
+    out.HWTYPE = _HWTYPE;
+    out.DSPTYPE = _DSPTYPE;
+    out.DSPFWVER = _DSPFWVER;
+    out.CONFIG = _PARAMS[0x4C];
+    out.PELLETTYPE = _PARAMS[0x5C];
+    out.PSENSTYPE = _PSENSTYPE;
+    out.PSENSLMAX = _PARAMS[0x62];
+    out.PSENSLTSH = _PARAMS[0x63];
+    out.PSENSLMIN = _PARAMS[0x64];
+    out.MAINTPROBE = _MAINTPROBE;
+    out.STOVETYPE = _STOVETYPE;
+    out.FAN2TYPE = _FAN2TYPE;
+    out.FAN2MODE = _FAN2MODE;
+    out.BLEMBMODE = _BLEMBMODE;
+    out.BLEDSPMODE = _BLEDSPMODE;
+    out.CHRONOTYPE = 5; // hardcoded value
+    out.AUTONOMYTYPE = _AUTONOMYTYPE;
+    out.NOMINALPWR = _NOMINALPWR;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
+Palazzetti::CommandResult Palazzetti::getStatus(StatusData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2555,12 +2405,9 @@ Palazzetti::CommandResult Palazzetti::getStatus(uint16_t *STATUS, uint16_t *LSTA
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (STATUS)
-        *STATUS = _STATUS;
-    if (LSTATUS)
-        *LSTATUS = _LSTATUS;
-    if (FSTATUS)
-        *FSTATUS = _FSTATUS;
+    out.STATUS = _STATUS;
+    out.LSTATUS = _LSTATUS;
+    out.FSTATUS = _FSTATUS;
 
     return CommandResult::OK;
 }
@@ -2658,7 +2505,7 @@ Palazzetti::CommandResult Palazzetti::setChronoStartMM(uint8_t programNumber, ui
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSReturn)
+Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2709,7 +2556,7 @@ Palazzetti::CommandResult Palazzetti::setChronoStopMM(uint8_t programNumber, uin
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, char (*STOVE_DATETIMEReturn)[20], uint8_t *STOVE_WDAYReturn)
+Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, DateTimeData *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2722,11 +2569,11 @@ Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, 
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (STOVE_DATETIMEReturn)
-        strcpy(*STOVE_DATETIMEReturn, _STOVE_DATETIME);
-
-    if (STOVE_WDAYReturn)
-        *STOVE_WDAYReturn = _STOVE_WDAY;
+    if (result)
+    {
+        strcpy(result->STOVE_DATETIME, _STOVE_DATETIME);
+        result->STOVE_WDAY = _STOVE_WDAY;
+    }
 
     return CommandResult::OK;
 }
@@ -2771,7 +2618,7 @@ Palazzetti::CommandResult Palazzetti::setParameter(uint8_t paramNumber, uint8_t 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, uint8_t *PWRReturn, bool *isF2LReturnValid, uint16_t *F2LReturn, uint16_t (*FANLMINMAXReturn)[6])
+Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2791,36 +2638,35 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, uint8_t *PWRR
             return cmdRes;
     }
 
-    if (PWRReturn)
-        *PWRReturn = _PWR;
-    if (isF2LReturnValid && F2LReturn)
+    if (result)
     {
+        result->PWR = _PWR;
         if (byte_471CC2)
         {
-            *isF2LReturnValid = true;
-            *F2LReturn = transcodeRoomFanSpeed(_F2L, true);
+            result->isF2LValid = true;
+            result->F2L = transcodeRoomFanSpeed(_F2L, true);
         }
         else
-            *isF2LReturnValid = false;
+            result->isF2LValid = false;
     }
 
     // if (_MBTYPEMicronova != 0xB) //Micronova MBTYPE always equals 0
     iGetFanLimits();
 
-    if (FANLMINMAXReturn)
+    if (result)
     {
-        (*FANLMINMAXReturn)[0] = _FAN2LMIN;
-        (*FANLMINMAXReturn)[1] = _FAN2LMAX;
-        (*FANLMINMAXReturn)[2] = _FAN3LMIN;
-        (*FANLMINMAXReturn)[3] = _FAN3LMAX;
-        (*FANLMINMAXReturn)[4] = _FAN4LMIN;
-        (*FANLMINMAXReturn)[5] = _FAN4LMAX;
+        result->FANLMINMAX[0] = _FAN2LMIN;
+        result->FANLMINMAX[1] = _FAN2LMAX;
+        result->FANLMINMAX[2] = _FAN3LMIN;
+        result->FANLMINMAX[3] = _FAN3LMAX;
+        result->FANLMINMAX[4] = _FAN4LMIN;
+        result->FANLMINMAX[5] = _FAN4LMAX;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setPowerDown(uint8_t *PWRReturn, bool *isF2LReturnValid, uint16_t *F2LReturn, uint16_t (*FANLMINMAXReturn)[6])
+Palazzetti::CommandResult Palazzetti::setPowerDown(SetPowerResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2833,10 +2679,10 @@ Palazzetti::CommandResult Palazzetti::setPowerDown(uint8_t *PWRReturn, bool *isF
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setPower(_PWR - 1, PWRReturn, isF2LReturnValid, F2LReturn, FANLMINMAXReturn);
+    return setPower(_PWR - 1, result);
 }
 
-Palazzetti::CommandResult Palazzetti::setPowerUp(uint8_t *PWRReturn, bool *isF2LReturnValid, uint16_t *F2LReturn, uint16_t (*FANLMINMAXReturn)[6])
+Palazzetti::CommandResult Palazzetti::setPowerUp(SetPowerResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2849,10 +2695,10 @@ Palazzetti::CommandResult Palazzetti::setPowerUp(uint8_t *PWRReturn, bool *isF2L
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setPower(_PWR + 1, PWRReturn, isF2LReturnValid, F2LReturn, FANLMINMAXReturn);
+    return setPower(_PWR + 1, result);
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, bool *isPWRReturnValid, uint8_t *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn)
+Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFanResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2865,31 +2711,24 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, bool *isP
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (isPWRReturnValid && PWRReturn)
+    if (result)
     {
         if (byte_471CC2)
         {
-            *isPWRReturnValid = true;
-            *PWRReturn = _PWR;
+            result->isPWRValid = true;
+            result->PWR = _PWR;
         }
         else
-            *isPWRReturnValid = false;
-    }
-    if (F2LReturn)
-        *F2LReturn = transcodeRoomFanSpeed(_F2L, true);
-    if (F2LFReturn)
-    {
+            result->isPWRValid = false;
+        result->F2L = transcodeRoomFanSpeed(_F2L, true);
         uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
-        if (tmp < 6)
-            *F2LFReturn = 0;
-        else
-            *F2LFReturn = tmp - 5;
+        result->F2LF = (tmp < 6) ? 0 : tmp - 5;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LReturn)
+Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2908,7 +2747,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LReturn)
+Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2927,7 +2766,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFanDown(bool *isPWRReturnValid, uint8_t *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn)
+Palazzetti::CommandResult Palazzetti::setRoomFanDown(SetRoomFanResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2940,10 +2779,10 @@ Palazzetti::CommandResult Palazzetti::setRoomFanDown(bool *isPWRReturnValid, uin
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setRoomFan(transcodeRoomFanSpeed(_F2L, true) - 1, isPWRReturnValid, PWRReturn, F2LReturn, F2LFReturn);
+    return setRoomFan(transcodeRoomFanSpeed(_F2L, true) - 1, result);
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFanUp(bool *isPWRReturnValid, uint8_t *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn)
+Palazzetti::CommandResult Palazzetti::setRoomFanUp(SetRoomFanResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2956,10 +2795,10 @@ Palazzetti::CommandResult Palazzetti::setRoomFanUp(bool *isPWRReturnValid, uint8
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setRoomFan(transcodeRoomFanSpeed(_F2L, true) + 1, isPWRReturnValid, PWRReturn, F2LReturn, F2LFReturn);
+    return setRoomFan(transcodeRoomFanSpeed(_F2L, true) + 1, result);
 }
 
-Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPReturn)
+Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2977,7 +2816,7 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPR
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPReturn)
+Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2995,7 +2834,7 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPRet
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPReturn)
+Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -3011,7 +2850,7 @@ Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPReturn)
     return setSetpoint(_SETP - 1.0f, SETPReturn);
 }
 
-Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPReturn)
+Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPReturn /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -3027,7 +2866,7 @@ Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPReturn)
     return setSetpoint(_SETP + 1.0f, SETPReturn);
 }
 
-Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, uint8_t *SLNTReturn, uint8_t *PWRReturn, uint16_t *F2LReturn, uint16_t *F2LFReturn, bool *isF3LF4LReturnValid, uint16_t *F3LReturn, uint16_t *F4LReturn)
+Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilentModeResult *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -3040,38 +2879,27 @@ Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, uint8_t 
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (SLNTReturn)
-        *SLNTReturn = silentMode;
-    if (PWRReturn)
-        *PWRReturn = _PWR;
-    if (F2LReturn)
-        *F2LReturn = transcodeRoomFanSpeed(_F2L, true);
-    if (F2LFReturn)
+    if (result)
     {
+        result->SLNT = silentMode;
+        result->PWR = _PWR;
+        result->F2L = transcodeRoomFanSpeed(_F2L, true);
         uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
-        if (tmp < 6)
-            *F2LFReturn = 0;
-        else
-            *F2LFReturn = tmp - 5;
-    }
-    if (isF3LF4LReturnValid)
-    {
+        result->F2LF = (tmp < 6) ? 0 : tmp - 5;
         if (_FAN2TYPE > 2)
         {
-            *isF3LF4LReturnValid = true;
-            if (F3LReturn)
-                *F3LReturn = _F3L;
-            if (F4LReturn)
-                *F4LReturn = _F4L;
+            result->isF3LF4LValid = true;
+            result->F3L = _F3L;
+            result->F4L = _F4L;
         }
         else
-            *isF3LF4LReturnValid = false;
+            result->isF3LF4LValid = false;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
+Palazzetti::CommandResult Palazzetti::switchOff(StatusData *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -3084,10 +2912,14 @@ Palazzetti::CommandResult Palazzetti::switchOff(uint16_t *STATUS, uint16_t *LSTA
     // give the stove time to switch off and reach the final status
     m_serial.uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
 
-    return getStatus(STATUS, LSTATUS, FSTATUS);
+    StatusData status;
+    cmdRes = getStatus(status);
+    if (result)
+        *result = status;
+    return cmdRes;
 }
 
-Palazzetti::CommandResult Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS)
+Palazzetti::CommandResult Palazzetti::switchOn(StatusData *result /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -3102,7 +2934,11 @@ Palazzetti::CommandResult Palazzetti::switchOn(uint16_t *STATUS, uint16_t *LSTAT
     // (otherwise it switch to STATUS=9 in less than 0.5s)
     m_serial.uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
 
-    return getStatus(STATUS, LSTATUS, FSTATUS);
+    StatusData status;
+    cmdRes = getStatus(status);
+    if (result)
+        *result = status;
+    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::writeData(uint16_t addrToWrite, uint16_t data, bool wordMode)

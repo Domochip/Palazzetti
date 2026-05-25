@@ -74,17 +74,17 @@ void loop()
     else
         swSer.println("myPala.getSetPoint failed");
 
-    float T1, T2, T3, T4, T5;
-    if (myPala.getAllTemps(&T1, &T2, &T3, &T4, &T5) == Palazzetti::CommandResult::OK)
-        swSer.printf("myPala.getAllTemps : T1=%.2f T2=%.2f T3=%.2f T4=%.2f T5=%.2f\r\n", T1, T2, T3, T4, T5);
+    Palazzetti::AllTempsData temps;
+    if (myPala.getAllTemps(temps) == Palazzetti::CommandResult::OK)
+        swSer.printf("myPala.getAllTemps : T1=%.2f T2=%.2f T3=%.2f T4=%.2f T5=%.2f\r\n", temps.T1, temps.T2, temps.T3, temps.T4, temps.T5);
     else
         swSer.println("myPala.getAllTemps failed");
 
-    uint16_t STATUS, LSTATUS, FSTATUS;
-    if (myPala.getStatus(&STATUS, &LSTATUS, &FSTATUS) == Palazzetti::CommandResult::OK)
-        swSer.printf("myPala.GetStatus : STATUS=%d LSTATUS=%d FSTATUS=%d\r\n", STATUS, LSTATUS, FSTATUS);
+    Palazzetti::StatusData status;
+    if (myPala.getStatus(status) == Palazzetti::CommandResult::OK)
+        swSer.printf("myPala.getStatus : STATUS=%d LSTATUS=%d FSTATUS=%d\r\n", status.STATUS, status.LSTATUS, status.FSTATUS);
     else
-        swSer.println("myPala.GetStatus failed");
+        swSer.println("myPala.getStatus failed");
 
     delay(30000);
 }

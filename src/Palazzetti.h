@@ -313,29 +313,172 @@ private:
     bool _isInitialized;
 
 public:
+    struct AllStatusData
+    {
+        int MBTYPE;
+        uint16_t MOD, VER, CORE;
+        char FWDATE[11];
+        char APLTS[20];
+        uint16_t APLWDAY;
+        uint8_t CHRSTATUS;
+        uint16_t STATUS, LSTATUS;
+        bool isMFSTATUSValid;
+        uint16_t MFSTATUS;
+        float SETP;
+        uint8_t PUMP;
+        uint16_t PQT;
+        uint16_t F1V, F1RPM;
+        uint16_t F2L, F2LF;
+        uint16_t FANLMINMAX[6];
+        uint16_t F2V;
+        bool isF3LF4LValid;
+        uint16_t F3L, F4L;
+        uint8_t PWR;
+        float FDR;
+        uint16_t DPT;
+        int16_t DP;
+        uint8_t IN;  // IN_I04<<3 | IN_I03<<2 | IN_I02<<1 | IN_I01
+        uint8_t OUT; // OUT_O07<<6 | OUT_O06<<5 | OUT_O05<<4 | OUT_O04<<3 | OUT_O03<<2 | OUT_O02<<1 | OUT_O01
+        float T1, T2, T3, T4, T5;
+        bool isSNValid;
+        char SN[28];
+    };
+
+    struct AllTempsData
+    {
+        float T1, T2, T3, T4, T5;
+    };
+
+    struct ChronoData
+    {
+        uint8_t CHRSTATUS;
+        float PCHRSETP[6];
+        uint8_t PSTART[6][2];
+        uint8_t PSTOP[6][2];
+        uint8_t DM[7][3];
+    };
+
+    struct CountersData
+    {
+        uint16_t IGN;
+        uint16_t POWERTIMEh, POWERTIMEm;
+        uint16_t HEATTIMEh, HEATTIMEm;
+        uint16_t SERVICETIMEh, SERVICETIMEm;
+        uint16_t ONTIMEh, ONTIMEm;
+        uint16_t OVERTMPERRORS, IGNERRORS;
+        uint16_t PQT;
+    };
+
+    struct DPressData
+    {
+        uint16_t DP_TARGET;
+        int16_t DP_PRESS;
+    };
+
+    struct FanData
+    {
+        uint16_t F1V, F2V, F1RPM;
+        uint16_t F2L, F2LF;
+        bool isF3SF4SValid;
+        float F3S, F4S;
+        bool isF3LF4LValid;
+        uint16_t F3L, F4L;
+    };
+
+    struct IOData
+    {
+        uint8_t IN_I01, IN_I02, IN_I03, IN_I04;
+        uint8_t OUT_O01, OUT_O02, OUT_O03, OUT_O04, OUT_O05, OUT_O06, OUT_O07;
+    };
+
+    struct ModelVersionData
+    {
+        uint16_t MOD, VER, CORE;
+        char FWDATE[11];
+    };
+
+    struct PowerData
+    {
+        uint8_t PWR;
+        float FDR;
+    };
+
+    struct StaticData
+    {
+        char SN[28];
+        uint8_t SNCHK;
+        int MBTYPE;
+        uint16_t MOD, VER, CORE;
+        char FWDATE[11];
+        uint16_t FLUID;
+        uint16_t SPLMIN, SPLMAX;
+        uint8_t UICONFIG, HWTYPE, DSPTYPE, DSPFWVER;
+        uint8_t CONFIG, PELLETTYPE;
+        uint16_t PSENSTYPE;
+        uint8_t PSENSLMAX, PSENSLTSH, PSENSLMIN;
+        uint8_t MAINTPROBE, STOVETYPE, FAN2TYPE, FAN2MODE;
+        uint8_t BLEMBMODE, BLEDSPMODE;
+        uint8_t CHRONOTYPE, AUTONOMYTYPE, NOMINALPWR;
+    };
+
+    struct DateTimeData
+    {
+        char STOVE_DATETIME[20];
+        uint8_t STOVE_WDAY;
+    };
+
+    struct StatusData
+    {
+        uint16_t STATUS, LSTATUS, FSTATUS;
+    };
+
+    struct SetPowerResult
+    {
+        uint8_t PWR;
+        bool isF2LValid;
+        uint16_t F2L;
+        uint16_t FANLMINMAX[6];
+    };
+
+    struct SetRoomFanResult
+    {
+        bool isPWRValid;
+        uint8_t PWR;
+        uint16_t F2L, F2LF;
+    };
+
+    struct SetSilentModeResult
+    {
+        uint8_t SLNT;
+        uint8_t PWR;
+        uint16_t F2L, F2LF;
+        bool isF3LF4LValid;
+        uint16_t F3L, F4L;
+    };
+
     CommandResult initialize(bool loopBack = false);
     CommandResult initialize(SerialAdapter serial, bool loopBack = false);
     bool isInitialized() { return _isInitialized; };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     CommandResult getAllParameters(uint8_t (*params)[0x6A]);
-    CommandResult getAllStatus(bool refreshStatus, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], char (*APLTS)[20], uint16_t *APLWDAY, uint8_t *CHRSTATUS, uint16_t *STATUS, uint16_t *LSTATUS, bool *isMFSTATUSValid, uint16_t *MFSTATUS, float *SETP, uint8_t *PUMP, uint16_t *PQT, uint16_t *F1V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, uint16_t (*FANLMINMAX)[6], uint16_t *F2V, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L, uint8_t *PWR, float *FDR, uint16_t *DPT, int16_t *DP, uint8_t *IN, uint8_t *OUT, float *T1, float *T2, float *T3, float *T4, float *T5, bool *isSNValid, char (*SN)[28]);
-    CommandResult getAllTemps(float *T1, float *T2, float *T3, float *T4, float *T5);
-    CommandResult getChronoData(uint8_t *CHRSTATUS, float (*PCHRSETP)[6], uint8_t (*PSTART)[6][2], uint8_t (*PSTOP)[6][2], uint8_t (*DM)[7][3]);
-    CommandResult getCounters(uint16_t *IGN, uint16_t *POWERTIMEh, uint16_t *POWERTIMEm, uint16_t *HEATTIMEh, uint16_t *HEATTIMEm, uint16_t *SERVICETIMEh, uint16_t *SERVICETIMEm, uint16_t *ONTIMEh, uint16_t *ONTIMEm, uint16_t *OVERTMPERRORS, uint16_t *IGNERRORS, uint16_t *PQT);
-    CommandResult getDateTime(char (*STOVE_DATETIME)[20], uint8_t *STOVE_WDAY);
-    CommandResult getDPressData(uint16_t *DP_TARGET, int16_t *DP_PRESS);
-    CommandResult getFanData(uint16_t *F1V, uint16_t *F2V, uint16_t *F1RPM, uint16_t *F2L, uint16_t *F2LF, bool *isF3SF4SValid, float *F3S, float *F4S, bool *isF3LF4LValid, uint16_t *F3L, uint16_t *F4L);
+    CommandResult getAllStatus(bool refreshStatus, AllStatusData &out);
+    CommandResult getAllTemps(AllTempsData &out);
+    CommandResult getChronoData(ChronoData &out);
+    CommandResult getCounters(CountersData &out);
+    CommandResult getDateTime(DateTimeData &out);
+    CommandResult getDPressData(DPressData &out);
+    CommandResult getFanData(FanData &out);
     CommandResult getHiddenParameter(uint8_t hParamNumber, uint16_t *hParamValue);
-    CommandResult getIO(uint8_t *IN_I01, uint8_t *IN_I02, uint8_t *IN_I03, uint8_t *IN_I04, uint8_t *OUT_O01, uint8_t *OUT_O02, uint8_t *OUT_O03, uint8_t *OUT_O04, uint8_t *OUT_O05, uint8_t *OUT_O06, uint8_t *OUT_O07);
-    CommandResult getModelVersion(uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11]);
+    CommandResult getIO(IOData &out);
+    CommandResult getModelVersion(ModelVersionData &out);
     CommandResult getParameter(uint8_t paramNumber, uint8_t *paramValue);
     CommandResult getPelletQtUsed(uint16_t *PQT);
-    CommandResult getPower(uint8_t *PWR, float *FDR);
+    CommandResult getPower(PowerData &out);
     CommandResult getSetPoint(float *setPoint);
     CommandResult getSN(char (*SN)[28]);
-    CommandResult getStaticData(char (*SN)[28], uint8_t *SNCHK, int *MBTYPE, uint16_t *MOD, uint16_t *VER, uint16_t *CORE, char (*FWDATE)[11], uint16_t *FLUID, uint16_t *SPLMIN, uint16_t *SPLMAX, uint8_t *UICONFIG, uint8_t *HWTYPE, uint8_t *DSPTYPE, uint8_t *DSPFWVER, uint8_t *CONFIG, uint8_t *PELLETTYPE, uint16_t *PSENSTYPE, uint8_t *PSENSLMAX, uint8_t *PSENSLTSH, uint8_t *PSENSLMIN, uint8_t *MAINTPROBE, uint8_t *STOVETYPE, uint8_t *FAN2TYPE, uint8_t *FAN2MODE, uint8_t *BLEMBMODE, uint8_t *BLEDSPMODE, uint8_t *CHRONOTYPE, uint8_t *AUTONOMYTYPE, uint8_t *NOMINALPWR);
-    CommandResult getStatus(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
+    CommandResult getStaticData(StaticData &out);
+    CommandResult getStatus(StatusData &out);
     CommandResult readData(uint16_t addrToRead, bool wordMode, uint16_t *ADDR_DATA);
 
     CommandResult setChronoDay(uint8_t dayNumber, uint8_t memoryNumber, uint8_t programNumber);
@@ -343,27 +486,27 @@ public:
     CommandResult setChronoSetpoint(uint8_t programNumber, uint8_t setPoint);
     CommandResult setChronoStartHH(uint8_t programNumber, uint8_t startHour);
     CommandResult setChronoStartMM(uint8_t programNumber, uint8_t startMinute);
-    CommandResult setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSReturn);
+    CommandResult setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSReturn = nullptr);
     CommandResult setChronoStopHH(uint8_t programNumber, uint8_t stopHour);
     CommandResult setChronoStopMM(uint8_t programNumber, uint8_t stopMinute);
-    CommandResult setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, char (*STOVE_DATETIMEReturn)[20], uint8_t *STOVE_WDAYReturn);
+    CommandResult setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, DateTimeData *result = nullptr);
     CommandResult setHiddenParameter(uint8_t hParamNumber, uint16_t hParamValue);
     CommandResult setParameter(uint8_t paramNumber, uint8_t paramValue);
-    CommandResult setPower(uint8_t powerLevel, uint8_t *PWRReturn = nullptr, bool *isF2LReturnValid = nullptr, uint16_t *F2LReturn = nullptr, uint16_t (*FANLMINMAXReturn)[6] = nullptr);
-    CommandResult setPowerDown(uint8_t *PWRReturn = nullptr, bool *isF2LReturnValid = nullptr, uint16_t *F2LReturn = nullptr, uint16_t (*FANLMINMAXReturn)[6] = nullptr);
-    CommandResult setPowerUp(uint8_t *PWRReturn = nullptr, bool *isF2LReturnValid = nullptr, uint16_t *F2LReturn = nullptr, uint16_t (*FANLMINMAXReturn)[6] = nullptr);
-    CommandResult setRoomFan(uint8_t roomFanSpeed, bool *isPWRReturnValid = nullptr, uint8_t *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
+    CommandResult setPower(uint8_t powerLevel, SetPowerResult *result = nullptr);
+    CommandResult setPowerDown(SetPowerResult *result = nullptr);
+    CommandResult setPowerUp(SetPowerResult *result = nullptr);
+    CommandResult setRoomFan(uint8_t roomFanSpeed, SetRoomFanResult *result = nullptr);
     CommandResult setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LReturn = nullptr);
     CommandResult setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LReturn = nullptr);
-    CommandResult setRoomFanDown(bool *isPWRReturnValid = nullptr, uint8_t *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
-    CommandResult setRoomFanUp(bool *isPWRReturnValid = nullptr, uint8_t *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr);
+    CommandResult setRoomFanDown(SetRoomFanResult *result = nullptr);
+    CommandResult setRoomFanUp(SetRoomFanResult *result = nullptr);
     CommandResult setSetpoint(uint8_t setPoint, float *SETPReturn = nullptr);
     CommandResult setSetpoint(float setPoint, float *SETPReturn = nullptr);
     CommandResult setSetPointDown(float *SETPReturn = nullptr);
     CommandResult setSetPointUp(float *SETPReturn = nullptr);
-    CommandResult setSilentMode(uint8_t silentMode, uint8_t *SLNTReturn = nullptr, uint8_t *PWRReturn = nullptr, uint16_t *F2LReturn = nullptr, uint16_t *F2LFReturn = nullptr, bool *isF3LF4LReturnValid = nullptr, uint16_t *F3LReturn = nullptr, uint16_t *F4LReturn = nullptr);
-    CommandResult switchOff(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
-    CommandResult switchOn(uint16_t *STATUS, uint16_t *LSTATUS, uint16_t *FSTATUS);
+    CommandResult setSilentMode(uint8_t silentMode, SetSilentModeResult *result = nullptr);
+    CommandResult switchOff(StatusData *result = nullptr);
+    CommandResult switchOn(StatusData *result = nullptr);
     CommandResult writeData(uint16_t addrToWrite, uint16_t data, bool wordMode) __attribute__((warning("/!\\ writeData is a dangerous function and may arm your stove if not used carefully /!\\")));
     Palazzetti();
 };
