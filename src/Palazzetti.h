@@ -325,6 +325,8 @@ public:
         bool isMFSTATUSValid;
         uint16_t MFSTATUS;
         float SETP;
+        float SECO;
+        uint8_t BECO;
         uint8_t PUMP;
         uint16_t PQT;
         uint16_t F1V, F1RPM;

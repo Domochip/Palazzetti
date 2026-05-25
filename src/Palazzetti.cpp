@@ -2003,6 +2003,8 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     else
         out.isMFSTATUSValid = false;
     out.SETP = _SETP;
+    out.SECO = _SECO;
+    out.BECO = _BECO;
     out.PUMP = _PUMP;
     out.PQT = _PQT;
     out.F1V = _F1V;
