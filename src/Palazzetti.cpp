@@ -1994,6 +1994,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.CHRSTATUS = _CHRSTATUS;
     out.STATUS = _STATUS;
     out.LSTATUS = _LSTATUS;
+    out.FSTATUS = _FSTATUS;
     if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
         out.isMFSTATUSValid = true;

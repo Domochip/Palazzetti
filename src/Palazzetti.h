@@ -321,7 +321,7 @@ public:
         char APLTS[20];
         uint16_t APLWDAY;
         uint8_t CHRSTATUS;
-        uint16_t STATUS, LSTATUS;
+        uint16_t STATUS, LSTATUS, FSTATUS;
         bool isMFSTATUSValid;
         uint16_t MFSTATUS;
         float SETP;
