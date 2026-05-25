@@ -2318,7 +2318,7 @@ Palazzetti::CommandResult Palazzetti::getPower(PowerData &out)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::getSetPoint(float *setPoint)
+Palazzetti::CommandResult Palazzetti::getSetPoint(SetPointData &out)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2328,8 +2328,9 @@ Palazzetti::CommandResult Palazzetti::getSetPoint(float *setPoint)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (setPoint)
-        *setPoint = _SETP;
+    out.SETP = _SETP;
+    out.SECO = _SECO;
+    out.BECO = _BECO;
     return CommandResult::OK;
 }
 

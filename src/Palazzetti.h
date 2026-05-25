@@ -403,6 +403,13 @@ public:
         float FDR;
     };
 
+    struct SetPointData
+    {
+        float SETP;
+        float SECO;
+        uint8_t BECO;
+    };
+
     struct StaticData
     {
         char SN[28];
@@ -475,7 +482,7 @@ public:
     CommandResult getParameter(uint8_t paramNumber, uint8_t *paramValue);
     CommandResult getPelletQtUsed(uint16_t *PQT);
     CommandResult getPower(PowerData &out);
-    CommandResult getSetPoint(float *setPoint);
+    CommandResult getSetPoint(SetPointData &out);
     CommandResult getSN(char (*SN)[28]);
     CommandResult getStaticData(StaticData &out);
     CommandResult getStatus(StatusData &out);

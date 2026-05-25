@@ -68,9 +68,9 @@ void setup()
 
 void loop()
 {
-    float setPoint;
-    if (myPala.getSetPoint(&setPoint) == Palazzetti::CommandResult::OK)
-        swSer.printf("myPala.getSetPoint : %.2f\r\n", setPoint);
+    Palazzetti::SetPointData setPointData;
+    if (myPala.getSetPoint(setPointData) == Palazzetti::CommandResult::OK)
+        swSer.printf("myPala.getSetPoint : SETP=%.2f SECO=%.2f BECO=%d\r\n", setPointData.SETP, setPointData.SECO, setPointData.BECO);
     else
         swSer.println("myPala.getSetPoint failed");
 
