@@ -2505,7 +2505,7 @@ Palazzetti::CommandResult Palazzetti::setChronoStartMM(uint8_t programNumber, ui
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2518,8 +2518,8 @@ Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (CHRSTATUSReturn)
-        *CHRSTATUSReturn = chronoStatus;
+    if (CHRSTATUSResult)
+        *CHRSTATUSResult = chronoStatus;
 
     return CommandResult::OK;
 }
@@ -2728,7 +2728,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFa
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2741,13 +2741,13 @@ Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (F3LReturn)
-        *F3LReturn = _F3L;
+    if (F3LResult)
+        *F3LResult = _F3L;
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2760,8 +2760,8 @@ Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (F4LReturn)
-        *F4LReturn = _F4L;
+    if (F4LResult)
+        *F4LResult = _F4L;
 
     return CommandResult::OK;
 }
@@ -2798,7 +2798,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFanUp(SetRoomFanResult *result /* =
     return setRoomFan(transcodeRoomFanSpeed(_F2L, true) + 1, result);
 }
 
-Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2811,12 +2811,12 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPR
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (SETPReturn)
-        *SETPReturn = _SETP;
+    if (SETPResult)
+        *SETPResult = _SETP;
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2829,12 +2829,12 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPRet
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (SETPReturn)
-        *SETPReturn = _SETP;
+    if (SETPResult)
+        *SETPResult = _SETP;
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2847,10 +2847,10 @@ Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPReturn /* = nul
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setSetpoint(_SETP - 1.0f, SETPReturn);
+    return setSetpoint(_SETP - 1.0f, SETPResult);
 }
 
-Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPReturn /* = nullptr */)
+Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
@@ -2863,7 +2863,7 @@ Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPReturn /* = nullp
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    return setSetpoint(_SETP + 1.0f, SETPReturn);
+    return setSetpoint(_SETP + 1.0f, SETPResult);
 }
 
 Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilentModeResult *result /* = nullptr */)
