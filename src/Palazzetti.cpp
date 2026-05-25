@@ -735,7 +735,7 @@ Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", (uint16_t)buf[6] + 2000, buf[5], buf[4], buf[2], buf[1], buf[0]);
+    snprintf(_STOVE_DATETIME, sizeof(_STOVE_DATETIME), "%d-%02u-%02u %02u:%02u:%02u", ((uint16_t)buf[6] + 2000) % 10000u, buf[5] % 100u, buf[4] % 100u, buf[2] % 100u, buf[1] % 100u, buf[0] % 100u);
 
     _STOVE_WDAY = buf[3];
 

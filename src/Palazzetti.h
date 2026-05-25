@@ -126,7 +126,7 @@ private:
     float _F3S = 0;           // myData.4424
     float _F4S = 0;           // myData.4428
     float _SECO = 0;          // myData.4432
-    char _STOVE_DATETIME[25]; // myData.4436 //increased to 25 instead of 20 to avoid compilation warning
+    char _STOVE_DATETIME[20]; // myData.4436
     uint16_t _STOVE_WDAY = 0; // myData.4456
     uint8_t _CHRSTATUS = 0;   // myData.4460
     uint16_t _EFLAGS = 0;     // myData.4464
