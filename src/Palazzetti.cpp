@@ -735,7 +735,7 @@ Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    snprintf(_STOVE_DATETIME, sizeof(_STOVE_DATETIME), "%d-%02u-%02u %02u:%02u:%02u", ((uint16_t)buf[6] + 2000) % 10000u, buf[5] % 100u, buf[4] % 100u, buf[2] % 100u, buf[1] % 100u, buf[0] % 100u);
+    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", ((uint16_t)buf[6] + 2000) % 10000u, buf[5] % 100u, buf[4] % 100u, buf[2] % 100u, buf[1] % 100u, buf[0] % 100u);
 
     _STOVE_WDAY = buf[3];
 
@@ -1988,7 +1988,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
     strcpy(out.APLTS, _STOVE_DATETIME);
     out.APLWDAY = _STOVE_WDAY;
     out.CHRSTATUS = _CHRSTATUS;
@@ -2259,7 +2259,7 @@ Palazzetti::CommandResult Palazzetti::getModelVersion(ModelVersionData &out)
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
 
     return CommandResult::OK;
 }
@@ -2368,7 +2368,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    snprintf(out.FWDATE, sizeof(out.FWDATE), "%04u-%02u-%02u", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
     out.FLUID = _FLUID;
     out.SPLMIN = _SPLMIN;
     out.SPLMAX = _SPLMAX;
