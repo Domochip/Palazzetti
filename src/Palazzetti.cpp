@@ -773,7 +773,7 @@ Palazzetti::CommandResult Palazzetti::iGetErrorFlagAtech()
     else
         t2Err = 1;
 
-    uint8_t eFlags = t1Err + (t2Err * 2);
+    uint16_t eFlags = t1Err + (t2Err * 2);
 
     if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
