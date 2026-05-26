@@ -1773,6 +1773,36 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
     return CommandResult::OK;
 }
 
+Palazzetti::CommandResult Palazzetti::iSetSetPointFan3Atech(uint8_t setPoint)
+{
+    if (setPoint == 0)
+        setPoint = _SPLMAX;
+    if (setPoint < _SPLMIN)
+        setPoint = _SPLMIN;
+    if (setPoint > _SPLMAX)
+        setPoint = _SPLMAX;
+    CommandResult cmdRes = fumisComWriteByte(0x20A2, setPoint * 5);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+    _F3S = (float)setPoint;
+    return CommandResult::OK;
+}
+
+Palazzetti::CommandResult Palazzetti::iSetSetPointFan4Atech(uint8_t setPoint)
+{
+    if (setPoint == 0)
+        setPoint = _SPLMAX;
+    if (setPoint < _SPLMIN)
+        setPoint = _SPLMIN;
+    if (setPoint > _SPLMAX)
+        setPoint = _SPLMAX;
+    CommandResult cmdRes = fumisComWriteByte(0x20A3, setPoint * 5);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+    _F4S = (float)setPoint;
+    return CommandResult::OK;
+}
+
 Palazzetti::CommandResult Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
 {
     if (silentMode > 0)

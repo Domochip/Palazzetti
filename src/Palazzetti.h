@@ -313,6 +313,8 @@ private:
     CommandResult iSetRoomFanAtech(uint16_t roomFanSpeed);
     CommandResult iSetSetPointAtech(uint8_t setPoint);
     CommandResult iSetSetPointAtech(float setPoint);
+    CommandResult iSetSetPointFan3Atech(uint8_t setPoint);
+    CommandResult iSetSetPointFan4Atech(uint8_t setPoint);
     CommandResult iSetSilentModeAtech(uint16_t silentMode);
     CommandResult iSwitchOffAtech();
     CommandResult iSwitchOnAtech();
@@ -349,7 +351,7 @@ public:
         float FDR;
         uint16_t DPT;
         int16_t DP;
-        uint8_t IN;  // IN_I04<<3 | IN_I03<<2 | IN_I02<<1 | IN_I01
+        uint8_t IN; // IN_I04<<3 | IN_I03<<2 | IN_I02<<1 | IN_I01
         bool isPLEVELValid;
         uint16_t PLEVEL;
         bool isPSENSCSTALEMPValid;
