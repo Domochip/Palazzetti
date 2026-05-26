@@ -2137,13 +2137,6 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.DPT = _DP_TARGET;
     out.DP = _DP_PRESS;
     out.IN = _IN_I04 << 3 | _IN_I03 << 2 | _IN_I02 << 1 | _IN_I01;
-    out.OUT = _OUT_O07 << 6 | _OUT_O06 << 5 | _OUT_O05 << 4 | _OUT_O04 << 3 | _OUT_O03 << 2 | _OUT_O02 << 1 | _OUT_O01;
-    out.T1 = _T1;
-    out.T2 = _T2;
-    out.T3 = _T3;
-    out.T4 = _T4;
-    out.T5 = _T5;
-    out.EFLAGS = _EFLAGS;
     if (_PSENSTYPE == 1)
     {
         out.isPLEVELValid = true;
@@ -2159,6 +2152,13 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     }
     else
         out.isPSENSCSTALEMPValid = false;
+    out.OUT = _OUT_O07 << 6 | _OUT_O06 << 5 | _OUT_O05 << 4 | _OUT_O04 << 3 | _OUT_O03 << 2 | _OUT_O02 << 1 | _OUT_O01;
+    out.T1 = _T1;
+    out.T2 = _T2;
+    out.T3 = _T3;
+    out.T4 = _T4;
+    out.T5 = _T5;
+    out.EFLAGS = _EFLAGS;
     if (isValidSerialNumber(_SN))
     {
         out.isSNValid = true;
