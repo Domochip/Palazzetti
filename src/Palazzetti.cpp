@@ -1034,7 +1034,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    // byte_471087 = 2; //Not Used elsewhere
+    _CHRONOTYPE = 2;
     _MAINTPROBE = 0;
 
     cmdRes = fumisComReadWord(0x1ED4, &buf);
@@ -2388,7 +2388,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
     out.FAN2MODE = _FAN2MODE;
     out.BLEMBMODE = _BLEMBMODE;
     out.BLEDSPMODE = _BLEDSPMODE;
-    out.CHRONOTYPE = 5; // hardcoded value
+    out.CHRONOTYPE = _CHRONOTYPE;
     out.AUTONOMYTYPE = _AUTONOMYTYPE;
     out.NOMINALPWR = _NOMINALPWR;
 
