@@ -529,6 +529,8 @@ public:
     CommandResult setSetpoint(uint8_t setPoint, float *SETPResult = nullptr);
     CommandResult setSetpoint(float setPoint, float *SETPResult = nullptr);
     CommandResult setSetPointDown(float *SETPResult = nullptr);
+    CommandResult setSetPointFan3(uint8_t setPoint, float *F3SResult = nullptr);
+    CommandResult setSetPointFan4(uint8_t setPoint, float *F4SResult = nullptr);
     CommandResult setSetPointUp(float *SETPResult = nullptr);
     CommandResult setSilentMode(uint8_t silentMode, SetSilentModeResult *result = nullptr);
     CommandResult switchOff(StatusData *result = nullptr);

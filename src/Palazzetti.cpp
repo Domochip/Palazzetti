@@ -3000,6 +3000,48 @@ Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPResult /* = nul
     return setSetpoint(_SETP - 1.0f, SETPResult);
 }
 
+Palazzetti::CommandResult Palazzetti::setSetPointFan3(uint8_t setPoint, float *F3SResult /* = nullptr */)
+{
+    CommandResult cmdRes = initialize();
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (_BLEMBMODE < 13)
+        return CommandResult::UNSUPPORTED;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return CommandResult::UNSUPPORTED;
+
+    cmdRes = iSetSetPointFan3Atech(setPoint);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (F3SResult)
+        *F3SResult = _F3S;
+    return CommandResult::OK;
+}
+
+Palazzetti::CommandResult Palazzetti::setSetPointFan4(uint8_t setPoint, float *F4SResult /* = nullptr */)
+{
+    CommandResult cmdRes = initialize();
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (_BLEMBMODE < 13)
+        return CommandResult::UNSUPPORTED;
+
+    if (_MBTYPE < 0 || _MBTYPE >= 2)
+        return CommandResult::UNSUPPORTED;
+
+    cmdRes = iSetSetPointFan4Atech(setPoint);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (F4SResult)
+        *F4SResult = _F4S;
+    return CommandResult::OK;
+}
+
 Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPResult /* = nullptr */)
 {
     CommandResult cmdRes = initialize();
