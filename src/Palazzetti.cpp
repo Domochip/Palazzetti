@@ -2097,6 +2097,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.T3 = _T3;
     out.T4 = _T4;
     out.T5 = _T5;
+    out.EFLAGS = _EFLAGS;
     if (isValidSerialNumber(_SN))
     {
         out.isSNValid = true;
