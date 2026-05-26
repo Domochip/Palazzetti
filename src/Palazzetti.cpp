@@ -1361,13 +1361,13 @@ Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
 Palazzetti::CommandResult Palazzetti::iSetChronoDayAtech(uint8_t dayNumber, uint8_t memoryNumber, uint8_t programNumber)
 {
     if (programNumber > 6)
-        return CommandResult::ERROR;
+        return CommandResult::ERROR; // original is PARSER_ERROR
 
     if (!dayNumber || dayNumber > 7)
-        return CommandResult::ERROR;
+        return CommandResult::ERROR; // original is PARSER_ERROR
 
     if (!memoryNumber || memoryNumber > 3)
-        return CommandResult::ERROR;
+        return CommandResult::ERROR; // original is PARSER_ERROR
 
     CommandResult cmdRes = fumisComWriteByte((dayNumber - 1) * 3 + memoryNumber + 0x8017, programNumber);
     if (cmdRes != CommandResult::OK)
