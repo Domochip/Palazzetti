@@ -2144,6 +2144,21 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.T4 = _T4;
     out.T5 = _T5;
     out.EFLAGS = _EFLAGS;
+    if (_PSENSTYPE == 1)
+    {
+        out.isPLEVELValid = true;
+        out.PLEVEL = _PLEVEL;
+    }
+    else
+        out.isPLEVELValid = false;
+    if (_PSENSTYPE == 2)
+    {
+        out.isPSENSCSTALEMPValid = true;
+        out.PSENSCSTA = _PSENSCSTA;
+        out.PSENSLEMP = _PSENSLEMP;
+    }
+    else
+        out.isPSENSCSTALEMPValid = false;
     if (isValidSerialNumber(_SN))
     {
         out.isSNValid = true;
