@@ -130,10 +130,16 @@ private:
     uint16_t _STOVE_WDAY = 0; // myData.4456
     uint8_t _CHRSTATUS = 0;   // myData.4460
     uint16_t _EFLAGS = 0;     // myData.4464
-    uint16_t _PQT = 0;        // myData.4468
-    uint16_t _PLEVEL = 0;     // myData.4472
-    uint16_t _PSENSCSTA = 0;  // myData.4476
-    uint16_t _PSENSLEMP = 0;  // myData.4480
+    // bit 0  (0x0001): T1 out of range
+    // bit 1  (0x0002): T2 out of range
+    // bit 2  (0x0004): T3 out of range
+    // bit 3  (0x0008): T4 out of range
+    // bit 4  (0x0010): T5 out of range
+    // bit 10 (0x0400): DP pressure out of tolerance
+    uint16_t _PQT = 0;       // myData.4468
+    uint16_t _PLEVEL = 0;    // myData.4472
+    uint16_t _PSENSCSTA = 0; // myData.4476
+    uint16_t _PSENSLEMP = 0; // myData.4480
 
     // myData.4484  contains pointer from malloc(0xD0) used to store ChronoData
     // 0->5 : P1->P6
@@ -190,7 +196,9 @@ private:
 
     // myData.4544 contains pointer to malloc(0x6A) (setted up in iInit)
     uint8_t _PARAMS[0x6A]; // myData.4544 (psStaticData[0x30])
+    // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in iGetErrorFlagAtech)
     // uint8_t _PARAMS[0x4C] = 0; // CONFIG
+    // uint8_t _PARAMS[0x59] = 0; // DP pressure sensor tolerance (value * 3%) (used in iGetErrorFlagAtech)
     // uint8_t _PARAMS[0x5C] = 0; // PELLETTYPE
     // uint8_t _PARAMS[0x62] = 0; // PSENSLMAX (Pellet Level max)
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
@@ -270,6 +278,7 @@ private:
     CommandResult iGetCountersAtech();
     CommandResult iGetDateTimeAtech();
     CommandResult iGetDPressDataAtech();
+    CommandResult iGetErrorFlagAtech();
     void iGetFanLimits();
     CommandResult iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
     CommandResult iGetMBTypeAtech();

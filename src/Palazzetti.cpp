@@ -585,9 +585,9 @@ Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
         cmdRes = iGetChronoDataAtech();
         if (cmdRes != CommandResult::OK)
             return cmdRes;
-        // cmdRes = iGetErrorFlagAtech();
-        // if (cmdRes != CommandResult::OK)
-        //     return cmdRes;
+        cmdRes = iGetErrorFlagAtech();
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
         // if (_PSENSTYPE)
         // {
         //     cmdRes = iGetPelletLevelAtech();
@@ -757,6 +757,64 @@ Palazzetti::CommandResult Palazzetti::iGetDPressDataAtech()
 
     _DP_PRESS = (int16_t)buf;
 
+    return CommandResult::OK;
+}
+
+Palazzetti::CommandResult Palazzetti::iGetErrorFlagAtech()
+{
+    uint8_t t1Err, t2Err, t3Err, t4Err, t5Err;
+
+    if (_T1 <= 0.0f || (_T1 > 5.0f && _T1 <= 90.0f))
+        t1Err = 0;
+    else
+        t1Err = 1;
+    if (_T2 <= 0.0f || (_T2 > 5.0f && _T2 <= 90.0f))
+        t2Err = 0;
+    else
+        t2Err = 1;
+
+    uint8_t eFlags = t1Err + (t2Err * 2);
+
+    if (_STOVETYPE == 3 || _STOVETYPE == 4)
+    {
+        _EFLAGS = eFlags;
+        return CommandResult::OK;
+    }
+
+    if (_T3 <= 0.0f || (_T3 > 5.0f && _T3 <= (float)_PARAMS[0x37] * 3.0f))
+        t3Err = 0;
+    else
+        t3Err = 1;
+
+    if (_T4 <= 0.0f || (_T4 > 5.0f && _T4 <= 650.0f))
+        t4Err = 0;
+    else
+        t4Err = 1;
+
+    if (_T5 <= 0.0f || (_T5 > 5.0f && _T5 <= 90.0f))
+        t5Err = 0;
+    else
+        t5Err = 1;
+
+    eFlags = eFlags + (t3Err * 4) + (t4Err * 8) + (t5Err * 16);
+
+    if (_DP_PRESS > 0)
+    {
+        float dpTarget = (float)_DP_TARGET;
+        float dpPress = (float)_DP_PRESS;
+        float dpTolerance = dpTarget * ((float)_PARAMS[0x59] / 100.0f);
+
+        if (dpPress > (dpTarget - dpTolerance) && dpPress < (dpTarget + dpTolerance))
+        {
+            _EFLAGS = eFlags;
+            return CommandResult::OK;
+        }
+
+        if (dpTarget > 0.0f)
+            eFlags = eFlags + 0x0400; // bit 10: DP pressure out of tolerance
+    }
+
+    _EFLAGS = eFlags;
     return CommandResult::OK;
 }
 
