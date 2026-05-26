@@ -588,12 +588,12 @@ Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
         cmdRes = iGetErrorFlagAtech();
         if (cmdRes != CommandResult::OK)
             return cmdRes;
-        // if (_PSENSTYPE)
-        // {
-        //     cmdRes = iGetPelletLevelAtech();
-        //     if (cmdRes != CommandResult::OK)
-        //         return cmdRes;
-        // }
+        if (_PSENSTYPE)
+        {
+            cmdRes = iGetPelletLevelAtech();
+            if (cmdRes != CommandResult::OK)
+                return cmdRes;
+        }
     }
 
     if (!staticDataLoaded)
@@ -868,6 +868,52 @@ Palazzetti::CommandResult Palazzetti::iGetParameterAtech(uint16_t paramToRead, u
     CommandResult cmdRes = fumisComReadByte(paramToRead + 0x1C00, paramValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
+
+    return CommandResult::OK;
+}
+
+Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
+{
+    CommandResult cmdRes;
+
+    if (_PSENSTYPE == 1)
+    {
+        cmdRes = fumisComReadWord(0x203A, &_PLEVEL); // direct read to the variable...
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+    }
+
+    if (_PSENSTYPE == 2)
+    {
+        uint16_t local_14;
+        cmdRes = fumisComReadByte(0x1E26, &local_14);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+        _PSENSCSTA = (local_14 & 0x80) ? 0 : 1;
+
+        if (_HWTYPE == 5)
+        {
+            uint16_t local_10;
+            cmdRes = fumisComReadByte(0x2030, &local_10);
+            if (cmdRes != CommandResult::OK)
+                return cmdRes;
+            if (local_10 < 0 || local_10 > 2)
+                _PSENSLEMP = 0;
+            else
+                _PSENSLEMP = 1;
+        }
+        else
+        {
+            uint16_t local_10;
+            cmdRes = fumisComReadWord(0x2014, &local_10);
+            if (cmdRes != CommandResult::OK)
+                return cmdRes;
+            if (local_10 < 220 || local_10 > 512)
+                _PSENSLEMP = 0;
+            else
+                _PSENSLEMP = 1;
+        }
+    }
 
     return CommandResult::OK;
 }

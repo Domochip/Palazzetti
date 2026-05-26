@@ -283,6 +283,7 @@ private:
     CommandResult iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
     CommandResult iGetMBTypeAtech();
     CommandResult iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
+    CommandResult iGetPelletLevelAtech();
     CommandResult iGetPelletQtUsedAtech();
     CommandResult iGetPowerAtech();
     CommandResult iGetPumpRateAtech();
