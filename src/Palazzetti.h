@@ -350,13 +350,13 @@ public:
         uint16_t DPT;
         int16_t DP;
         uint8_t IN;  // IN_I04<<3 | IN_I03<<2 | IN_I02<<1 | IN_I01
-        uint8_t OUT; // OUT_O07<<6 | OUT_O06<<5 | OUT_O05<<4 | OUT_O04<<3 | OUT_O03<<2 | OUT_O02<<1 | OUT_O01
-        float T1, T2, T3, T4, T5;
-        uint16_t EFLAGS;
         bool isPLEVELValid;
         uint16_t PLEVEL;
         bool isPSENSCSTALEMPValid;
         uint16_t PSENSCSTA, PSENSLEMP;
+        uint8_t OUT; // OUT_O07<<6 | OUT_O06<<5 | OUT_O05<<4 | OUT_O04<<3 | OUT_O03<<2 | OUT_O02<<1 | OUT_O01
+        float T1, T2, T3, T4, T5;
+        uint16_t EFLAGS;
         bool isSNValid;
         char SN[28];
     };
