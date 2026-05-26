@@ -2115,14 +2115,10 @@ Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
         return cmdRes;
 
     out.IGN = _IGN;
-    out.POWERTIMEh = _POWERTIMEH;
-    out.POWERTIMEm = _POWERTIMEM;
-    out.HEATTIMEh = _HEATTIMEH;
-    out.HEATTIMEm = _HEATTIMEM;
-    out.SERVICETIMEh = _SERVICETIMEH;
-    out.SERVICETIMEm = _SERVICETIMEM;
-    out.ONTIMEh = _ONTIMEH;
-    out.ONTIMEm = _ONTIMEM;
+    sprintf(out.POWERTIME, "%02d:%02d", _POWERTIMEH, _POWERTIMEM % 100);
+    sprintf(out.HEATTIME, "%02d:%02d", _HEATTIMEH, _HEATTIMEM % 100);
+    sprintf(out.SERVICETIME, "%02d:%02d", _SERVICETIMEH, _SERVICETIMEM % 100);
+    sprintf(out.ONTIME, "%02d:%02d", _ONTIMEH, _ONTIMEM % 100);
     out.OVERTMPERRORS = _OVERTMPERRORS;
     out.IGNERRORS = _IGNERRORS;
     out.PQT = _PQT;

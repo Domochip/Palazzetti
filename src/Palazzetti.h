@@ -363,10 +363,10 @@ public:
     struct CountersData
     {
         uint16_t IGN;
-        uint16_t POWERTIMEh, POWERTIMEm;
-        uint16_t HEATTIMEh, HEATTIMEm;
-        uint16_t SERVICETIMEh, SERVICETIMEm;
-        uint16_t ONTIMEh, ONTIMEm;
+        char POWERTIME[9];
+        char HEATTIME[9];
+        char SERVICETIME[9];
+        char ONTIME[9];
         uint16_t OVERTMPERRORS, IGNERRORS;
         uint16_t PQT;
     };
