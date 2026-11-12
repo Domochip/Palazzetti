@@ -1937,14 +1937,23 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
+    // Custom: better feeder active time address based on Core and Version
+    if (_CORE != 0 || _VER >= 40)
+        wAddrFeederActiveTime = 0x209A;
+    else if (_VER < 35)
+        wAddrFeederActiveTime = 0x1FAE;
+    else
+        wAddrFeederActiveTime = 0x1FAC;
+
     if (_MOD < 500 || 599 < _MOD)
     {
-        if (_VER < 0x1F)
-            wAddrFeederActiveTime = 0x1FAE;
-        else if (_VER < 0x28)
-            wAddrFeederActiveTime = 0x1FAC;
-        else
-            wAddrFeederActiveTime = 0x209A;
+        // Original: feeder active time address based on Model and Version
+        // if (_VER < 0x1F)
+        //     wAddrFeederActiveTime = 0x1FAE;
+        // else if (_VER < 0x28)
+        //     wAddrFeederActiveTime = 0x1FAC;
+        // else
+        //     wAddrFeederActiveTime = 0x209A;
 
         uint16_t var_18;
         cmdRes = fumisComReadWord(0x203A, &var_18);
@@ -1958,8 +1967,9 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
         else if (1 < var_18)
             _PSENSTYPE = 1;
     }
-    else
-        wAddrFeederActiveTime = 0x209A;
+    // Original: feeder active time address based on Model and Version
+    // else
+    //     wAddrFeederActiveTime = 0x209A;
 
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < paramsBufferSize)
