@@ -460,10 +460,12 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
     // then we should discard RX buffer content, except right after a valid stove reply.
     // The stove sends its next frame ~0.1ms after a reply, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
+    bool alignedFrame = false; // (not in original) the next 11 RX bytes are exactly the stove's next frame
     if (fumisComStatus == FumisComStatus::WaitRequest && serialPortModel == 2)
     {
-        bool keepRxBuffer = rxAligned && (millis() - lastReplyMs) < 8;
-        if (!keepRxBuffer && SERIALCOM_Flush() < 0)
+        // fresh valid reply: keep the buffer, its first 11 bytes are the stove's next frame (enables the fast path)
+        alignedFrame = rxAligned && (millis() - lastReplyMs) < 8;
+        if (!alignedFrame && SERIALCOM_Flush() < 0)
             return CommandResult::COMMUNICATION_ERROR;
     }
     rxAligned = false;
@@ -490,19 +492,28 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
 
             bufPosition += nbReceivedBytes;
 
-            // Stove "Request" frames are always followed by a 28ms delay
-            // longest measured delay for other frames is ~9ms
-            // so if we are in fumisComStatus WaitRequest, already received 11 bytes and some bytes are received before 13ms have passed
-            // we should slide the buffer to the left by one byte to continue reading
-            if (fumisComStatus == FumisComStatus::WaitRequest && bufPosition == 0xB && m_serial.select(13))
+            // Waiting for a Request and 11 bytes received: check that they form a complete Request frame
+            if (fumisComStatus == FumisComStatus::WaitRequest && bufPosition == 0xB)
             {
-                bufPosition--;
-                for (int i = 0; i < bufPosition; i++)
-                    ((uint8_t *)buf)[i] = ((uint8_t *)buf)[i + 1];
+                // Fast path (not in original): right after a valid reply,
+                // the buffer is aligned on the stove's next frame and the buffer contains a Request frame
+                bool fastRequest = alignedFrame && ((uint8_t *)buf)[0] == 0 && iChkSum((uint8_t *)buf) == 0;
+                alignedFrame = false;
+                if (fastRequest)
+                    m_serial.uSleep(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Request
+                // Otherwise rely on silence: a Request is followed by ~28ms of silence, other frames by at most ~9ms.
+                // A byte arriving within 13ms means this is not a Request frame: slide by one byte and keep reading
+                else if (m_serial.select(13))
+                {
+                    bufPosition--;
+                    for (int i = 0; i < bufPosition; i++)
+                        ((uint8_t *)buf)[i] = ((uint8_t *)buf)[i + 1];
+                }
             }
 
             if (nbReceivedBytes < 0)
             {
+                alignedFrame = false;
                 dword_433248 = CommandResult::ERROR;
                 if (fumisCloseSerial() != CommandResult::OK)
                     return CommandResult::ERROR;
