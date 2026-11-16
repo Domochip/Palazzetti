@@ -370,10 +370,12 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
 
         if (!wordMode)
         {
-            // NOTE (not in original): a write is successful only if the read-back succeeds and matches
+            // Custom: a write is successful only if the read-back succeeds and matches (orignial was not checking this)
+            // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
+            uint16_t expected = (addrToWrite == 0x2044) ? 0 : (data & 0xFF);
             uint16_t var_30 = 0;
             CommandResult readRes = fumisComRead(addrToWrite, &var_30, 0);
-            if (readRes == CommandResult::OK && var_30 == (data & 0xFF))
+            if (readRes == CommandResult::OK && var_30 == expected)
                 return CommandResult::OK;
             cmdRes = (readRes != CommandResult::OK) ? readRes : CommandResult::ERROR;
             continue;
