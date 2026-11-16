@@ -48,8 +48,19 @@ public:
     };
 
 private:
+    // Serial exchange state machine (values are the ones used by the original program)
+    enum class FumisComStatus : uint8_t
+    {
+        Closed = 0,        // serial port closed
+        Idle = 1,          // port open, no exchange in progress
+        WaitRequest = 2,   // waiting for a stove Request frame (first byte 0x00)
+        CanSend = 3,       // Request received: the stove listens, the box may send one frame
+        WaitReply = 4,     // read request sent, waiting for the stove reply (first byte 0x02)
+        ReplyReceived = 5, // valid reply received
+    };
+
     uint16_t wAddrFeederActiveTime = 0;
-    uint32_t fumisComStatus = 0;                    // sFumisComData.4
+    FumisComStatus fumisComStatus = FumisComStatus::Closed; // sFumisComData.4
     CommandResult dword_433248 = CommandResult::OK; // sFumisComData.8 (DEBUG?/Last Com Result?)
 
     uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others

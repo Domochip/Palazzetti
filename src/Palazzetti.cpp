@@ -127,23 +127,25 @@ int Palazzetti::parseRxBuffer(uint8_t *rxBuffer)
     int res; // var_10;
     switch (fumisComStatus)
     {
-    case 2:
+    case FumisComStatus::WaitRequest:
         if (rxBuffer[0] != 0)
             return -1;
         res = iChkSum(rxBuffer);
         if (res < 0)
             return res;
-        fumisComStatus = 3;
+        fumisComStatus = FumisComStatus::CanSend;
         return 0;
         break;
-    case 4:
+    case FumisComStatus::WaitReply:
         if (rxBuffer[0] != 2)
             return -1;
         res = iChkSum(rxBuffer);
         if (res < 0)
             return res;
-        fumisComStatus = 5;
+        fumisComStatus = FumisComStatus::ReplyReceived;
         return 0;
+        break;
+    default:
         break;
     }
     return -1;
@@ -164,7 +166,7 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
 {
     SERIALCOM_CloseComport();
-    fumisComStatus = 0;
+    fumisComStatus = FumisComStatus::Closed;
     return CommandResult::OK;
 }
 
@@ -196,7 +198,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
 
     bzero(buf, count);
 
-    if (!fumisComStatus)
+    if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
     uint8_t var_28[32];
@@ -215,7 +217,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
 
         if (_MBTYPE != 1)
         {
-            fumisComStatus = 2;
+            fumisComStatus = FumisComStatus::WaitRequest;
             cmdRes = fumisWaitRequest((void *)var_28);
             if (cmdRes != CommandResult::OK)
             {
@@ -229,7 +231,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
             }
         }
 
-        fumisComStatus = 3;
+        fumisComStatus = FumisComStatus::CanSend;
         bzero(var_28, 0xB);
         var_28[0] = 2;
         var_28[1] = addrToRead & 0xFF;
@@ -241,7 +243,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
             return cmdRes;
 
         bzero(var_28, 32);
-        fumisComStatus = 4;
+        fumisComStatus = FumisComStatus::WaitReply;
         cmdRes = fumisWaitRequest(var_28);
         if (cmdRes == CommandResult::OK)
         {
@@ -305,10 +307,10 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
     for (int i = 3; i > 0; i--) // i as local_6c
     {
-        if (!fumisComStatus)
+        if (fumisComStatus == FumisComStatus::Closed)
             return CommandResult::ERROR;
 
-        fumisComStatus = 2;
+        fumisComStatus = FumisComStatus::WaitRequest;
         bzero(&buf, 0xB);
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
@@ -339,7 +341,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
 Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
 {
-    if (!fumisComStatus)
+    if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
     CommandResult cmdRes; // var_38
@@ -347,7 +349,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
 
     for (int i = 2; i > 0; i--) // i as var_34
     {
-        fumisComStatus = 2;
+        fumisComStatus = FumisComStatus::WaitRequest;
         bzero(&buf, 0xB);
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
@@ -375,7 +377,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
                 continue;
         }
 
-        fumisComStatus = 2;
+        fumisComStatus = FumisComStatus::WaitRequest;
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
         {
@@ -418,12 +420,12 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
     {
         dword_433248 = CommandResult::OK;
-        fumisComStatus = 1;
+        fumisComStatus = FumisComStatus::Idle;
         res = 0;
     }
     else
     {
-        fumisComStatus = 0;
+        fumisComStatus = FumisComStatus::Closed;
         dword_433248 = (res >= 0) ? CommandResult::OK : CommandResult::ERROR;
     }
 
@@ -432,7 +434,7 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 
 Palazzetti::CommandResult Palazzetti::fumisSendRequest(void *buf)
 {
-    if (fumisComStatus != 3)
+    if (fumisComStatus != FumisComStatus::CanSend)
         return CommandResult::ERROR;
 
     int totalSentBytes = 0; // var_18
@@ -449,12 +451,12 @@ Palazzetti::CommandResult Palazzetti::fumisSendRequest(void *buf)
 
 Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
 {
-    if (!fumisComStatus)
+    if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
-    // fumisComStatus 2 means waiting for stove "Request" frame (first frame byte == 0)
+    // fumisComStatus WaitRequest means waiting for stove "Request" frame (first frame byte == 0)
     // then we should discard RX buffer content
-    if (fumisComStatus == 2 && serialPortModel == 2 && SERIALCOM_Flush() < 0)
+    if (fumisComStatus == FumisComStatus::WaitRequest && serialPortModel == 2 && SERIALCOM_Flush() < 0)
         return CommandResult::COMMUNICATION_ERROR;
 
     int nbReceivedBytes = 0; // var_18
@@ -470,9 +472,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
 
         while (bufPosition < 0xB || parseRxBuffer((uint8_t *)buf) < 0)
         {
-            // fumisComStatus 4 means direct read of stove answer
-            // if buffer contains 11 bytes and fumisComStatus is still equal to 4, it means that the parseRxBuffer failed
-            if (bufPosition == 0xB && fumisComStatus == 4)
+            // fumisComStatus WaitReply means direct read of stove answer
+            // if buffer contains 11 bytes and fumisComStatus is still WaitReply, it means that the parseRxBuffer failed
+            if (bufPosition == 0xB && fumisComStatus == FumisComStatus::WaitReply)
                 return CommandResult::COMMUNICATION_ERROR;
 
             nbReceivedBytes = SERIALCOM_ReceiveBuf((uint8_t *)buf + bufPosition, 0xB - bufPosition);
@@ -481,9 +483,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
 
             // Stove "Request" frames are always followed by a 28ms delay
             // longest measured delay for other frames is ~9ms
-            // so if we are in fumisComStatus 2, already received 11 bytes and some bytes are received before 13ms have passed
+            // so if we are in fumisComStatus WaitRequest, already received 11 bytes and some bytes are received before 13ms have passed
             // we should slide the buffer to the left by one byte to continue reading
-            if (fumisComStatus == 2 && bufPosition == 0xB && m_serial.select(13))
+            if (fumisComStatus == FumisComStatus::WaitRequest && bufPosition == 0xB && m_serial.select(13))
             {
                 bufPosition--;
                 for (int i = 0; i < bufPosition; i++)
@@ -506,7 +508,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
                 return CommandResult::COMMUNICATION_ERROR;
         }
 
-        if (fumisComStatus == 5 || fumisComStatus == 3)
+        if (fumisComStatus == FumisComStatus::ReplyReceived || fumisComStatus == FumisComStatus::CanSend)
             return CommandResult::OK;
     } while (1);
 }
