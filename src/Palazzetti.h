@@ -495,8 +495,8 @@ public:
         uint16_t F3L, F4L;
     };
 
-    CommandResult initialize(bool loopBack = false);
-    CommandResult initialize(SerialAdapter serial, bool loopBack = false);
+    CommandResult initialize();
+    CommandResult initialize(SerialAdapter serial, bool loopBack);
     bool isInitialized() { return _isInitialized; };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);

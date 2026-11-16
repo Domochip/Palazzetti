@@ -2069,7 +2069,7 @@ Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint
 //------------------------------------------
 // Public part
 
-Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
+Palazzetti::CommandResult Palazzetti::initialize()
 {
     if (!m_serial.open ||
         !m_serial.close ||
@@ -2085,9 +2085,6 @@ Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
 
     if (_isInitialized)
         return CommandResult::OK;
-
-    // comPortNumber affects loopBack processing
-    comPortNumber = loopBack ? 0 : 1;
 
     CommandResult cmdRes = iChkMBType();
     if (cmdRes != CommandResult::OK)
@@ -2114,10 +2111,12 @@ Palazzetti::CommandResult Palazzetti::initialize(bool loopBack /* = false*/)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack /* = false*/)
+Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack)
 {
     m_serial = serial;
-    return initialize(loopBack);
+    // comPortNumber affects loopBack processing
+    comPortNumber = loopBack ? 0 : 1;
+    return initialize();
 }
 
 Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
