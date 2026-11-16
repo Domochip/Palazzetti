@@ -47,7 +47,7 @@ int Palazzetti::SERIALCOM_ReceiveByte(uint8_t *buf)
 
 int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 {
-    size_t uint8_tsSent = 0;
+    ssize_t uint8_tsSent = 0;
     size_t totalBytesWritten = 0;
 
     while (totalBytesWritten < count)
@@ -60,7 +60,7 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 
     if (!comPortNumber && !_MBTYPE)
     {
-        size_t uint8_tsReaded = 0;
+        ssize_t uint8_tsReaded = 0;
         size_t totalBytesReaded = 0;
 
         while (totalBytesReaded < count)
