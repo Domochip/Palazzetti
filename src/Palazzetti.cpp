@@ -205,9 +205,9 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
     uint8_t var_28[32];
     CommandResult cmdRes;
 
-    for (int i = 2; i > 0; i--) // NOTE : the original value is 4
+    for (int i = 4; i > 0; i--)
     {
-        if (i < 2) // NOTE : the original value is 4
+        if (i < 4)
         {
             fumisCloseSerial();
             SERIALCOM_Flush();
@@ -524,7 +524,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
                 break;
             }
 
-            if (millis() - startTime > 500) // NOTE : the original value is 3000 but 500ms should contains at least ~10 Request frames...
+            if (millis() - startTime > 250) // NOTE : the original value is 3000 but the stove sends a Request at least every ~67ms
                 return CommandResult::COMMUNICATION_ERROR;
         }
 
