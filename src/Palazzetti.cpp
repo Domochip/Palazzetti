@@ -931,7 +931,7 @@ Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
             cmdRes = fumisComReadByte(0x2030, &local_10);
             if (cmdRes != CommandResult::OK)
                 return cmdRes;
-            if (/*local_10 < 0 || */local_10 > 2)
+            if (/*local_10 < 0 || */ local_10 > 2)
                 _PSENSLEMP = 0;
             else
                 _PSENSLEMP = 1;
@@ -1687,7 +1687,7 @@ Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 {
-    if (/*roomFan3Speed < 0 || */roomFan3Speed > 5)
+    if (/*roomFan3Speed < 0 || */ roomFan3Speed > 5)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
@@ -1714,7 +1714,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 {
-    if (/*roomFan4Speed < 0 || */roomFan4Speed > 5)
+    if (/*roomFan4Speed < 0 || */ roomFan4Speed > 5)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
@@ -1745,7 +1745,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 {
-    if (/*roomFanSpeed < 0 || */roomFanSpeed > 7)
+    if (/*roomFanSpeed < 0 || */ roomFanSpeed > 7)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
