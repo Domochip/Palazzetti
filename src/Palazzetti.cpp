@@ -1166,7 +1166,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
         return cmdRes;
     _DSPFWVER = buf;
     if (_DSPFWVER > 0)
-        _DSPTYPE = ((float)buf) / pow(10, log10(buf));
+        _DSPTYPE = (double)buf / pow(10, (int)log10(buf));
 
     cmdRes = iGetMBTypeAtech();
     if (cmdRes != CommandResult::OK)
