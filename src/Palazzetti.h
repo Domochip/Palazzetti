@@ -61,7 +61,7 @@ private:
 
     uint16_t wAddrFeederActiveTime = 0;
     FumisComStatus fumisComStatus = FumisComStatus::Closed; // sFumisComData.4
-    CommandResult dword_433248 = CommandResult::OK;         // sFumisComData.8 (DEBUG?/Last Com Result?)
+    // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (commented everywhere)
 
     uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus

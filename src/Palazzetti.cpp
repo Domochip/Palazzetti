@@ -226,7 +226,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
                     continue;
                 else
                 {
-                    dword_433248 = cmdRes;
+                    // dword_433248 = cmdRes; // unused (sFumisComData.8)
                     return cmdRes;
                 }
             }
@@ -254,15 +254,15 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
 
         if (cmdRes != CommandResult::COMMUNICATION_ERROR)
         {
-            dword_433248 = cmdRes;
+            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             return cmdRes;
         }
     }
 
     if (cmdRes == CommandResult::OK)
         memcpy(buf, var_28 + 1, count);
-    else
-        dword_433248 = cmdRes;
+    // else
+    //     dword_433248 = cmdRes; // unused (sFumisComData.8)
     return cmdRes;
 }
 
@@ -316,7 +316,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
         {
-            dword_433248 = cmdRes;
+            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
         }
         bzero(&buf, 0xB);
@@ -355,7 +355,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
         {
-            dword_433248 = cmdRes;
+            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
         }
         bzero(&buf, 0xB);
@@ -385,7 +385,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
         cmdRes = fumisWaitRequest(&buf);
         if (cmdRes != CommandResult::OK)
         {
-            dword_433248 = cmdRes;
+            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             return cmdRes;
         }
         bzero(&buf, 0xB);
@@ -426,14 +426,14 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
     {
-        dword_433248 = CommandResult::OK;
+        // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
         fumisComStatus = FumisComStatus::Idle;
         res = 0;
     }
     else
     {
         fumisComStatus = FumisComStatus::Closed;
-        dword_433248 = (res >= 0) ? CommandResult::OK : CommandResult::ERROR;
+        // dword_433248 = (res >= 0) ? CommandResult::OK : CommandResult::ERROR; // unused (sFumisComData.8)
     }
 
     return (res >= 0) ? CommandResult::OK : CommandResult::ERROR;
@@ -451,8 +451,8 @@ Palazzetti::CommandResult Palazzetti::fumisSendRequest(void *buf)
         sentBytes = SERIALCOM_SendBuf((void *)((uint8_t *)buf + totalSentBytes), 0xB - totalSentBytes);
         totalSentBytes += sentBytes;
     }
-    if (sentBytes < 0)
-        dword_433248 = CommandResult::ERROR;
+    // if (sentBytes < 0)
+    //     dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
     return (sentBytes >= 0) ? CommandResult::OK : CommandResult::ERROR;
 }
 
@@ -519,7 +519,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
             if (nbReceivedBytes < 0)
             {
                 alignedFrame = false;
-                dword_433248 = CommandResult::ERROR;
+                // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
                 if (fumisCloseSerial() != CommandResult::OK)
                     return CommandResult::ERROR;
                 if (fumisOpenSerial() != CommandResult::OK)
