@@ -47,20 +47,20 @@ int Palazzetti::SERIALCOM_ReceiveByte(uint8_t *buf)
 
 int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
 {
-    ssize_t uint8_tsSent = 0;
+    ssize_t bytesSent = 0;
     size_t totalBytesWritten = 0;
 
     while (totalBytesWritten < count)
     {
-        uint8_tsSent = m_serial.write((void *)((uint8_t *)buf + totalBytesWritten), count - totalBytesWritten);
-        totalBytesWritten += uint8_tsSent;
+        bytesSent = m_serial.write((void *)((uint8_t *)buf + totalBytesWritten), count - totalBytesWritten);
+        totalBytesWritten += bytesSent;
     }
 
     m_serial.drain();
 
     if (!comPortNumber && !_MBTYPE)
     {
-        ssize_t uint8_tsReaded = 0;
+        ssize_t bytesRead = 0;
         size_t totalBytesReaded = 0;
 
         while (totalBytesReaded < count)
@@ -68,14 +68,14 @@ int Palazzetti::SERIALCOM_SendBuf(void *buf, size_t count)
             if (m_serial.select(selectSerialTimeoutMs) <= 0)
                 return -1;
 
-            uint8_tsReaded = m_serial.read((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
-            if (uint8_tsReaded < 0)
-                return uint8_tsReaded;
-            totalBytesReaded += uint8_tsReaded;
+            bytesRead = m_serial.read((void *)((uint8_t *)buf + totalBytesReaded), count - totalBytesReaded);
+            if (bytesRead < 0)
+                return bytesRead;
+            totalBytesReaded += bytesRead;
         }
     }
 
-    return uint8_tsSent;
+    return bytesSent;
 }
 
 void Palazzetti::SERIALCOM_SendByte(uint8_t *buf)
