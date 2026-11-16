@@ -7,6 +7,6 @@ That way, you can use this library on ESP8266, but also on other kind of microco
 
 # Hardware
 
-Hardware part of this project has been moved to WirelessPalaControl repo.  
+Hardware part of this project has been moved to WPalaControl repo.  
 On this one, you will find schematic and PCB to build your adapter to connect to stove.  
-https://github.com/Domochip/WirelessPalaControl
+https://github.com/Domochip/WPalaControl
