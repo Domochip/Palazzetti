@@ -167,6 +167,7 @@ Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
 {
     SERIALCOM_CloseComport();
     fumisComStatus = FumisComStatus::Closed;
+    rxAligned = false;
     return CommandResult::OK;
 }
 
@@ -415,6 +416,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
 Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 {
     selectSerialTimeoutMs = 100; // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
+    rxAligned = false;
     int res = SERIALCOM_OpenComport(0x9600);
 
     if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
@@ -455,9 +457,16 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
         return CommandResult::ERROR;
 
     // fumisComStatus WaitRequest means waiting for stove "Request" frame (first frame byte == 0)
-    // then we should discard RX buffer content
-    if (fumisComStatus == FumisComStatus::WaitRequest && serialPortModel == 2 && SERIALCOM_Flush() < 0)
-        return CommandResult::COMMUNICATION_ERROR;
+    // then we should discard RX buffer content, except right after a valid stove reply.
+    // The stove sends its next frame ~0.1ms after a reply, so the RX buffer then holds the start of a fresh, aligned frame.
+    // keep the buffer for 8ms at most.
+    if (fumisComStatus == FumisComStatus::WaitRequest && serialPortModel == 2)
+    {
+        bool keepRxBuffer = rxAligned && (millis() - lastReplyMs) < 8;
+        if (!keepRxBuffer && SERIALCOM_Flush() < 0)
+            return CommandResult::COMMUNICATION_ERROR;
+    }
+    rxAligned = false;
 
     int nbReceivedBytes = 0; // var_18
 
@@ -508,7 +517,14 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
                 return CommandResult::COMMUNICATION_ERROR;
         }
 
-        if (fumisComStatus == FumisComStatus::ReplyReceived || fumisComStatus == FumisComStatus::CanSend)
+        if (fumisComStatus == FumisComStatus::ReplyReceived)
+        {
+            // valid reply read : the next RX byte is the start of the stove's next frame
+            rxAligned = true;
+            lastReplyMs = millis();
+            return CommandResult::OK;
+        }
+        if (fumisComStatus == FumisComStatus::CanSend)
             return CommandResult::OK;
     } while (1);
 }
