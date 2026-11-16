@@ -481,9 +481,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(void *buf)
 
             // Stove "Request" frames are always followed by a 28ms delay
             // longest measured delay for other frames is ~9ms
-            // so if we are in fumisComStatus 2, already received 11 bytes and some bytes are received before 18ms have passed
+            // so if we are in fumisComStatus 2, already received 11 bytes and some bytes are received before 13ms have passed
             // we should slide the buffer to the left by one byte to continue reading
-            if (fumisComStatus == 2 && bufPosition == 0xB && m_serial.select(18))
+            if (fumisComStatus == 2 && bufPosition == 0xB && m_serial.select(13))
             {
                 bufPosition--;
                 for (int i = 0; i < bufPosition; i++)
