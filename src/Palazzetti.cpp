@@ -370,12 +370,13 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
 
         if (!wordMode)
         {
+            // NOTE (not in original): a write is successful only if the read-back succeeds and matches
             uint16_t var_30 = 0;
-            fumisComRead(addrToWrite, &var_30, 0);
-            if (var_30 == data)
-                return cmdRes;
-            else
-                continue;
+            CommandResult readRes = fumisComRead(addrToWrite, &var_30, 0);
+            if (readRes == CommandResult::OK && var_30 == (data & 0xFF))
+                return CommandResult::OK;
+            cmdRes = (readRes != CommandResult::OK) ? readRes : CommandResult::ERROR;
+            continue;
         }
 
         fumisComStatus = FumisComStatus::WaitRequest;
@@ -396,9 +397,11 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
             return cmdRes;
 
         uint16_t var_30 = 0;
-        fumisComRead(addrToWrite, &var_30, 1);
-        if (var_30 == data)
-            return cmdRes;
+        // NOTE (not in original): a write is successful only if the read-back succeeds and matches
+        CommandResult readRes = fumisComRead(addrToWrite, &var_30, 1);
+        if (readRes == CommandResult::OK && var_30 == data)
+            return CommandResult::OK;
+        cmdRes = (readRes != CommandResult::OK) ? readRes : CommandResult::ERROR;
     }
     return cmdRes;
 }
