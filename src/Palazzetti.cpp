@@ -1863,9 +1863,7 @@ Palazzetti::CommandResult Palazzetti::iSwitchOffAtech()
     else
         cmdRes = fumisComWriteByte(0x2044, 0x11); // Custom: original is using fumisComWriteWord
 
-    if (cmdRes != CommandResult::OK)
-        return CommandResult::ERROR;
-    return CommandResult::OK;
+    return cmdRes; // Custom: original returns -1 for any error
 }
 
 Palazzetti::CommandResult Palazzetti::iSwitchOnAtech()
@@ -1876,9 +1874,7 @@ Palazzetti::CommandResult Palazzetti::iSwitchOnAtech()
     else
         cmdRes = fumisComWriteByte(0x2044, 0x12); // Custom: original is using fumisComWriteWord
 
-    if (cmdRes != CommandResult::OK)
-        return CommandResult::ERROR;
-    return CommandResult::OK;
+    return cmdRes; // Custom: original returns -1 for any error
 }
 
 Palazzetti::CommandResult Palazzetti::iUpdateStaticData()
