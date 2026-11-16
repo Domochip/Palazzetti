@@ -3141,15 +3141,25 @@ Palazzetti::CommandResult Palazzetti::switchOff(StatusData *result /* = nullptr 
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
+    // STATUS before the command, to detect its change
+    StatusData status;
+    cmdRes = getStatus(status);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+    uint16_t statusBefore = status.STATUS;
+
     cmdRes = iSwitchOffAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    // give the stove time to switch off and reach the final status
-    m_serial.uSleep(200000); // maximum measured time is 89ms (from STATUS=9 to STATUS=0)
+    // poll STATUS for 400ms max while it succeeds and the stove was ON (statusBefore > 1) and hasn't changed yet
+    unsigned long startTime = millis();
+    do
+    {
+        yield();
+        cmdRes = getStatus(status);
+    } while (cmdRes == CommandResult::OK && statusBefore > 1 && status.STATUS == statusBefore && millis() - startTime < 400);
 
-    StatusData status;
-    cmdRes = getStatus(status);
     if (result)
         *result = status;
     return cmdRes;
@@ -3165,13 +3175,16 @@ Palazzetti::CommandResult Palazzetti::switchOn(StatusData *result /* = nullptr *
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    // give the stove time to switch on and reach the "final" status
-    // (if stove need to heat up, it stays on STATUS=3 for more than 3.6s)
-    // (otherwise it switch to STATUS=9 in less than 0.5s)
-    m_serial.uSleep(750000); // maximum measured time is 305ms (from STATUS=0 to STATUS=9)
-
+    // poll STATUS for 1200ms max while it succeeds and remains in the start-up states 0-3
+    // (if stove doens't need to heat up, it moves from STATUS=3 to 9 (ECO STOP) in 1.2s max)
     StatusData status;
-    cmdRes = getStatus(status);
+    unsigned long startTime = millis();
+    do
+    {
+        yield();
+        cmdRes = getStatus(status);
+    } while (cmdRes == CommandResult::OK && status.STATUS <= 3 && millis() - startTime < 1200);
+
     if (result)
         *result = status;
     return cmdRes;
