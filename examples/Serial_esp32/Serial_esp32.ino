@@ -59,7 +59,8 @@ void setup()
         .flush = myFlushSerial,
         .uSleep = myUSleep};
 
-    if (myPala.initialize(serial) == Palazzetti::CommandResult::OK)
+    // loopBack = true when RX receives back what TX sends (V1 board)
+    if (myPala.initialize(serial, false) == Palazzetti::CommandResult::OK)
         Serial.println("initialize OK");
     else
         Serial.println("initialize Failed");
