@@ -36,51 +36,41 @@ int Palazzetti::SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count)
     return res;
 }
 
-int Palazzetti::SERIALCOM_ReceiveByte(uint8_t *buf)
+// count must be <= FRAME_SIZE (size of the loopBack echo buffer)
+// returns the number of bytes sent (count) or -1 on error
+int Palazzetti::SERIALCOM_SendBuf(const uint8_t *buf, size_t count)
 {
-    int res = SERIALCOM_ReceiveBuf(buf, 1);
-    if (res < 0)
-        return res;
-
-    return 0;
-}
-
-int Palazzetti::SERIALCOM_SendBuf(uint8_t *buf, size_t count)
-{
-    ssize_t bytesSent = 0;
     size_t totalBytesWritten = 0;
 
     while (totalBytesWritten < count)
     {
-        bytesSent = m_serial.write(buf + totalBytesWritten, count - totalBytesWritten);
-        totalBytesWritten += bytesSent;
+        ssize_t bytesWritten = m_serial.write(buf + totalBytesWritten, count - totalBytesWritten);
+        if (bytesWritten < 0)
+            return -1;
+        totalBytesWritten += bytesWritten;
     }
 
     m_serial.drain();
 
+    // loopBack: RX receives back what was just sent, read it to discard it
     if (!comPortNumber && !_MBTYPE)
     {
-        ssize_t bytesRead = 0;
-        size_t totalBytesReaded = 0;
+        uint8_t echo[FRAME_SIZE];
+        size_t totalBytesRead = 0;
 
-        while (totalBytesReaded < count)
+        while (totalBytesRead < count)
         {
             if (m_serial.select(selectSerialTimeoutMs) <= 0)
                 return -1;
 
-            bytesRead = m_serial.read(buf + totalBytesReaded, count - totalBytesReaded);
+            ssize_t bytesRead = m_serial.read(echo, count - totalBytesRead);
             if (bytesRead < 0)
-                return bytesRead;
-            totalBytesReaded += bytesRead;
+                return -1;
+            totalBytesRead += bytesRead;
         }
     }
 
-    return bytesSent;
-}
-
-void Palazzetti::SERIALCOM_SendByte(uint8_t *buf)
-{
-    SERIALCOM_SendBuf(buf, 1);
+    return totalBytesWritten;
 }
 
 bool Palazzetti::hasValidChecksum(const uint8_t *frame)

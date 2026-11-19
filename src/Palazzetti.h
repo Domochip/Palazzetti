@@ -292,9 +292,7 @@ private:
     int SERIALCOM_Flush();
     int SERIALCOM_OpenComport(uint32_t baudrate);
     int SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count);
-    int SERIALCOM_ReceiveByte(uint8_t *buf);
-    int SERIALCOM_SendBuf(uint8_t *buf, size_t count);
-    void SERIALCOM_SendByte(uint8_t *buf);
+    int SERIALCOM_SendBuf(const uint8_t *buf, size_t count);
 
     int isValidSerialNumber(char *SN);
     int parseRxBuffer(uint8_t *frame);
