@@ -48,6 +48,32 @@ public:
     };
 
 private:
+    // Fumis bus: 38400 8N1, fixed size frames, half-duplex polled bus: the stove is the master
+    //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
+    //   a Read is answered by a Response frame right after it
+    //   (plzbridge only names the Poll, as "Request" in fumisWaitRequest; its states are bare numbers, see FumisComStatus)
+    // frame (11 bytes):
+    //   byte 0      type (FrameType)
+    //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
+    //   byte 9      not used by this library (0 in frames sent, ignored in frames received)
+    //   byte 10     checksum = sum of bytes 0..9
+    
+    static constexpr uint32_t FUMIS_BAUDRATE = 38400;
+    static constexpr uint8_t FRAME_SIZE = 11;
+    static constexpr uint8_t FRAME_CHECKSUM_POS = FRAME_SIZE - 1;
+    static constexpr uint8_t FRAME_DATA_SIZE = 8; // data bytes of a Response frame (bytes 1..8)
+
+    // Frame type (byte 0 of a frame)
+    enum class FrameType : uint8_t
+    {
+        Poll = 0x00,        // stove -> box : the stove listens, the box may send one Request (plzbridge: "Request" in fumisWaitRequest)
+        Write = 0x01,       // box -> stove Request : write 1 byte (lo, hi, value)
+        Read = 0x02,        // box -> stove Request : read 8 bytes (lo, hi)
+        Response = 0x02,    // stove -> box : response to a Read (8 data bytes)
+        SetDateTime = 0x06, // box -> stove Request : set date and time
+    };
+    static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
+
     // Serial exchange state machine (values are the ones used by the original program)
     enum class FumisComStatus : uint8_t
     {
@@ -261,14 +287,14 @@ private:
     void SERIALCOM_CloseComport();
     int SERIALCOM_Flush();
     int SERIALCOM_OpenComport(uint32_t baudrate);
-    int SERIALCOM_ReceiveBuf(void *buf, size_t count);
+    int SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count);
     int SERIALCOM_ReceiveByte(uint8_t *buf);
-    int SERIALCOM_SendBuf(void *buf, size_t count);
+    int SERIALCOM_SendBuf(uint8_t *buf, size_t count);
     void SERIALCOM_SendByte(uint8_t *buf);
 
-    int iChkSum(uint8_t *datasToCheck);
+    int iChkSum(uint8_t *frame);
     int isValidSerialNumber(char *SN);
-    int parseRxBuffer(uint8_t *rxBuffer);
+    int parseRxBuffer(uint8_t *frame);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
     CommandResult fumisCloseSerial();
@@ -281,8 +307,8 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisOpenSerial();
-    CommandResult fumisSendRequest(void *buf);
-    CommandResult fumisWaitRequest(void *buf);
+    CommandResult fumisSendRequest(uint8_t *frame);
+    CommandResult fumisWaitRequest(uint8_t *frame);
 
     CommandResult iChkMBType();
     CommandResult iCloseUART();
