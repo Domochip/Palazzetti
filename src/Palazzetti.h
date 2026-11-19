@@ -75,6 +75,8 @@ private:
     static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
     // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
     static bool hasValidChecksum(const uint8_t *frame);
+    // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced fumisComStatus)
+    static bool isValidFrame(const uint8_t *frame, FrameType type);
     // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
     static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
 
@@ -295,7 +297,6 @@ private:
     int SERIALCOM_SendBuf(const uint8_t *buf, size_t count);
 
     int isValidSerialNumber(char *SN);
-    int parseRxBuffer(uint8_t *frame);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
     CommandResult fumisCloseSerial();
@@ -308,8 +309,10 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisOpenSerial();
+    CommandResult fumisReadResponse(uint8_t *frame);
+    CommandResult fumisReopenSerial();
     CommandResult fumisSendRequest(uint8_t *frame);
-    CommandResult fumisWaitRequest(uint8_t *frame);
+    CommandResult fumisWaitPoll(uint8_t *frame);
 
     CommandResult iChkMBType();
     CommandResult iCloseUART();
