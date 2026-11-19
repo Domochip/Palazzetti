@@ -83,15 +83,31 @@ void Palazzetti::SERIALCOM_SendByte(uint8_t *buf)
     SERIALCOM_SendBuf(buf, 1);
 }
 
-int Palazzetti::iChkSum(uint8_t *frame)
+bool Palazzetti::hasValidChecksum(const uint8_t *frame)
 {
     uint8_t chk = 0; // var_10
     for (uint8_t i = 0; i < FRAME_CHECKSUM_POS; i++)
         chk += frame[i];
 
-    if (chk != frame[FRAME_CHECKSUM_POS])
-        return -508;
-    return 0;
+    return chk == frame[FRAME_CHECKSUM_POS];
+}
+
+void Palazzetti::buildFrame(uint8_t *frame, FrameType type, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
+{
+    bzero(frame, FRAME_SIZE);
+    frame[0] = static_cast<uint8_t>(type);
+    frame[1] = b1;
+    frame[2] = b2;
+    frame[3] = b3;
+    frame[4] = b4;
+    frame[5] = b5;
+    frame[6] = b6;
+    frame[7] = b7;
+
+    uint8_t chk = 0;
+    for (uint8_t i = 0; i < FRAME_CHECKSUM_POS; i++)
+        chk += frame[i];
+    frame[FRAME_CHECKSUM_POS] = chk;
 }
 
 int Palazzetti::isValidSerialNumber(char *SN)
@@ -124,24 +140,17 @@ int Palazzetti::isValidSerialNumber(char *SN)
 
 int Palazzetti::parseRxBuffer(uint8_t *frame)
 {
-    int res; // var_10;
     switch (fumisComStatus)
     {
     case FumisComStatus::WaitPoll:
-        if (frameType(frame) != FrameType::Poll)
+        if (frameType(frame) != FrameType::Poll || !hasValidChecksum(frame))
             return -1;
-        res = iChkSum(frame);
-        if (res < 0)
-            return res;
         fumisComStatus = FumisComStatus::Polled;
         return 0;
         break;
     case FumisComStatus::WaitResponse:
-        if (frameType(frame) != FrameType::Response)
+        if (frameType(frame) != FrameType::Response || !hasValidChecksum(frame))
             return -1;
-        res = iChkSum(frame);
-        if (res < 0)
-            return res;
         fumisComStatus = FumisComStatus::ResponseReceived;
         return 0;
         break;
@@ -233,12 +242,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
         }
 
         fumisComStatus = FumisComStatus::Polled;
-        bzero(var_28, FRAME_SIZE);
-        var_28[0] = static_cast<uint8_t>(FrameType::Read);
-        var_28[1] = addrToRead & 0xFF;
-        var_28[2] = (addrToRead >> 8) & 0xFF;
-
-        var_28[FRAME_CHECKSUM_POS] = var_28[0] + var_28[1] + var_28[2];
+        buildFrame(var_28, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
         cmdRes = fumisSendRequest(var_28);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
@@ -303,7 +307,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     if (weekDay == 0)
         weekDay = 7;
 
-    CommandResult cmdRes; // local_88
+    CommandResult cmdRes;    // local_88
     uint8_t buf[FRAME_SIZE]; // local_60
 
     for (int i = 3; i > 0; i--) // i as local_6c
@@ -319,16 +323,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
             // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
         }
-        bzero(buf, FRAME_SIZE);
-        buf[0] = static_cast<uint8_t>(FrameType::SetDateTime);
-        buf[1] = second;
-        buf[2] = minute;
-        buf[3] = hour;
-        buf[4] = weekDay;
-        buf[5] = day;
-        buf[6] = month;
-        buf[7] = year - 2000;
-        buf[FRAME_CHECKSUM_POS] = buf[0] + buf[1] + buf[2] + buf[3] + buf[4] + buf[5] + buf[6] + buf[7];
+        buildFrame(buf, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
         cmdRes = fumisSendRequest(buf);
         if (cmdRes == CommandResult::OK)
             break;
@@ -345,7 +340,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
     if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes; // var_38
+    CommandResult cmdRes;    // var_38
     uint8_t buf[FRAME_SIZE]; // var_2C
 
     for (int i = 2; i > 0; i--) // i as var_34
@@ -358,12 +353,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
             // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
         }
-        bzero(buf, FRAME_SIZE);
-        buf[0] = static_cast<uint8_t>(FrameType::Write);
-        buf[1] = addrToWrite & 0xFF;
-        buf[2] = addrToWrite >> 8;
-        buf[3] = data & 0xFF;
-        buf[FRAME_CHECKSUM_POS] = buf[0] + buf[1] + buf[2] + buf[3];
+        buildFrame(buf, FrameType::Write, addrToWrite & 0xFF, addrToWrite >> 8, data & 0xFF);
         cmdRes = fumisSendRequest(buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
@@ -388,12 +378,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
             // dword_433248 = cmdRes; // unused (sFumisComData.8)
             return cmdRes;
         }
-        bzero(buf, FRAME_SIZE);
-        buf[0] = static_cast<uint8_t>(FrameType::Write);
-        buf[1] = (addrToWrite + 1) & 0xFF;
-        buf[2] = (addrToWrite + 1) >> 8;
-        buf[3] = data >> 8;
-        buf[FRAME_CHECKSUM_POS] = buf[0] + buf[1] + buf[2] + buf[3];
+        buildFrame(buf, FrameType::Write, (addrToWrite + 1) & 0xFF, (addrToWrite + 1) >> 8, data >> 8);
         cmdRes = fumisSendRequest(buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
@@ -503,7 +488,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitRequest(uint8_t *frame)
             {
                 // Fast path (not in original): right after a valid Response,
                 // the buffer is aligned on the stove's next frame and the buffer contains a Poll frame
-                bool fastPoll = alignedFrame && frameType(frame) == FrameType::Poll && iChkSum(frame) == 0;
+                bool fastPoll = alignedFrame && frameType(frame) == FrameType::Poll && hasValidChecksum(frame);
                 alignedFrame = false;
                 if (fastPoll)
                     m_serial.uSleep(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll

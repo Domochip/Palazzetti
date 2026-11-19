@@ -57,7 +57,7 @@ private:
     //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
     //   byte 9      not used by this library (0 in frames sent, ignored in frames received)
     //   byte 10     checksum = sum of bytes 0..9
-    
+
     static constexpr uint32_t FUMIS_BAUDRATE = 38400;
     static constexpr uint8_t FRAME_SIZE = 11;
     static constexpr uint8_t FRAME_CHECKSUM_POS = FRAME_SIZE - 1;
@@ -73,6 +73,10 @@ private:
         SetDateTime = 0x06, // box -> stove Request : set date and time
     };
     static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
+    // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
+    static bool hasValidChecksum(const uint8_t *frame);
+    // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
+    static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
 
     // Serial exchange state machine (values are the ones used by the original program)
     enum class FumisComStatus : uint8_t
@@ -292,7 +296,6 @@ private:
     int SERIALCOM_SendBuf(uint8_t *buf, size_t count);
     void SERIALCOM_SendByte(uint8_t *buf);
 
-    int iChkSum(uint8_t *frame);
     int isValidSerialNumber(char *SN);
     int parseRxBuffer(uint8_t *frame);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
