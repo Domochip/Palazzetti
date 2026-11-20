@@ -111,7 +111,7 @@ private:
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
     // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    bool m_loopBack = true;        // (original: comPortNumber == 0) RX receives back what TX sends (V1 board)
+    bool m_loopBack = true; // (original: comPortNumber == 0) RX receives back what TX sends (V1 board)
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
@@ -120,11 +120,11 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    unsigned long selectSerialTimeoutMs = 100;  // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
-                                                // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
-    bool rxAligned = false;                     // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
-    unsigned long lastResponseMs = 0;           // (not in original) millis() when that Response was read
-    char _SN[33] = {0};                         // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
+    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
+                                               // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
+    bool rxAligned = false;                    // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
+    unsigned long lastResponseMs = 0;          // (not in original) millis() when that Response was read
+    char _SN[33] = {0};                        // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
 

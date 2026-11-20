@@ -380,9 +380,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
                 memmove(frame, frame + 1, bufPosition);
             }
             else if (isValidFrame(frame, FrameType::Poll))
-            {
                 return CommandResult::OK;
-            }
             else
                 bufPosition = 0; // (not in original) full frame then silence but not a valid Poll: drop it, the next byte starts a new frame
         }
