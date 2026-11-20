@@ -2,7 +2,7 @@
 #define Palazzetti_h
 
 #include <Arduino.h>
-#include "FumisFrame.h"
+#include "FumisLink.h"
 
 // Based on version 2.2.1 2024-11-06 15:47:08
 
@@ -19,47 +19,12 @@ public:
         OK                   // = 0
     };
 
-    using OpenSerialFn = std::function<int(uint32_t baudrate)>;
-    using CloseSerialFn = std::function<void()>;
-    using SelectSerialFn = std::function<int(unsigned long timeout)>;
-    using ReadSerialFn = std::function<ssize_t(void *buf, size_t count)>;
-    using WriteSerialFn = std::function<ssize_t(const void *buf, size_t count)>;
-    using DrainSerialFn = std::function<int()>;
-    using FlushSerialFn = std::function<int()>;
-    using USleepFn = std::function<void(unsigned long usec)>;
-
-    struct SerialAdapter
-    {
-        // Open a Serial. Returns 0 on success, -1 on error.
-        OpenSerialFn open;
-        // Close Serial.
-        CloseSerialFn close;
-        // Returns 1 if data available, 0 if none, -1 on error.
-        SelectSerialFn select;
-        // Returns bytes read (>= 0) or -1 on error.
-        ReadSerialFn read;
-        // Returns bytes written (>= 0) or -1 on error.
-        WriteSerialFn write;
-        // Wait for transmission. Returns 0 on success, -1 on error.
-        DrainSerialFn drain;
-        // Flush pending I/O. Returns 0 on success, -1 on error.
-        FlushSerialFn flush;
-        // Suspend execution for usec microseconds.
-        USleepFn uSleep;
-    };
-
-    // RX receives back what TX sends (V1 board): Yes, or not (V2 board): No
-    // Unknown until the first successful Read with the stove decides it (see fumisExchange)
-    enum class LoopBack : uint8_t
-    {
-        Unknown,
-        Yes,
-        No
-    };
+    // the serial port functions and the loopback state are defined by FumisLink (the serial layer)
+    using SerialAdapter = FumisLink::SerialAdapter;
+    using LoopBack = FumisLink::LoopBack;
 
 private:
-    // Fumis bus: 38400 8N1, half-duplex polled bus, see FumisFrame.h for the frames
-    static constexpr uint32_t FUMIS_BAUDRATE = 38400;
+    // Fumis bus: see FumisFrame.h for the frames, FumisLink.h for the serial layer
 
     // true if the date and time can be sent in a SetDateTime frame (years 2000..2099, real calendar date)
     static bool isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
@@ -67,11 +32,7 @@ private:
     static uint8_t isoWeekDay(uint16_t year, uint8_t month, uint8_t day);
 
     uint16_t wAddrFeederActiveTime = 0;
-    // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" is still tested)
-    //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received
-    //   the steps 1..5 are now the order of the code in fumisExchange, fumisWaitPoll and fumisReadResponse
-    bool portOpen = false;
-    // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
+    // sFumisComData.4 and sFumisComData.8: see FumisLink
 
     // uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others (always 2 here: the model 2 code is kept, model 1 is removed)
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
@@ -90,7 +51,7 @@ private:
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
     // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes) detected on the first successful Read
+    // (comPortNumber is replaced by the loopback state of FumisLink)
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
@@ -99,11 +60,8 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
-                                               // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
-    bool rxAligned = false;                    // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
-    unsigned long lastResponseMs = 0;          // (not in original) millis() when that Response was read
-    char _SN[33] = {0};                        // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
+    // myData.4216 + myData.4220: selectSerialTimeoutMs, see FumisLink
+    char _SN[33] = {0}; // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
 
@@ -268,12 +226,12 @@ private:
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
-    SerialAdapter m_serial;
+    FumisLink m_link; // serial layer
 
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
-    void fumisCloseSerial();
+    static CommandResult fumisResult(FumisLink::Result res);
     CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf);
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
@@ -281,14 +239,6 @@ private:
     CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
-    CommandResult fumisExchange(const FumisFrame &request, FumisFrame *response = nullptr);
-    CommandResult fumisOpenSerial();
-    CommandResult fumisAcceptResponse(const FumisFrame &frame);
-    CommandResult fumisReadFrame(FumisFrame &frame);
-    CommandResult fumisReadResponse(FumisFrame &frame);
-    CommandResult fumisReceive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime);
-    CommandResult fumisReopenSerial();
-    CommandResult fumisWaitPoll();
 
     CommandResult iChkMBType();
     void iCloseUART();
@@ -504,7 +454,7 @@ public:
     CommandResult initialize();
     CommandResult initialize(SerialAdapter serial);
     bool isInitialized() { return _isInitialized; };
-    LoopBack getLoopBack() { return m_loopBack; };
+    LoopBack getLoopBack() { return m_link.loopBack(); };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     CommandResult getAllParameters(uint8_t (*params)[0x6A]);
