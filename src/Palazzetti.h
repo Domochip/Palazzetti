@@ -51,12 +51,12 @@ private:
     // Serial exchange state machine (values are the ones used by the original program)
     enum class FumisComStatus : uint8_t
     {
-        Closed = 0,        // serial port closed
-        Idle = 1,          // port open, no exchange in progress
-        WaitRequest = 2,   // waiting for a stove Request frame (first byte 0x00)
-        CanSend = 3,       // Request received: the stove listens, the box may send one frame
-        WaitReply = 4,     // read request sent, waiting for the stove reply (first byte 0x02)
-        ReplyReceived = 5, // valid reply received
+        Closed = 0,           // serial port closed
+        Idle = 1,             // port open, no exchange in progress
+        WaitPoll = 2,         // waiting for a stove Poll frame (first byte 0x00)
+        Polled = 3,           // Poll received: the stove listens, the box may send one Request
+        WaitResponse = 4,     // Read Request sent, waiting for the stove Response (first byte 0x02)
+        ResponseReceived = 5, // valid Response received
     };
 
     uint16_t wAddrFeederActiveTime = 0;
@@ -89,8 +89,8 @@ private:
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
     unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
-    bool rxAligned = false;                     // (not in original) a valid stove reply was just read: RX buffer starts at the next stove frame
-    unsigned long lastReplyMs = 0;              // (not in original) millis() when that reply was read
+    bool rxAligned = false;                     // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
+    unsigned long lastResponseMs = 0;           // (not in original) millis() when that Response was read
     char _SN[33] = {0};                         // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
