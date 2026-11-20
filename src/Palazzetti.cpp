@@ -6,33 +6,6 @@
 //  - SERIALCOM_ReceiveBuf: fumisReceive
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of fumisExchange
 
-uint8_t Palazzetti::frameChecksum(const uint8_t *frame)
-{
-    uint8_t chk = 0; // var_10 (iChkSum)
-    for (uint8_t i = 0; i < FRAME_CHECKSUM_POS; i++)
-        chk += frame[i];
-    return chk;
-}
-
-bool Palazzetti::hasValidChecksum(const uint8_t *frame)
-{
-    return frameChecksum(frame) == frame[FRAME_CHECKSUM_POS];
-}
-
-void Palazzetti::buildFrame(uint8_t *frame, FrameType type, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
-{
-    bzero(frame, FRAME_SIZE);
-    frame[0] = static_cast<uint8_t>(type);
-    frame[1] = b1;
-    frame[2] = b2;
-    frame[3] = b3;
-    frame[4] = b4;
-    frame[5] = b5;
-    frame[6] = b6;
-    frame[7] = b7;
-    frame[FRAME_CHECKSUM_POS] = frameChecksum(frame);
-}
-
 bool Palazzetti::isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
 {
     // basic control
@@ -88,11 +61,6 @@ int Palazzetti::isValidSerialNumber(char *SN)
     return 1;
 }
 
-bool Palazzetti::isValidFrame(const uint8_t *frame, FrameType type)
-{
-    return frameType(frame) == type && hasValidChecksum(frame);
-}
-
 uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 {
     if (roomFanSpeed == 0)
@@ -114,12 +82,10 @@ void Palazzetti::fumisCloseSerial()
 
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf)
 {
-    bzero(buf, FRAME_DATA_SIZE);
+    bzero(buf, FumisFrame::DATA_SIZE);
 
-    uint8_t readRequest[FRAME_SIZE];
-    buildFrame(readRequest, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
-
-    uint8_t response[FRAME_SIZE]; // var_28
+    FumisFrame readRequest = FumisFrame::read(addrToRead);
+    FumisFrame response; // var_28
     CommandResult cmdRes;         // local_30
 
     // up to 4 attempts, the port is reopened before each new attempt
@@ -133,10 +99,10 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
             m_serial.uSleep(1);
         }
 
-        cmdRes = fumisExchange(readRequest, response);
+        cmdRes = fumisExchange(readRequest, &response);
         if (cmdRes == CommandResult::OK)
         {
-            memcpy(buf, response + 1, FRAME_DATA_SIZE);
+            memcpy(buf, response.data(), FumisFrame::DATA_SIZE);
             return cmdRes;
         }
 
@@ -160,7 +126,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint
 
 Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
 {
-    uint8_t responseData[FRAME_DATA_SIZE]; // var_10 (fumisComRead)
+    uint8_t responseData[FumisFrame::DATA_SIZE]; // var_10 (fumisComRead)
     CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData);
     if (cmdRes == CommandResult::OK)
         *data = responseData[0] | (responseData[1] << 8);
@@ -176,9 +142,8 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
     uint8_t weekDay = isoWeekDay(year, month, day);
 
-    CommandResult cmdRes;        // local_88
-    uint8_t request[FRAME_SIZE]; // local_60
-    buildFrame(request, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
+    CommandResult cmdRes;                                                                                  // local_88
+    FumisFrame request = FumisFrame::setDateTime(second, minute, hour, weekDay, day, month, year - 2000); // local_60
 
     // up to 3 attempts
     for (int attempt = 0; attempt < 3; attempt++) // local_6c (original: counted down from 3)
@@ -198,10 +163,8 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode)
 {
     // a Write Request carries 1 byte: a word is written as low byte at addrToWrite then high byte at addrToWrite + 1
-    uint8_t lowRequest[FRAME_SIZE];  // var_2C
-    uint8_t highRequest[FRAME_SIZE]; // var_2C (second use)
-    buildFrame(lowRequest, FrameType::Write, addrToWrite & 0xFF, addrToWrite >> 8, data & 0xFF);
-    buildFrame(highRequest, FrameType::Write, (addrToWrite + 1) & 0xFF, (addrToWrite + 1) >> 8, data >> 8);
+    FumisFrame lowRequest = FumisFrame::write(addrToWrite, data & 0xFF);        // var_2C
+    FumisFrame highRequest = FumisFrame::write(addrToWrite + 1, data >> 8);     // var_2C (second use)
 
     // Custom: a write is successful only if the read-back succeeds and matches (original was not checking this)
     // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
@@ -257,7 +220,7 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 // One exchange with the stove (not a separate function in original):
 // wait for a stove Poll, send the Request (Read, Write or SetDateTime), then if response is given, read the stove Response into it
 // returns ERROR if the port is closed (original: checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
-Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint8_t *response)
+Palazzetti::CommandResult Palazzetti::fumisExchange(const FumisFrame &request, FumisFrame *response)
 {
     if (!portOpen)
         return CommandResult::ERROR;
@@ -269,9 +232,9 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
 
     // Send the Request (original: fumisSendRequest + SERIALCOM_SendBuf)
     size_t totalBytesWritten = 0;
-    while (totalBytesWritten < FRAME_SIZE)
+    while (totalBytesWritten < FumisFrame::SIZE)
     {
-        ssize_t bytesWritten = m_serial.write(request + totalBytesWritten, FRAME_SIZE - totalBytesWritten);
+        ssize_t bytesWritten = m_serial.write(request.bytes + totalBytesWritten, FumisFrame::SIZE - totalBytesWritten);
         if (bytesWritten < 0)
             return CommandResult::ERROR;
         totalBytesWritten += bytesWritten;
@@ -282,11 +245,11 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
     // (original: read it without checking, only when comPortNumber == 0)
     if (m_loopBack == LoopBack::Yes)
     {
-        uint8_t echo[FRAME_SIZE];
+        FumisFrame echo;
         cmdRes = fumisReadFrame(echo);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
-        if (memcmp(echo, request, FRAME_SIZE) != 0)
+        if (echo != request)
             return CommandResult::COMMUNICATION_ERROR; // (not in original) echo differs: collision on the bus
     }
 
@@ -294,36 +257,36 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
         return CommandResult::OK;
 
     if (m_loopBack != LoopBack::Unknown)
-        return fumisReadResponse(response);
+        return fumisReadResponse(*response);
 
     // (not in original) loopBack detection, on the first successful Read:
     // the first frame received after the Request is either its echo (V1 board) or the stove Response (V2 board)
     // a Response cannot be identical to the Request in practice (for 0x201C read first, it would need STATUS 28 among others)
-    cmdRes = fumisReadFrame(response);
+    cmdRes = fumisReadFrame(*response);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (memcmp(response, request, FRAME_SIZE) == 0)
+    if (*response == request)
     {
-        cmdRes = fumisReadResponse(response);
+        cmdRes = fumisReadResponse(*response);
         if (cmdRes == CommandResult::OK)
             m_loopBack = LoopBack::Yes;
         return cmdRes;
     }
 
-    cmdRes = fumisAcceptResponse(response);
+    cmdRes = fumisAcceptResponse(*response);
     if (cmdRes == CommandResult::OK)
         m_loopBack = LoopBack::No;
     return cmdRes;
 }
 
-// Receive the next bytes of the frame being read into frame[bufPosition..FRAME_SIZE-1]
+// Receive the next bytes of the frame being read into frame.bytes[bufPosition..FumisFrame::SIZE-1]
 // (original: SERIALCOM_ReceiveBuf, now with the timeout and the reopen on read error of its callers)
 // returns:
 //  - OK: bufPosition is advanced by the bytes received (0 if nothing arrived within selectSerialTimeoutMs)
 //  - COMMUNICATION_ERROR: more than 250ms since startTime, or read error (the port is then reopened and the frame is lost)
 //  - ERROR: the port could not be reopened
-Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime)
+Palazzetti::CommandResult Palazzetti::fumisReceive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime)
 {
     if (millis() - startTime > 250) // NOTE : the original value is 3000 but the stove sends a Poll at least every ~67ms
         return CommandResult::COMMUNICATION_ERROR;
@@ -333,7 +296,7 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
         return CommandResult::OK; // nothing received within selectSerialTimeoutMs
 
     if (res > 0)
-        res = m_serial.read(frame + bufPosition, FRAME_SIZE - bufPosition); // var_18
+        res = m_serial.read(frame.bytes + bufPosition, FumisFrame::SIZE - bufPosition); // var_18
 
     // select error, read error, or nothing read although select reported data: reopen the port, the frame is lost
     if (res <= 0)
@@ -359,19 +322,18 @@ Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 // (original: fumisWaitRequest, which also read the Response, depending on the state set by the caller: that part is now fumisReadResponse)
 Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
 {
-    uint8_t frame[FRAME_SIZE]; // the Poll frame is only checked, not returned
+    FumisFrame frame; // the Poll frame is only checked, not returned
 
     // Discard RX buffer content, except right after a valid stove Response:
     // the stove sends its next frame ~0.1ms after a Response, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
-    bool alignedFrame = rxAligned && (millis() - lastResponseMs) < 8; // (not in original) the next FRAME_SIZE RX bytes are exactly the stove's next frame
+    bool alignedFrame = rxAligned && (millis() - lastResponseMs) < 8; // (not in original) the next FumisFrame::SIZE RX bytes are exactly the stove's next frame
     if (!alignedFrame && m_serial.flush() < 0)
         return CommandResult::COMMUNICATION_ERROR;
     rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
     uint8_t bufPosition = 0;
-    bzero(frame, FRAME_SIZE);
 
     while (true)
     {
@@ -379,10 +341,10 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        if (bufPosition == FRAME_SIZE)
+        if (bufPosition == FumisFrame::SIZE)
         {
             // Fast path (not in original): right after a valid Response, the buffer is aligned on the stove's next frame
-            if (alignedFrame && isValidFrame(frame, FrameType::Poll))
+            if (alignedFrame && frame.isValid(FumisFrame::Type::Poll))
             {
                 m_serial.uSleep(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll
                 return CommandResult::OK;
@@ -394,9 +356,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
             if (m_serial.select(13))
             {
                 bufPosition--;
-                memmove(frame, frame + 1, bufPosition);
+                memmove(frame.bytes, frame.bytes + 1, bufPosition);
             }
-            else if (isValidFrame(frame, FrameType::Poll))
+            else if (frame.isValid(FumisFrame::Type::Poll))
                 return CommandResult::OK;
             else
                 bufPosition = 0; // (not in original) full frame then silence but not a valid Poll: drop it, the next byte starts a new frame
@@ -404,14 +366,14 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
     }
 }
 
-// Read the next FRAME_SIZE bytes, whatever they are (Response, or echo of the Request on the V1 board)
-Palazzetti::CommandResult Palazzetti::fumisReadFrame(uint8_t *frame)
+// Read the next FumisFrame::SIZE bytes, whatever they are (Response, or echo of the Request on the V1 board)
+Palazzetti::CommandResult Palazzetti::fumisReadFrame(FumisFrame &frame)
 {
     unsigned long startTime = millis(); // var_10 (instead of time())
     uint8_t bufPosition = 0;
-    bzero(frame, FRAME_SIZE);
+    frame = FumisFrame();
 
-    while (bufPosition < FRAME_SIZE)
+    while (bufPosition < FumisFrame::SIZE)
     {
         CommandResult cmdRes = fumisReceive(frame, bufPosition, startTime);
         if (cmdRes != CommandResult::OK)
@@ -421,9 +383,9 @@ Palazzetti::CommandResult Palazzetti::fumisReadFrame(uint8_t *frame)
 }
 
 // Check that a frame just read is a valid stove Response
-Palazzetti::CommandResult Palazzetti::fumisAcceptResponse(const uint8_t *frame)
+Palazzetti::CommandResult Palazzetti::fumisAcceptResponse(const FumisFrame &frame)
 {
-    if (!isValidFrame(frame, FrameType::Response))
+    if (!frame.isValid(FumisFrame::Type::Response))
         return CommandResult::COMMUNICATION_ERROR;
 
     // valid Response read : the next RX byte is the start of the stove's next frame
@@ -434,7 +396,7 @@ Palazzetti::CommandResult Palazzetti::fumisAcceptResponse(const uint8_t *frame)
 
 // Read the stove Response frame, which starts right after the Read Request sent by the box (or after its echo)
 // (part of fumisWaitRequest in original, used when the state was 4)
-Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
+Palazzetti::CommandResult Palazzetti::fumisReadResponse(FumisFrame &frame)
 {
     CommandResult cmdRes = fumisReadFrame(frame);
     if (cmdRes != CommandResult::OK)

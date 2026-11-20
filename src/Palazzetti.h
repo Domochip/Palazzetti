@@ -2,6 +2,7 @@
 #define Palazzetti_h
 
 #include <Arduino.h>
+#include "FumisFrame.h"
 
 // Based on version 2.2.1 2024-11-06 15:47:08
 
@@ -57,39 +58,8 @@ public:
     };
 
 private:
-    // Fumis bus: 38400 8N1, fixed size frames, half-duplex polled bus: the stove is the master
-    //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
-    //   a Read is answered by a Response frame right after it
-    //   (plzbridge only names the Poll, as "Request" in fumisWaitRequest; its states are bare numbers, see portOpen)
-    // frame (11 bytes):
-    //   byte 0      type (FrameType)
-    //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
-    //   byte 9      not used by this library (0 in frames sent, ignored in frames received)
-    //   byte 10     checksum = sum of bytes 0..9
-
+    // Fumis bus: 38400 8N1, half-duplex polled bus, see FumisFrame.h for the frames
     static constexpr uint32_t FUMIS_BAUDRATE = 38400;
-    static constexpr uint8_t FRAME_SIZE = 11;
-    static constexpr uint8_t FRAME_CHECKSUM_POS = FRAME_SIZE - 1;
-    static constexpr uint8_t FRAME_DATA_SIZE = 8; // data bytes of a Response frame (bytes 1..8)
-
-    // Frame type (byte 0 of a frame)
-    enum class FrameType : uint8_t
-    {
-        Poll = 0x00,        // stove -> box : the stove listens, the box may send one Request (plzbridge: "Request" in fumisWaitRequest)
-        Write = 0x01,       // box -> stove Request : write 1 byte (lo, hi, value)
-        Read = 0x02,        // box -> stove Request : read 8 bytes (lo, hi)
-        Response = 0x02,    // stove -> box : response to a Read (8 data bytes)
-        SetDateTime = 0x06, // box -> stove Request : set date and time
-    };
-    static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
-    // sum of bytes 0..9, the value expected in byte 10
-    static uint8_t frameChecksum(const uint8_t *frame);
-    // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
-    static bool hasValidChecksum(const uint8_t *frame);
-    // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced the state of the exchange)
-    static bool isValidFrame(const uint8_t *frame, FrameType type);
-    // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
-    static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
 
     // true if the date and time can be sent in a SetDateTime frame (years 2000..2099, real calendar date)
     static bool isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
@@ -311,12 +281,12 @@ private:
     CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
-    CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);
+    CommandResult fumisExchange(const FumisFrame &request, FumisFrame *response = nullptr);
     CommandResult fumisOpenSerial();
-    CommandResult fumisAcceptResponse(const uint8_t *frame);
-    CommandResult fumisReadFrame(uint8_t *frame);
-    CommandResult fumisReadResponse(uint8_t *frame);
-    CommandResult fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime);
+    CommandResult fumisAcceptResponse(const FumisFrame &frame);
+    CommandResult fumisReadFrame(FumisFrame &frame);
+    CommandResult fumisReadResponse(FumisFrame &frame);
+    CommandResult fumisReceive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime);
     CommandResult fumisReopenSerial();
     CommandResult fumisWaitPoll();
 
