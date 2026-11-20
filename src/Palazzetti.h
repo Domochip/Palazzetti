@@ -145,7 +145,7 @@ private:
     chronoDataDay chronoDataDays[7];
     uint16_t chronoDataStatus; // chronoData[0xCC]
 
-    // space of 0x16 size reserved by malloc in iInit
+    // space of 0x16 size reserved by malloc in iInit (original)
     uint16_t _IGN = 0;           // myData.4488[0]
     uint16_t _POWERTIMEH = 0;    // myData.4488[1]
     uint16_t _POWERTIMEM = 0;    // myData.4488[2]
@@ -177,7 +177,7 @@ private:
     uint8_t _DSPFWVER = 0; // myData.4540 (psStaticData[0x2C])
     uint8_t _DSPTYPE = 0;  // myData.4541 (psStaticData[0x2D])
 
-    // myData.4544 contains pointer to malloc(0x6A) (setted up in iInit)
+    // myData.4544 contains pointer to malloc(0x6A) (set up in iInit in original)
     uint8_t _PARAMS[0x6A]; // myData.4544 (psStaticData[0x30])
     // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in iGetErrorFlagAtech)
     // uint8_t _PARAMS[0x4C] = 0; // CONFIG
@@ -187,12 +187,12 @@ private:
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
     // uint8_t _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    uint8_t paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    uint8_t paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
-    // myData.4552 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
+    // myData.4552 contains pointer to malloc(0xDE) (set up in iInit in original by 0x6F * 2)
     uint16_t _HPARAMS[0x6F]; // myData.4552 (psStaticData[0x38])
 
-    uint8_t hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) setted up in iInit for sizing HPARAMS malloc
+    uint8_t hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) set up in iInit in original for sizing HPARAMS malloc
 
     uint16_t _FLUID = 0; // myData.4560 (psStaticData[0x40])
 
@@ -240,7 +240,6 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
-    CommandResult iChkMBType();
     void iCloseUART();
     CommandResult iGetAllStatus(bool refreshStatus);
     CommandResult iGetChronoDataAtech();
@@ -261,7 +260,6 @@ private:
     CommandResult iGetSNAtech();
     CommandResult iGetStatusAtech();
     CommandResult iGetStoveConfigurationAtech();
-    CommandResult iInit();
     CommandResult iReadDataAtech(uint16_t addrToRead, uint16_t *data, bool wordMode);
     CommandResult iReadFansAtech();
     CommandResult iReadIOAtech();

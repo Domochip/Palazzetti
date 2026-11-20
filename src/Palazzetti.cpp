@@ -205,25 +205,6 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
     return fumisComWrite(addrToWrite, data, true);
 }
 
-Palazzetti::CommandResult Palazzetti::iChkMBType()
-{
-
-    // _MBTYPE = 100;
-    // No Implementation of Micronova device there
-    // skip directly to fumis detection
-
-    CommandResult cmdRes;
-    cmdRes = fumisResult(m_link.open());
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    ///*Trying to find MBTYPE_FUMIS_ALPHA65...*/
-    if (iGetStatusAtech() != CommandResult::OK)
-        return CommandResult::ERROR;
-    ///*-->Found MBTYPE_FUMIS_ALPHA65 device!*/
-    return CommandResult::OK;
-}
-
 void Palazzetti::iCloseUART()
 {
     m_link.close();
@@ -991,26 +972,6 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iInit()
-{
-    // (original: only for Fumis, _MBTYPE < 2)
-    // dword_46DC04 = malloc(0xD0);
-    paramsBufferSize = 0x6A;
-    hparamsBufferSize = 0x6F;
-    // dword_46DC38 = malloc(paramsBufferSize aka 0x6A);
-    // dword_46DC50 = malloc(paramsBufferSize aka 0x6A);
-    // dword_46DC4C = malloc(paramsBufferSize aka 0x6A);
-    // dword_46DC40 =  malloc(hparamsBufferSize<<1 aka 0xDE)
-    // dword_46DC08 = malloc(0x16)
-    // bzero(dword_46DC08,0x16);
-    // dword_46DC0C = malloc(0x69);
-    // bzero(dword_46DC0C,0x69);
-
-    // rest of iInit concerns Micronova which is not implemented
-
-    return CommandResult::OK;
-}
-
 Palazzetti::CommandResult Palazzetti::iReadDataAtech(uint16_t addrToRead, uint16_t *data, bool wordMode)
 {
     if (!wordMode)
@@ -1708,20 +1669,27 @@ Palazzetti::CommandResult Palazzetti::initialize()
     if (_isInitialized)
         return CommandResult::OK;
 
-    CommandResult cmdRes = iChkMBType();
+    // (original: iChkMBType, which chose between a Micronova and a Fumis motherboard (_MBTYPE),
+    //  and iInit, which only sized the static data buffers: see paramsBufferSize and hparamsBufferSize)
+
+    // open the serial port
+    CommandResult cmdRes = fumisResult(m_link.open());
     if (cmdRes != CommandResult::OK)
     {
         iCloseUART();
         return cmdRes;
     }
 
-    cmdRes = iInit();
-    if (cmdRes != CommandResult::OK)
+    // check the stove answers by reading its STATUS (any failure gives ERROR, as in original)
+    // this is also the first exchange, so the loopback is detected on 0x201C,
+    // an address where the Response cannot look like the echo of the Request (see FumisLink::exchange)
+    if (iGetStatusAtech() != CommandResult::OK)
     {
         iCloseUART();
-        return cmdRes;
+        return CommandResult::ERROR;
     }
 
+    // read the static data (serial number, firmware, parameters, configuration, limits)
     cmdRes = iUpdateStaticData();
     if (cmdRes != CommandResult::OK)
     {
