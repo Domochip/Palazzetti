@@ -290,9 +290,6 @@ private:
 
     SerialAdapter m_serial;
 
-    int SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count);
-    int SERIALCOM_SendBuf(const uint8_t *buf, size_t count);
-
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
@@ -307,8 +304,8 @@ private:
     CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);
     CommandResult fumisOpenSerial();
     CommandResult fumisReadResponse(uint8_t *frame);
+    CommandResult fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime);
     CommandResult fumisReopenSerial();
-    CommandResult fumisSendRequest(const uint8_t *frame);
     CommandResult fumisWaitPoll(uint8_t *frame);
 
     CommandResult iChkMBType();
