@@ -1,12 +1,13 @@
 #include "FumisLink.h"
 
-// The original SERIALCOM_* layer and the frame part of the fumis* functions:
+// The original SERIALCOM_* layer and the frame and retry parts of the fumis* functions:
 //  - SERIALCOM_OpenComport, SERIALCOM_CloseComport, SERIALCOM_Flush: m_serial.open/close/flush are called directly
 //    (open: always 8 data bits and 1 stop bit)
 //  - SERIALCOM_ReceiveBuf: receive
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of exchange
 //  - fumisOpenSerial, fumisCloseSerial: open, close
 //  - fumisWaitRequest: waitPoll (wait for the stove Poll) and readResponse (read the Response)
+//  - the retry loops of fumisComReadBuff and fumisComSetDateTime: read and setDateTime, with retry
 
 bool FumisLink::hasSerial() const
 {
@@ -39,12 +40,66 @@ void FumisLink::close()
     rxAligned = false;
 }
 
-// Close and reopen the port after a read error (not a separate function in original)
+// Close and reopen the port: after a read error (receive) and before each new Read attempt (retry)
+// (not a separate function in original)
 // (original: also flushed the port, now left to waitPoll, which always flushes after a reopen since rxAligned is cleared)
 FumisLink::Result FumisLink::reopen()
 {
     close();
     return open();
+}
+
+template <typename Op>
+FumisLink::Result FumisLink::retry(uint8_t attempts, bool reopenBetween, bool onlyCommunicationError, Op op)
+{
+    Result res = Result::Error;
+    for (uint8_t attempt = 0; attempt < attempts; attempt++) // (original: counted down)
+    {
+        if (attempt > 0 && reopenBetween)
+        {
+            // (original: close, flush, sleep, open, sleep)
+            reopen();
+            m_serial.uSleep(1);
+        }
+
+        res = op();
+        if (res == Result::Ok)
+            return res;
+        if (onlyCommunicationError && res != Result::CommunicationError)
+            return res;
+    }
+    return res;
+}
+
+// (original: fumisComReadBuff, 4 attempts in local_2c)
+FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE])
+{
+    memset(data, 0, FumisFrame::DATA_SIZE);
+
+    FumisFrame request = FumisFrame::read(addr);
+    FumisFrame response; // var_28
+
+    Result res = retry(4, true, true, [&]()
+                       { return exchange(request, &response); });
+    if (res == Result::Ok)
+        memcpy(data, response.data(), FumisFrame::DATA_SIZE);
+    return res;
+}
+
+// (original: one send of fumisComWrite; its 2 attempts (var_34) stay in Palazzetti::fumisComWrite, which adds the read-back check)
+FumisLink::Result FumisLink::write(uint16_t addr, uint8_t value)
+{
+    FumisFrame request = FumisFrame::write(addr, value); // var_2C
+    return exchange(request);
+}
+
+// (original: fumisComSetDateTime, 3 attempts in local_6c)
+FumisLink::Result FumisLink::setDateTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t weekDay, uint8_t day, uint8_t month, uint8_t yearSince2000)
+{
+    FumisFrame request = FumisFrame::setDateTime(second, minute, hour, weekDay, day, month, yearSince2000); // local_60
+
+    return retry(3, false, false, [&]()
+                 { return exchange(request); });
 }
 
 // One exchange with the stove (not a separate function in original):

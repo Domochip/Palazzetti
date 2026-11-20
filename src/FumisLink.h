@@ -4,11 +4,13 @@
 #include <Arduino.h>
 #include "FumisFrame.h"
 
-// UART side of the Fumis bus (38400 8N1, half-duplex polled bus, the stove is the master, see FumisFrame.h):
+// Fumis bus (38400 8N1, half-duplex polled bus, the stove is the master, see FumisFrame.h):
 // the only code that touches the serial port
-//  - finds the moment the stove listens (after its Poll), sends one Request and reads the Response
+//  - Read, Write and SetDateTime of stove memory, with their retries
+//  - each attempt is one exchange: wait for the moment the stove listens (after its Poll), send one Request, read the Response
 //  - handles the V1 board loopback (RX receives back what TX sends), detected on the first successful Read
-// (original: the SERIALCOM_* layer and the frame part of the fumis* functions, see FumisLink.cpp)
+// it knows nothing of what the registers mean
+// (original: the SERIALCOM_* layer and the frame and retry parts of the fumis* functions, see FumisLink.cpp)
 class FumisLink
 {
 public:
@@ -54,7 +56,7 @@ public:
     enum class Result : uint8_t
     {
         Ok,
-        CommunicationError, // timeout, invalid frame, read error or echo mismatch: worth retrying
+        CommunicationError, // timeout, invalid frame, read or flush error, or echo mismatch: worth retrying
         Error,              // port closed, cannot be (re)opened, or write error
     };
 
@@ -64,18 +66,35 @@ public:
 
     Result open();
     void close();
-    Result reopen();
-    // suspend execution for usec microseconds (through the serial adapter)
-    void uSleep(unsigned long usec) { m_serial.uSleep(usec); }
 
-    // One exchange with the stove: wait for a Poll, send the Request (Read, Write or SetDateTime),
-    // then if response is given, read the stove Response into it
-    Result exchange(const FumisFrame &request, FumisFrame *response = nullptr);
+    // Read the 8 bytes at addr into data (zeroed on failure)
+    // up to 4 attempts, the port is reopened before each new attempt; only a CommunicationError is retried
+    Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
+
+    // Write 1 byte at addr, one attempt
+    // (the retry belongs to the caller: it covers the read-back check, which is about what the stove does with the value)
+    Result write(uint16_t addr, uint8_t value);
+
+    // Set the stove date and time (weekDay: 1 = Monday .. 7 = Sunday)
+    // up to 3 attempts, any error is retried
+    Result setDateTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t weekDay, uint8_t day, uint8_t month, uint8_t yearSince2000);
 
     LoopBack loopBack() const { return m_loopBack; }
 
 private:
     static constexpr uint32_t BAUDRATE = 38400;
+
+    Result reopen();
+
+    // The retry policy: run op up to attempts times until it gives Ok
+    //  - reopenBetween: close and reopen the port before each new attempt
+    //  - onlyCommunicationError: stop at once on any other error
+    template <typename Op>
+    Result retry(uint8_t attempts, bool reopenBetween, bool onlyCommunicationError, Op op);
+
+    // One exchange with the stove: wait for a Poll, send the Request (Read, Write or SetDateTime),
+    // then if response is given, read the stove Response into it
+    Result exchange(const FumisFrame &request, FumisFrame *response = nullptr);
 
     Result acceptResponse(const FumisFrame &frame);
     Result readFrame(FumisFrame &frame);
@@ -90,7 +109,7 @@ private:
     //   the steps 1..5 are now the order of the code in exchange, waitPoll and readResponse
     bool portOpen = false;
     // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
-    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
+    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originally), original: set by fumisOpenSerial
                                                // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
     bool rxAligned = false;                    // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
     unsigned long lastResponseMs = 0;          // (not in original) millis() when that Response was read

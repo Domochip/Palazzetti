@@ -1,7 +1,7 @@
 #include "Palazzetti.h"
 
-// The original SERIALCOM_* layer and the frame part of the fumis* functions are in FumisLink (serial layer)
-// the fumisCom* functions below are the register level: Read, Write and SetDateTime with their retries
+// The original SERIALCOM_* layer, the frame part of the fumis* functions and the retries of Read and SetDateTime are in FumisLink (serial layer)
+// the fumisCom* functions below add what the values mean: byte/word, date checks, write read-back
 
 // FumisLink results as CommandResult (the serial layer only gives these three)
 Palazzetti::CommandResult Palazzetti::fumisResult(FumisLink::Result res)
@@ -84,36 +84,12 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
     return roomFanSpeed;
 }
 
+// (the retries of the original are now in FumisLink::read)
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf)
 {
-    bzero(buf, FumisFrame::DATA_SIZE);
-
-    FumisFrame readRequest = FumisFrame::read(addrToRead);
-    FumisFrame response; // var_28
-    CommandResult cmdRes;         // local_30
-
-    // up to 4 attempts, the port is reopened before each new attempt
-    // only a COMMUNICATION_ERROR (timeout or invalid frame) is retried
-    for (int attempt = 0; attempt < 4; attempt++) // local_2c (original: counted down from 4)
-    {
-        if (attempt > 0)
-        {
-            // (original: close, flush, sleep, open, sleep)
-            m_link.reopen();
-            m_link.uSleep(1);
-        }
-
-        cmdRes = fumisResult(m_link.exchange(readRequest, &response));
-        if (cmdRes == CommandResult::OK)
-        {
-            memcpy(buf, response.data(), FumisFrame::DATA_SIZE);
-            return cmdRes;
-        }
-
-        if (cmdRes != CommandResult::COMMUNICATION_ERROR)
-            return cmdRes;
-    }
-
+    uint8_t data[FumisFrame::DATA_SIZE]; // zeroed by FumisLink::read on failure
+    CommandResult cmdRes = fumisResult(m_link.read(addrToRead, data));
+    memcpy(buf, data, FumisFrame::DATA_SIZE);
     return cmdRes;
 }
 
@@ -146,16 +122,8 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
     uint8_t weekDay = isoWeekDay(year, month, day);
 
-    CommandResult cmdRes;                                                                                  // local_88
-    FumisFrame request = FumisFrame::setDateTime(second, minute, hour, weekDay, day, month, year - 2000); // local_60
-
-    // up to 3 attempts
-    for (int attempt = 0; attempt < 3; attempt++) // local_6c (original: counted down from 3)
-    {
-        cmdRes = fumisResult(m_link.exchange(request));
-        if (cmdRes == CommandResult::OK)
-            break;
-    }
+    // (the retries of the original are now in FumisLink::setDateTime)
+    CommandResult cmdRes = fumisResult(m_link.setDateTime(second, minute, hour, weekDay, day, month, year - 2000)); // local_88
 
     // values are already checked by isValidDateTime; the modulos only let the compiler see that the text fits in 20 bytes
     sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year % 10000u, month % 100u, day % 100u, hour % 100u, minute % 100u, second % 100u);
@@ -167,8 +135,6 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode)
 {
     // a Write Request carries 1 byte: a word is written as low byte at addrToWrite then high byte at addrToWrite + 1
-    FumisFrame lowRequest = FumisFrame::write(addrToWrite, data & 0xFF);        // var_2C
-    FumisFrame highRequest = FumisFrame::write(addrToWrite + 1, data >> 8);     // var_2C (second use)
 
     // Custom: a write is successful only if the read-back succeeds and matches (original was not checking this)
     // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
@@ -176,12 +142,12 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
 
     CommandResult cmdRes; // var_38
 
-    // up to 2 attempts
+    // up to 2 attempts, each with its read-back (so this retry stays here, not in FumisLink)
     for (int attempt = 0; attempt < 2; attempt++) // var_34 (original: counted down from 2)
     {
-        cmdRes = fumisResult(m_link.exchange(lowRequest));
+        cmdRes = fumisResult(m_link.write(addrToWrite, data & 0xFF));
         if (cmdRes == CommandResult::OK && wordMode)
-            cmdRes = fumisResult(m_link.exchange(highRequest));
+            cmdRes = fumisResult(m_link.write(addrToWrite + 1, data >> 8));
         if (cmdRes != CommandResult::OK)
             continue;
 
