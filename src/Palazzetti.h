@@ -110,7 +110,8 @@ private:
     // } msgbufSend;
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
-    uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
+    // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
+    bool m_loopBack = true;        // (original: comPortNumber == 0) RX receives back what TX sends (V1 board)
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"

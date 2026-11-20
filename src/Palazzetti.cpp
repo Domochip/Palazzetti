@@ -288,7 +288,7 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
 
     // loopBack: RX receives back what was just sent, read it to discard it
     // (original: also tested _MBTYPE == 0, always true here)
-    if (!comPortNumber)
+    if (m_loopBack)
     {
         uint8_t echo[FRAME_SIZE];
         size_t totalBytesRead = 0;
@@ -1963,8 +1963,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
 Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack)
 {
     m_serial = serial;
-    // comPortNumber affects loopBack processing
-    comPortNumber = loopBack ? 0 : 1;
+    m_loopBack = loopBack;
     return initialize();
 }
 
