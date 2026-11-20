@@ -239,7 +239,6 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
 
 Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 {
-    selectSerialTimeoutMs = 100; // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
     rxAligned = false;
     int res = m_serial.open(FUMIS_BAUDRATE);
 

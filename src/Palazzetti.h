@@ -120,7 +120,8 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    unsigned long selectSerialTimeoutMs = 2300; // myData.4216 + myData.4220 (timeval type originially)
+    unsigned long selectSerialTimeoutMs = 100;  // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
+                                                // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
     bool rxAligned = false;                     // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
     unsigned long lastResponseMs = 0;           // (not in original) millis() when that Response was read
     char _SN[33] = {0};                         // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
