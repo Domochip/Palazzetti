@@ -3,7 +3,7 @@
 // The original SERIALCOM_* layer, the frame part of the fumis* functions and their retries are in FumisLink (serial layer)
 // the fumisCom* functions below add what the values mean: date checks, the value expected back after a write
 
-// FumisLink results as CommandResult: the bus errors (Timeout, BadFrame, Collision) are COMMUNICATION_ERROR
+// FumisLink results as CommandResult: the bus errors (Timeout, BadFrame, Collision) are COMMUNICATION_ERROR, Error and Mismatch are ERROR
 Palazzetti::CommandResult Palazzetti::fumisResult(FumisLink::Result res)
 {
     switch (res)
