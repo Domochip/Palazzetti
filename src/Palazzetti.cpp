@@ -340,15 +340,12 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
 }
 
 // Close and reopen the port after a read error (not a separate function in original)
+// (original: also flushed the port, now left to fumisWaitPoll, which always flushes after a reopen since rxAligned is cleared)
 Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 {
     // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
     fumisCloseSerial();
-    if (fumisOpenSerial() != CommandResult::OK)
-        return CommandResult::ERROR;
-    if (m_serial.flush() < 0)
-        return CommandResult::COMMUNICATION_ERROR;
-    return CommandResult::OK;
+    return fumisOpenSerial();
 }
 
 // Wait for a stove Poll frame: the stove then listens and the box may send one Request
