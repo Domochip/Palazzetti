@@ -961,7 +961,7 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
         {
             _SN[0] = 'L';
             _SN[1] = 'T';
-            strcpy((char *)&_SN + 2, (char *)&_SN + 4);
+            memmove(_SN + 2, _SN + 4, strlen(_SN + 4) + 1); // (original: strcpy, undefined when the strings overlap)
             _SN[23] = 0;
         }
         return CommandResult::OK;
