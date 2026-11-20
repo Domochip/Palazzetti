@@ -141,13 +141,9 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
         }
 
         if (cmdRes != CommandResult::COMMUNICATION_ERROR)
-        {
-            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             return cmdRes;
-        }
     }
 
-    // dword_433248 = cmdRes; // unused (sFumisComData.8)
     return cmdRes;
 }
 
@@ -190,7 +186,6 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
         cmdRes = fumisExchange(request);
         if (cmdRes == CommandResult::OK)
             break;
-        // dword_433248 = cmdRes; // unused (sFumisComData.8)
     }
 
     sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
@@ -220,10 +215,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
         if (cmdRes == CommandResult::OK && wordMode)
             cmdRes = fumisExchange(highRequest);
         if (cmdRes != CommandResult::OK)
-        {
-            // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
-        }
 
         uint16_t readBack = 0; // var_30
         cmdRes = wordMode ? fumisComReadWord(addrToWrite, &readBack) : fumisComReadByte(addrToWrite, &readBack);
@@ -255,11 +247,11 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
     if (res < 0)
     {
         portOpen = false;
-        return CommandResult::ERROR; // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
+        return CommandResult::ERROR;
     }
 
     portOpen = true;
-    return CommandResult::OK; // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
+    return CommandResult::OK;
 }
 
 // One exchange with the stove (not a separate function in original):
@@ -281,7 +273,7 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
     {
         ssize_t bytesWritten = m_serial.write(request + totalBytesWritten, FRAME_SIZE - totalBytesWritten);
         if (bytesWritten < 0)
-            return CommandResult::ERROR; // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
+            return CommandResult::ERROR;
         totalBytesWritten += bytesWritten;
     }
     m_serial.drain();
@@ -343,7 +335,6 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
 // (original: also flushed the port, now left to fumisWaitPoll, which always flushes after a reopen since rxAligned is cleared)
 Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 {
-    // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
     fumisCloseSerial();
     return fumisOpenSerial();
 }

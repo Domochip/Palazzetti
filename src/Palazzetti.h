@@ -92,7 +92,7 @@ private:
     //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received
     //   the steps 1..5 are now the order of the code in fumisExchange, fumisWaitPoll and fumisReadResponse
     bool portOpen = false;
-    // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (commented everywhere)
+    // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
 
     // uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others (always 2 here: the model 2 code is kept, model 1 is removed)
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
