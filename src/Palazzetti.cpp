@@ -442,10 +442,9 @@ Palazzetti::CommandResult Palazzetti::iChkMBType()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iCloseUART()
+void Palazzetti::iCloseUART()
 {
     fumisCloseSerial();
-    return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)

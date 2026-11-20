@@ -308,7 +308,7 @@ private:
     CommandResult fumisWaitPoll();
 
     CommandResult iChkMBType();
-    CommandResult iCloseUART();
+    void iCloseUART();
     CommandResult iGetAllStatus(bool refreshStatus);
     CommandResult iGetChronoDataAtech();
     CommandResult iGetCountersAtech();
