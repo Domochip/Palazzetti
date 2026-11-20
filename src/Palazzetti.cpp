@@ -321,23 +321,21 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
         return CommandResult::COMMUNICATION_ERROR;
 
     int res = m_serial.select(selectSerialTimeoutMs);
-    if (res > 0)
-    {
-        res = m_serial.read(frame + bufPosition, FRAME_SIZE - bufPosition); // var_18
-        if (res > 0)
-        {
-            bufPosition += res;
-            m_serial.uSleep(1);
-        }
-        else
-            res = -1;
-    }
+    if (res == 0)
+        return CommandResult::OK; // nothing received within selectSerialTimeoutMs
 
-    if (res < 0)
+    if (res > 0)
+        res = m_serial.read(frame + bufPosition, FRAME_SIZE - bufPosition); // var_18
+
+    // select error, read error, or nothing read although select reported data: reopen the port, the frame is lost
+    if (res <= 0)
     {
         CommandResult cmdRes = fumisReopenSerial();
         return (cmdRes != CommandResult::OK) ? cmdRes : CommandResult::COMMUNICATION_ERROR;
     }
+
+    bufPosition += res;
+    m_serial.uSleep(1);
     return CommandResult::OK;
 }
 
