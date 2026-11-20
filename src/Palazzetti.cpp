@@ -124,9 +124,9 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
 
     // up to 4 attempts, the port is reopened before each new attempt
     // only a COMMUNICATION_ERROR (timeout or invalid frame) is retried
-    for (int i = 4; i > 0; i--) // i as local_2c
+    for (int attempt = 0; attempt < 4; attempt++) // local_2c (original: counted down from 4)
     {
-        if (i < 4)
+        if (attempt > 0)
         {
             // (original: close, flush, sleep, open, sleep)
             fumisReopenSerial();
@@ -185,7 +185,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     buildFrame(request, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
 
     // up to 3 attempts
-    for (int i = 3; i > 0; i--) // i as local_6c
+    for (int attempt = 0; attempt < 3; attempt++) // local_6c (original: counted down from 3)
     {
         cmdRes = fumisExchange(request);
         if (cmdRes == CommandResult::OK)
@@ -214,7 +214,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
     CommandResult cmdRes; // var_38
 
     // up to 2 attempts
-    for (int i = 2; i > 0; i--) // i as var_34
+    for (int attempt = 0; attempt < 2; attempt++) // var_34 (original: counted down from 2)
     {
         cmdRes = fumisExchange(lowRequest);
         if (cmdRes == CommandResult::OK && wordMode)
