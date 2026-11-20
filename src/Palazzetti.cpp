@@ -86,12 +86,10 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 }
 
 // (the retries of the original are now in FumisLink::read)
-Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf)
+// buf is zeroed on failure (original: buf was a void *)
+Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, uint8_t (&buf)[FumisFrame::DATA_SIZE])
 {
-    uint8_t data[FumisFrame::DATA_SIZE]; // zeroed by FumisLink::read on failure
-    CommandResult cmdRes = fumisResult(m_link.read(addrToRead, data));
-    memcpy(buf, data, FumisFrame::DATA_SIZE);
-    return cmdRes;
+    return fumisResult(m_link.read(addrToRead, buf));
 }
 
 // fumisComReadByte and fumisComReadWord read the first 1 or 2 bytes of the Response (little endian)
