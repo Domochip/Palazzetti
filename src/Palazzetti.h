@@ -290,9 +290,6 @@ private:
 
     SerialAdapter m_serial;
 
-    void SERIALCOM_CloseComport();
-    int SERIALCOM_Flush();
-    int SERIALCOM_OpenComport(uint32_t baudrate);
     int SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count);
     int SERIALCOM_SendBuf(const uint8_t *buf, size_t count);
 
@@ -300,12 +297,11 @@ private:
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
     CommandResult fumisCloseSerial();
-    CommandResult fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode);
     CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count);
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
-    CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode);
+    CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);

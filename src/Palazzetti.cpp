@@ -1,21 +1,7 @@
 #include "Palazzetti.h"
 
-void Palazzetti::SERIALCOM_CloseComport()
-{
-    m_serial.close();
-}
-
-int Palazzetti::SERIALCOM_Flush()
-{
-    return m_serial.flush();
-}
-
-// original signature is (filename,baudrate,databitnumber,stopbitnumber,)
-// always 8 data bits and 1 stop bits
-int Palazzetti::SERIALCOM_OpenComport(uint32_t baudrate)
-{
-    return m_serial.open(baudrate);
-}
+// original SERIALCOM_OpenComport, SERIALCOM_CloseComport and SERIALCOM_Flush were one-line wrappers:
+// m_serial.open/close/flush are called directly (open: always 8 data bits and 1 stop bit)
 
 int Palazzetti::SERIALCOM_ReceiveBuf(uint8_t *buf, size_t count)
 {
@@ -147,31 +133,10 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 
 Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
 {
-    SERIALCOM_CloseComport();
+    m_serial.close();
     fumisComStatus = FumisComStatus::Closed;
     rxAligned = false;
     return CommandResult::OK;
-}
-
-Palazzetti::CommandResult Palazzetti::fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode)
-{
-    uint8_t responseData[FRAME_DATA_SIZE]; // var_10
-    CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData, FRAME_DATA_SIZE);
-    if (cmdRes == CommandResult::OK)
-    {
-        // *data = 0; //useless
-
-        if (!wordMode)
-            *data = responseData[0];
-        else
-        {
-            *data = responseData[1];
-            *data <<= 8;
-            *data += responseData[0];
-        }
-    }
-
-    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
@@ -197,7 +162,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
         if (i < 4)
         {
             fumisCloseSerial();
-            SERIALCOM_Flush();
+            m_serial.flush();
             m_serial.uSleep(1);
             fumisOpenSerial();
             m_serial.uSleep(1);
@@ -221,14 +186,24 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
     return cmdRes;
 }
 
+// fumisComReadByte and fumisComReadWord read the first 1 or 2 bytes of the Response (little endian)
+// (original: both called fumisComRead(addr, data, wordMode), now removed)
 Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint16_t *data)
 {
-    return fumisComRead(addrToRead, data, 0);
+    uint8_t responseData[FRAME_DATA_SIZE]; // var_10 (fumisComRead)
+    CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData, FRAME_DATA_SIZE);
+    if (cmdRes == CommandResult::OK)
+        *data = responseData[0];
+    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
 {
-    return fumisComRead(addrToRead, data, 1);
+    uint8_t responseData[FRAME_DATA_SIZE]; // var_10 (fumisComRead)
+    CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData, FRAME_DATA_SIZE);
+    if (cmdRes == CommandResult::OK)
+        *data = responseData[0] | (responseData[1] << 8);
+    return cmdRes;
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
@@ -280,7 +255,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     return cmdRes;
 }
 
-Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode)
+Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode)
 {
     if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
@@ -310,7 +285,7 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
         }
 
         uint16_t readBack = 0; // var_30
-        cmdRes = fumisComRead(addrToWrite, &readBack, wordMode);
+        cmdRes = wordMode ? fumisComReadWord(addrToWrite, &readBack) : fumisComReadByte(addrToWrite, &readBack);
         if (cmdRes == CommandResult::OK && readBack != expected)
             cmdRes = CommandResult::ERROR;
         if (cmdRes == CommandResult::OK)
@@ -321,21 +296,21 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
 
 Palazzetti::CommandResult Palazzetti::fumisComWriteByte(uint16_t addrToWrite, uint16_t data)
 {
-    return fumisComWrite(addrToWrite, data, 0);
+    return fumisComWrite(addrToWrite, data, false);
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
 {
-    return fumisComWrite(addrToWrite, data, 1);
+    return fumisComWrite(addrToWrite, data, true);
 }
 
 Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 {
     selectSerialTimeoutMs = 100; // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
     rxAligned = false;
-    int res = SERIALCOM_OpenComport(FUMIS_BAUDRATE);
+    int res = m_serial.open(FUMIS_BAUDRATE);
 
-    if (res >= 0 && (serialPortModel != 1 || (res = SERIALCOM_Flush()) >= 0))
+    if (res >= 0 && (serialPortModel != 1 || (res = m_serial.flush()) >= 0))
     {
         // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
         fumisComStatus = FumisComStatus::Idle;
@@ -395,7 +370,7 @@ Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
         return CommandResult::ERROR;
     if (fumisOpenSerial() != CommandResult::OK)
         return CommandResult::ERROR;
-    if (serialPortModel == 2 && SERIALCOM_Flush() < 0)
+    if (serialPortModel == 2 && m_serial.flush() < 0)
         return CommandResult::COMMUNICATION_ERROR;
     return CommandResult::OK;
 }
@@ -413,7 +388,7 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
     if (serialPortModel == 2)
     {
         alignedFrame = rxAligned && (millis() - lastResponseMs) < 8;
-        if (!alignedFrame && SERIALCOM_Flush() < 0)
+        if (!alignedFrame && m_serial.flush() < 0)
             return CommandResult::COMMUNICATION_ERROR;
     }
     rxAligned = false;
