@@ -188,7 +188,8 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
             break;
     }
 
-    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+    // values are already checked by isValidDateTime; the modulos only let the compiler see that the text fits in 20 bytes
+    sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year % 10000u, month % 100u, day % 100u, hour % 100u, minute % 100u, second % 100u);
     _STOVE_WDAY = weekDay;
 
     return cmdRes;
