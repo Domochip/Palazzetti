@@ -245,19 +245,15 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
     rxAligned = false;
     int res = m_serial.open(FUMIS_BAUDRATE);
 
-    if (res >= 0 && (serialPortModel != 1 || (res = m_serial.flush()) >= 0))
-    {
-        // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
-        fumisComStatus = FumisComStatus::Idle;
-        res = 0;
-    }
-    else
+    // (original: serialPortModel 1 also flushed the port here)
+    if (res < 0)
     {
         fumisComStatus = FumisComStatus::Closed;
-        // dword_433248 = (res >= 0) ? CommandResult::OK : CommandResult::ERROR; // unused (sFumisComData.8)
+        return CommandResult::ERROR; // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
     }
 
-    return (res >= 0) ? CommandResult::OK : CommandResult::ERROR;
+    fumisComStatus = FumisComStatus::Idle;
+    return CommandResult::OK; // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
 }
 
 // One exchange with the stove (not a separate function in original):
@@ -328,8 +324,7 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
         if (res > 0)
         {
             bufPosition += res;
-            if (serialPortModel == 2)
-                m_serial.uSleep(1);
+            m_serial.uSleep(1);
         }
         else
             res = -1;
@@ -350,7 +345,7 @@ Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
     fumisCloseSerial();
     if (fumisOpenSerial() != CommandResult::OK)
         return CommandResult::ERROR;
-    if (serialPortModel == 2 && m_serial.flush() < 0)
+    if (m_serial.flush() < 0)
         return CommandResult::COMMUNICATION_ERROR;
     return CommandResult::OK;
 }
@@ -364,13 +359,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
     // Discard RX buffer content, except right after a valid stove Response:
     // the stove sends its next frame ~0.1ms after a Response, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
-    bool alignedFrame = false; // (not in original) the next FRAME_SIZE RX bytes are exactly the stove's next frame
-    if (serialPortModel == 2)
-    {
-        alignedFrame = rxAligned && (millis() - lastResponseMs) < 8;
-        if (!alignedFrame && m_serial.flush() < 0)
-            return CommandResult::COMMUNICATION_ERROR;
-    }
+    bool alignedFrame = rxAligned && (millis() - lastResponseMs) < 8; // (not in original) the next FRAME_SIZE RX bytes are exactly the stove's next frame
+    if (!alignedFrame && m_serial.flush() < 0)
+        return CommandResult::COMMUNICATION_ERROR;
     rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
