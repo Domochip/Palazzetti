@@ -305,7 +305,7 @@ private:
     CommandResult fumisReadResponse(uint8_t *frame);
     CommandResult fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime);
     CommandResult fumisReopenSerial();
-    CommandResult fumisWaitPoll(uint8_t *frame);
+    CommandResult fumisWaitPoll();
 
     CommandResult iChkMBType();
     CommandResult iCloseUART();

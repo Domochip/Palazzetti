@@ -271,8 +271,7 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
         return CommandResult::ERROR;
 
     // Wait for a Poll (original: skipped when _MBTYPE == 1, which this library never sets)
-    uint8_t poll[FRAME_SIZE];
-    CommandResult cmdRes = fumisWaitPoll(poll);
+    CommandResult cmdRes = fumisWaitPoll();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
@@ -356,8 +355,10 @@ Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 
 // Wait for a stove Poll frame: the stove then listens and the box may send one Request
 // (original: fumisWaitRequest, which also read the Response, depending on the state set by the caller: that part is now fumisReadResponse)
-Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
+Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
 {
+    uint8_t frame[FRAME_SIZE]; // the Poll frame is only checked, not returned
+
     // Discard RX buffer content, except right after a valid stove Response:
     // the stove sends its next frame ~0.1ms after a Response, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
