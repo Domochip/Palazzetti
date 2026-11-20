@@ -78,12 +78,11 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
     return roomFanSpeed;
 }
 
-Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
+void Palazzetti::fumisCloseSerial()
 {
     m_serial.close();
     fumisComStatus = FumisComStatus::Closed;
     rxAligned = false;
-    return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count)
@@ -353,8 +352,7 @@ Palazzetti::CommandResult Palazzetti::fumisReceive(uint8_t *frame, uint8_t &bufP
 Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 {
     // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
-    if (fumisCloseSerial() != CommandResult::OK)
-        return CommandResult::ERROR;
+    fumisCloseSerial();
     if (fumisOpenSerial() != CommandResult::OK)
         return CommandResult::ERROR;
     if (serialPortModel == 2 && m_serial.flush() < 0)
@@ -472,10 +470,10 @@ Palazzetti::CommandResult Palazzetti::iChkMBType()
 
 Palazzetti::CommandResult Palazzetti::iCloseUART()
 {
-    if (_MBTYPE < 2)
-        return fumisCloseSerial();
-    else
+    if (_MBTYPE >= 2)
         return CommandResult::UNSUPPORTED;
+    fumisCloseSerial();
+    return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)

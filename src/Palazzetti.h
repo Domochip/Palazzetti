@@ -295,7 +295,7 @@ private:
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
 
-    CommandResult fumisCloseSerial();
+    void fumisCloseSerial();
     CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf, size_t count);
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
