@@ -55,10 +55,10 @@ public:
 
     // Write 1 byte at addr, then read it back: Mismatch if it is not expected
     // (expected differs from value for registers the stove changes at once, e.g. a command it clears once run)
-    // up to 2 attempts (each attempt includes its read-back)
+    // up to 2 attempts, each with a single Read exchange as read-back
     Result writeByte(uint16_t addr, uint8_t value, uint8_t expected);
     // Write the word (little endian) at addr, as low byte at addr then high byte at addr + 1, then read it back: Mismatch if it differs
-    // up to 2 attempts (each attempt includes its read-back)
+    // up to 2 attempts, each with a single Read exchange as read-back
     Result writeWord(uint16_t addr, uint16_t value);
 
     // Set the stove date and time (weekDay: 1 = Monday .. 7 = Sunday)

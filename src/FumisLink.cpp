@@ -109,6 +109,8 @@ FumisLink::Result FumisLink::writeChecked(uint16_t addr, uint16_t value, bool wo
     // a Write Request carries 1 byte: a word is written as low byte at addr then high byte at addr + 1
     FumisFrame lowRequest = FumisFrame::write(addr, value & 0xFF);  // var_2C
     FumisFrame highRequest = FumisFrame::write(addr + 1, value >> 8); // var_2C (second use)
+    FumisFrame readBackRequest = FumisFrame::read(addr);
+    FumisFrame readBackResponse;
 
     return retry(2, [&]()
                  {
@@ -118,10 +120,11 @@ FumisLink::Result FumisLink::writeChecked(uint16_t addr, uint16_t value, bool wo
         if (res != Result::Ok)
             return res;
 
-        uint16_t readBack = 0; // var_30
-        res = readWord(addr, readBack);
+        // read-back: a single Read exchange, a failed one is covered by the next attempt of the write
+        res = exchange(readBackRequest, &readBackResponse);
         if (res != Result::Ok)
             return res;
+        uint16_t readBack = readBackResponse.data()[0] | (readBackResponse.data()[1] << 8); // var_30 (little endian)
         if (!wordMode)
             readBack &= 0xFF;
         return (readBack == expected) ? Result::Ok : Result::Mismatch; });
