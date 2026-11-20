@@ -34,29 +34,16 @@ void FumisLink::close()
     rxAligned = false;
 }
 
-// (not a separate function in original, which also flushed the port: now done by waitPoll since rxAligned is cleared)
-void FumisLink::reopen()
-{
-    close();
-    open();
-}
-
-// Run op up to attempts times until it gives Ok, closing and reopening the port before each new attempt
-// (original: three different loops: Read reopened the port and retried only the communication errors,
-//  Write and SetDateTime retried any error without reopening the port)
+// Run op up to attempts times until it gives Ok, on the same port (waitPoll discards the stale RX bytes)
+// (original: three different loops: Read closed, flushed and reopened the port and retried only the communication errors,
+//  Write and SetDateTime retried any error without reopening the port;
+//  reopening the port is likely meant for a Linux tty (e.g. a USB adapter), it does not help with the built-in UART of an ESP)
 template <typename Op>
 FumisLink::Result FumisLink::retry(uint8_t attempts, Op op)
 {
     Result res = Result::Error;
     for (uint8_t attempt = 0; attempt < attempts; attempt++) // (original: counted down)
     {
-        if (attempt > 0)
-        {
-            // (original: close, flush, sleep, open, sleep)
-            reopen();
-            delayMicroseconds(1);
-        }
-
         res = op();
         if (res == Result::Ok)
             return res;
@@ -220,7 +207,7 @@ void FumisLink::discardInput()
 
 // Read exactly count bytes, Timeout if they are not all received limitMs after startTime
 // (original: SERIALCOM_ReceiveBuf and the receive loops of its callers: a select with a fixed timeout, then a check of the elapsed time;
-//  a select or read error reopened the port, a Stream has none)
+//  a select or read error closed and reopened the port, a Stream has none)
 FumisLink::Result FumisLink::readBytes(uint8_t *dst, uint8_t count, unsigned long startTime, unsigned long limitMs)
 {
     uint8_t received = 0; // var_18

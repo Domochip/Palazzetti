@@ -6,7 +6,7 @@
 
 // Fumis bus (38400 8N1, half-duplex, the stove is the master, see FumisFrame.h): the only code that touches the serial port.
 // Each attempt of a Read, Write or SetDateTime is one exchange: wait for a stove Poll, send the Request, read the Response.
-// Every error is retried after reopening the port. The V1 board loopback is detected on the first successful Read.
+// Every error is retried. The V1 board loopback is detected on the first successful Read.
 // (original: the SERIALCOM_* layer and the frame and retry parts of the fumis* functions, see FumisLink.cpp)
 class FumisLink
 {
@@ -67,7 +67,6 @@ private:
     // echo or Response: received during the Request or right after it (11 bytes: 2.9ms), plus the ESP delay to make them available
     static constexpr unsigned long FRAME_TIMEOUT_MS = 30;
 
-    void reopen();
     template <typename Op>
     Result retry(uint8_t attempts, Op op);
     Result exchange(const FumisFrame &request, FumisFrame *response = nullptr);
