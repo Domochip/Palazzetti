@@ -155,19 +155,19 @@ Palazzetti::CommandResult Palazzetti::fumisCloseSerial()
 
 Palazzetti::CommandResult Palazzetti::fumisComRead(uint16_t addrToRead, uint16_t *data, bool wordMode)
 {
-    uint8_t var_10[FRAME_DATA_SIZE];
-    CommandResult cmdRes = fumisComReadBuff(addrToRead, var_10, FRAME_DATA_SIZE);
+    uint8_t responseData[FRAME_DATA_SIZE]; // var_10
+    CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData, FRAME_DATA_SIZE);
     if (cmdRes == CommandResult::OK)
     {
         // *data = 0; //useless
 
         if (!wordMode)
-            *data = var_10[0];
+            *data = responseData[0];
         else
         {
-            *data = var_10[1];
+            *data = responseData[1];
             *data <<= 8;
-            *data += var_10[0];
+            *data += responseData[0];
         }
     }
 
@@ -187,12 +187,12 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
     uint8_t readRequest[FRAME_SIZE];
     buildFrame(readRequest, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
 
-    uint8_t var_28[FRAME_SIZE]; // Response
-    CommandResult cmdRes;
+    uint8_t response[FRAME_SIZE]; // var_28
+    CommandResult cmdRes;         // local_30
 
     // up to 4 attempts, the port is reopened before each new attempt
     // only a COMMUNICATION_ERROR (timeout or invalid frame) is retried
-    for (int i = 4; i > 0; i--)
+    for (int i = 4; i > 0; i--) // i as local_2c
     {
         if (i < 4)
         {
@@ -203,10 +203,10 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
             m_serial.uSleep(1);
         }
 
-        cmdRes = fumisExchange(readRequest, var_28);
+        cmdRes = fumisExchange(readRequest, response);
         if (cmdRes == CommandResult::OK)
         {
-            memcpy(buf, var_28 + 1, count);
+            memcpy(buf, response + 1, count);
             return cmdRes;
         }
 
@@ -258,9 +258,9 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     if (weekDay == 0)
         weekDay = 7;
 
-    CommandResult cmdRes;    // local_88
-    uint8_t buf[FRAME_SIZE]; // local_60
-    buildFrame(buf, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
+    CommandResult cmdRes;        // local_88
+    uint8_t request[FRAME_SIZE]; // local_60
+    buildFrame(request, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
 
     // up to 3 attempts
     for (int i = 3; i > 0; i--) // i as local_6c
@@ -268,7 +268,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
         if (fumisComStatus == FumisComStatus::Closed)
             return CommandResult::ERROR;
 
-        cmdRes = fumisExchange(buf);
+        cmdRes = fumisExchange(request);
         if (cmdRes == CommandResult::OK)
             break;
         // dword_433248 = cmdRes; // unused (sFumisComData.8)
@@ -309,9 +309,9 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
             continue;
         }
 
-        uint16_t var_30 = 0;
-        cmdRes = fumisComRead(addrToWrite, &var_30, wordMode);
-        if (cmdRes == CommandResult::OK && var_30 != expected)
+        uint16_t readBack = 0; // var_30
+        cmdRes = fumisComRead(addrToWrite, &readBack, wordMode);
+        if (cmdRes == CommandResult::OK && readBack != expected)
             cmdRes = CommandResult::ERROR;
         if (cmdRes == CommandResult::OK)
             return cmdRes;
