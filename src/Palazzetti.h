@@ -51,7 +51,7 @@ private:
     // Fumis bus: 38400 8N1, fixed size frames, half-duplex polled bus: the stove is the master
     //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
     //   a Read is answered by a Response frame right after it
-    //   (plzbridge only names the Poll, as "Request" in fumisWaitRequest; its states are bare numbers, see FumisComStatus)
+    //   (plzbridge only names the Poll, as "Request" in fumisWaitRequest; its states are bare numbers, see portOpen)
     // frame (11 bytes):
     //   byte 0      type (FrameType)
     //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
@@ -77,24 +77,16 @@ private:
     static uint8_t frameChecksum(const uint8_t *frame);
     // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
     static bool hasValidChecksum(const uint8_t *frame);
-    // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced fumisComStatus)
+    // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced the state of the exchange)
     static bool isValidFrame(const uint8_t *frame, FrameType type);
     // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
     static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
 
-    // Serial exchange state machine (values are the ones used by the original program)
-    enum class FumisComStatus : uint8_t
-    {
-        Closed = 0,           // serial port closed
-        Idle = 1,             // port open, no exchange in progress
-        WaitPoll = 2,         // waiting for a stove Poll frame (first byte 0x00)
-        Polled = 3,           // Poll received: the stove listens, the box may send one Request
-        WaitResponse = 4,     // Read Request sent, waiting for the stove Response (first byte 0x02)
-        ResponseReceived = 5, // valid Response received
-    };
-
     uint16_t wAddrFeederActiveTime = 0;
-    FumisComStatus fumisComStatus = FumisComStatus::Closed; // sFumisComData.4
+    // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" is still tested)
+    //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received
+    //   the steps 1..5 are now the order of the code in fumisExchange, fumisWaitPoll and fumisReadResponse
+    bool portOpen = false;
     // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (commented everywhere)
 
     // uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others (always 2 here: the model 2 code is kept, model 1 is removed)

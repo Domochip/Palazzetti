@@ -81,7 +81,7 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 void Palazzetti::fumisCloseSerial()
 {
     m_serial.close();
-    fumisComStatus = FumisComStatus::Closed;
+    portOpen = false;
     rxAligned = false;
 }
 
@@ -248,11 +248,11 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
     // (original: serialPortModel 1 also flushed the port here)
     if (res < 0)
     {
-        fumisComStatus = FumisComStatus::Closed;
+        portOpen = false;
         return CommandResult::ERROR; // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
     }
 
-    fumisComStatus = FumisComStatus::Idle;
+    portOpen = true;
     return CommandResult::OK; // dword_433248 = CommandResult::OK; // unused (sFumisComData.8)
 }
 
@@ -261,7 +261,7 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 // returns ERROR if the port is closed (original: checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
 Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint8_t *response)
 {
-    if (fumisComStatus == FumisComStatus::Closed)
+    if (!portOpen)
         return CommandResult::ERROR;
 
     if (_MBTYPE != 1) // from original fumisComReadBuff (_MBTYPE is never 1 in this library)
@@ -271,7 +271,6 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
         if (cmdRes != CommandResult::OK)
             return cmdRes;
     }
-    fumisComStatus = FumisComStatus::Polled;
 
     // Send the Request (original: fumisSendRequest + SERIALCOM_SendBuf)
     size_t totalBytesWritten = 0;
@@ -351,11 +350,9 @@ Palazzetti::CommandResult Palazzetti::fumisReopenSerial()
 }
 
 // Wait for a stove Poll frame: the stove then listens and the box may send one Request
-// (original: fumisWaitRequest, which also read the Response, depending on fumisComStatus set by the caller: that part is now fumisReadResponse)
+// (original: fumisWaitRequest, which also read the Response, depending on the state set by the caller: that part is now fumisReadResponse)
 Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
 {
-    fumisComStatus = FumisComStatus::WaitPoll;
-
     // Discard RX buffer content, except right after a valid stove Response:
     // the stove sends its next frame ~0.1ms after a Response, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
@@ -380,7 +377,6 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
             if (alignedFrame && isValidFrame(frame, FrameType::Poll))
             {
                 m_serial.uSleep(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll
-                fumisComStatus = FumisComStatus::Polled;
                 return CommandResult::OK;
             }
             alignedFrame = false;
@@ -394,7 +390,6 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
             }
             else if (isValidFrame(frame, FrameType::Poll))
             {
-                fumisComStatus = FumisComStatus::Polled;
                 return CommandResult::OK;
             }
             else
@@ -404,10 +399,9 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll(uint8_t *frame)
 }
 
 // Read the stove Response frame, which starts right after the Read Request sent by the box
-// (part of fumisWaitRequest in original, used when fumisComStatus was 4, now WaitResponse)
+// (part of fumisWaitRequest in original, used when the state was 4)
 Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
 {
-    fumisComStatus = FumisComStatus::WaitResponse;
     rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
@@ -424,7 +418,6 @@ Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
     if (!isValidFrame(frame, FrameType::Response))
         return CommandResult::COMMUNICATION_ERROR;
 
-    fumisComStatus = FumisComStatus::ResponseReceived;
     // valid Response read : the next RX byte is the start of the stove's next frame
     rxAligned = true;
     lastResponseMs = millis();
