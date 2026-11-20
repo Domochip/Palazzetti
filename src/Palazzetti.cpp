@@ -264,13 +264,11 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
     if (!portOpen)
         return CommandResult::ERROR;
 
-    if (_MBTYPE != 1) // from original fumisComReadBuff (_MBTYPE is never 1 in this library)
-    {
-        uint8_t poll[FRAME_SIZE];
-        CommandResult cmdRes = fumisWaitPoll(poll);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-    }
+    // Wait for a Poll (original: skipped when _MBTYPE == 1, which this library never sets)
+    uint8_t poll[FRAME_SIZE];
+    CommandResult cmdRes = fumisWaitPoll(poll);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
 
     // Send the Request (original: fumisSendRequest + SERIALCOM_SendBuf)
     size_t totalBytesWritten = 0;
@@ -284,7 +282,8 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
     m_serial.drain();
 
     // loopBack: RX receives back what was just sent, read it to discard it
-    if (!comPortNumber && !_MBTYPE)
+    // (original: also tested _MBTYPE == 0, always true here)
+    if (!comPortNumber)
     {
         uint8_t echo[FRAME_SIZE];
         size_t totalBytesRead = 0;
@@ -431,7 +430,6 @@ Palazzetti::CommandResult Palazzetti::iChkMBType()
     // No Implementation of Micronova device there
     // skip directly to fumis detection
 
-    _MBTYPE = 0;
     CommandResult cmdRes;
     cmdRes = fumisOpenSerial();
     if (cmdRes != CommandResult::OK)
@@ -439,28 +437,19 @@ Palazzetti::CommandResult Palazzetti::iChkMBType()
 
     ///*Trying to find MBTYPE_FUMIS_ALPHA65...*/
     if (iGetStatusAtech() != CommandResult::OK)
-    {
-        _MBTYPE = -1;
         return CommandResult::ERROR;
-    }
     ///*-->Found MBTYPE_FUMIS_ALPHA65 device!*/
     return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::iCloseUART()
 {
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
     fumisCloseSerial();
     return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
 {
-
-    if (_MBTYPE)
-        return CommandResult::UNSUPPORTED;
-
     CommandResult cmdRes;
 
     if (refreshStatus)
@@ -1223,23 +1212,18 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
 
 Palazzetti::CommandResult Palazzetti::iInit()
 {
-    if (_MBTYPE < 0)
-        return CommandResult::UNSUPPORTED;
-
-    if (_MBTYPE < 2) // if Fumis MB
-    {
-        // dword_46DC04 = malloc(0xD0);
-        paramsBufferSize = 0x6A;
-        hparamsBufferSize = 0x6F;
-        // dword_46DC38 = malloc(paramsBufferSize aka 0x6A);
-        // dword_46DC50 = malloc(paramsBufferSize aka 0x6A);
-        // dword_46DC4C = malloc(paramsBufferSize aka 0x6A);
-        // dword_46DC40 =  malloc(hparamsBufferSize<<1 aka 0xDE)
-        // dword_46DC08 = malloc(0x16)
-        // bzero(dword_46DC08,0x16);
-        // dword_46DC0C = malloc(0x69);
-        // bzero(dword_46DC0C,0x69);
-    }
+    // (original: only for Fumis, _MBTYPE < 2)
+    // dword_46DC04 = malloc(0xD0);
+    paramsBufferSize = 0x6A;
+    hparamsBufferSize = 0x6F;
+    // dword_46DC38 = malloc(paramsBufferSize aka 0x6A);
+    // dword_46DC50 = malloc(paramsBufferSize aka 0x6A);
+    // dword_46DC4C = malloc(paramsBufferSize aka 0x6A);
+    // dword_46DC40 =  malloc(hparamsBufferSize<<1 aka 0xDE)
+    // dword_46DC08 = malloc(0x16)
+    // bzero(dword_46DC08,0x16);
+    // dword_46DC0C = malloc(0x69);
+    // bzero(dword_46DC0C,0x69);
 
     // rest of iInit concerns Micronova which is not implemented
 
@@ -1762,18 +1746,9 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticData()
     // look for \n in _MAC
     // then replace it by 0
 
-    if (_MBTYPE < 0)
-        return CommandResult::UNSUPPORTED;
-
-    if (_MBTYPE < 2) // if fumis MBTYPE
-    {
-        CommandResult cmdRes = iUpdateStaticDataAtech();
-        if (cmdRes != CommandResult::OK)
-            return CommandResult::ERROR;
-    }
-    else if (_MBTYPE == 0x64) // else Micronova not implemented
-        return CommandResult::UNSUPPORTED;
-    else
+    // (original: only for Fumis, _MBTYPE < 2; Micronova returned UNSUPPORTED)
+    CommandResult cmdRes = iUpdateStaticDataAtech();
+    if (cmdRes != CommandResult::OK)
         return CommandResult::ERROR;
 
     // open /etc/appliancelabel
@@ -2035,7 +2010,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    out.MBTYPE = _MBTYPE;
+    out.MBTYPE = 0; // Fumis (Micronova is not supported)
     // MAC not needed
     out.MOD = _MOD;
     out.VER = _VER;
@@ -2143,9 +2118,6 @@ Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetChronoDataAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2175,9 +2147,6 @@ Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetCountersAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2200,9 +2169,6 @@ Palazzetti::CommandResult Palazzetti::getDateTime(DateTimeData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetDateTimeAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2219,9 +2185,6 @@ Palazzetti::CommandResult Palazzetti::getDPressData(DPressData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetDPressDataAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2237,9 +2200,6 @@ Palazzetti::CommandResult Palazzetti::getFanData(FanData &out)
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iReadFansAtech();
     if (cmdRes != CommandResult::OK)
@@ -2279,9 +2239,6 @@ Palazzetti::CommandResult Palazzetti::getHiddenParameter(uint8_t hParamNumber, u
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE == 0x64) // if Micronova
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetHiddenParameterAtech(hParamNumber, hParamValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2294,9 +2251,6 @@ Palazzetti::CommandResult Palazzetti::getIO(IOData &out)
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iReadIOAtech();
     if (cmdRes != CommandResult::OK)
@@ -2336,9 +2290,6 @@ Palazzetti::CommandResult Palazzetti::getParameter(uint8_t paramNumber, uint8_t 
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     uint16_t tmpValue;
 
@@ -2429,7 +2380,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 
     strcpy(out.SN, _SN);
     out.SNCHK = isValidSerialNumber(_SN);
-    out.MBTYPE = _MBTYPE;
+    out.MBTYPE = 0; // Fumis (Micronova is not supported)
 
     // APLCONN : useless because overwritten by CBox lua code
 
@@ -2486,9 +2437,6 @@ Palazzetti::CommandResult Palazzetti::readData(uint16_t addrToRead, bool wordMod
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     return iReadDataAtech(addrToRead, ADDR_DATA, wordMode);
 }
 
@@ -2497,9 +2445,6 @@ Palazzetti::CommandResult Palazzetti::setChronoDay(uint8_t dayNumber, uint8_t me
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetChronoDayAtech(dayNumber, memoryNumber, programNumber);
     if (cmdRes != CommandResult::OK)
@@ -2513,9 +2458,6 @@ Palazzetti::CommandResult Palazzetti::setChronoPrg(uint8_t programNumber, uint8_
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     uint8_t prg[6] = {programNumber, setPoint, startHour, startMinute, stopHour, stopMinute};
     cmdRes = iSetChronoPrgAtech(prg);
@@ -2531,9 +2473,6 @@ Palazzetti::CommandResult Palazzetti::setChronoSetpoint(uint8_t programNumber, u
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetChronoSetpointAtech(programNumber, setPoint);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2546,9 +2485,6 @@ Palazzetti::CommandResult Palazzetti::setChronoStartHH(uint8_t programNumber, ui
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetChronoStartHHAtech(programNumber, startHour);
     if (cmdRes != CommandResult::OK)
@@ -2563,9 +2499,6 @@ Palazzetti::CommandResult Palazzetti::setChronoStartMM(uint8_t programNumber, ui
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetChronoStartMMAtech(programNumber, startMinute);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2578,9 +2511,6 @@ Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetChronoStatusAtech(chronoStatus);
     if (cmdRes != CommandResult::OK)
@@ -2598,9 +2528,6 @@ Palazzetti::CommandResult Palazzetti::setChronoStopHH(uint8_t programNumber, uin
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetChronoStopHHAtech(programNumber, stopHour);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2614,9 +2541,6 @@ Palazzetti::CommandResult Palazzetti::setChronoStopMM(uint8_t programNumber, uin
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetChronoStopMMAtech(programNumber, stopMinute);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2629,9 +2553,6 @@ Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, 
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = fumisComSetDateTime(year, month, day, hour, minute, second);
     if (cmdRes != CommandResult::OK)
@@ -2652,9 +2573,6 @@ Palazzetti::CommandResult Palazzetti::setHiddenParameter(uint8_t hParamNumber, u
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE >= 2) // if Micronova
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetHiddenParameterAtech(hParamNumber, hParamValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2672,9 +2590,6 @@ Palazzetti::CommandResult Palazzetti::setParameter(uint8_t paramNumber, uint8_t 
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetParameterAtech(paramNumber, paramValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2691,9 +2606,6 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetPowerAtech(powerLevel);
     if (cmdRes != CommandResult::OK)
@@ -2740,9 +2652,6 @@ Palazzetti::CommandResult Palazzetti::setPowerDown(SetPowerResult *result /* = n
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetPowerAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2756,9 +2665,6 @@ Palazzetti::CommandResult Palazzetti::setPowerUp(SetPowerResult *result /* = nul
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetPowerAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2771,9 +2677,6 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFa
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0));
     if (cmdRes != CommandResult::OK)
@@ -2802,9 +2705,6 @@ Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetRoomFan3Atech(roomFan3Speed);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2820,9 +2720,6 @@ Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetRoomFan4Atech(roomFan4Speed);
     if (cmdRes != CommandResult::OK)
@@ -2840,9 +2737,6 @@ Palazzetti::CommandResult Palazzetti::setRoomFanDown(SetRoomFanResult *result /*
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iReadFansAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2856,9 +2750,6 @@ Palazzetti::CommandResult Palazzetti::setRoomFanUp(SetRoomFanResult *result /* =
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iReadFansAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2871,9 +2762,6 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPR
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetSetPointAtech(setPoint);
     if (cmdRes != CommandResult::OK)
@@ -2890,9 +2778,6 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPRes
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetSetPointAtech(setPoint);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2908,9 +2793,6 @@ Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPResult /* = nul
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetSetPointAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2925,9 +2807,6 @@ Palazzetti::CommandResult Palazzetti::setSetPointFan3(uint8_t setPoint, float *F
         return cmdRes;
 
     if (_BLEMBMODE < 13)
-        return CommandResult::UNSUPPORTED;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
         return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetSetPointFan3Atech(setPoint);
@@ -2948,9 +2827,6 @@ Palazzetti::CommandResult Palazzetti::setSetPointFan4(uint8_t setPoint, float *F
     if (_BLEMBMODE < 13)
         return CommandResult::UNSUPPORTED;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iSetSetPointFan4Atech(setPoint);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2966,9 +2842,6 @@ Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPResult /* = nullp
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
-
     cmdRes = iGetSetPointAtech();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
@@ -2981,9 +2854,6 @@ Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilen
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     cmdRes = iSetSilentModeAtech(silentMode);
     if (cmdRes != CommandResult::OK)
@@ -3069,9 +2939,6 @@ Palazzetti::CommandResult Palazzetti::writeData(uint16_t addrToWrite, uint16_t d
     CommandResult cmdRes = initialize();
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-
-    if (_MBTYPE < 0 || _MBTYPE >= 2)
-        return CommandResult::UNSUPPORTED;
 
     return iWriteDataAtech(addrToWrite, data, wordMode);
     // the original code return the data untouched (even if its value is over 255 and wordMode is false...)

@@ -110,7 +110,7 @@ private:
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
     // myData.4196  pointer to string "/dev/ttyACM0"
-    int _MBTYPE = 0; // myData.4200  0 for Fumis; 100(0x64) for Micronova
+    // int _MBTYPE = 0; // myData.4200  0 for Fumis; 100(0x64) for Micronova (always 0 here: only Fumis is supported)
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
