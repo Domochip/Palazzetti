@@ -34,7 +34,7 @@ void FumisLink::close()
     rxAligned = false;
 }
 
-// Close and reopen the port before each new Read attempt (retry)
+// Close and reopen the port before each new attempt (retry)
 // (not a separate function in original)
 // (original: also flushed the port, now left to waitPoll, which always discards the RX buffer after a reopen since rxAligned is cleared)
 void FumisLink::reopen()
@@ -43,13 +43,17 @@ void FumisLink::reopen()
     open();
 }
 
+// (original: three different loops:
+//   Read reopened the port and retried only the communication errors,
+//   Write and SetDateTime retried any error without reopening the port)
+// reopening before each new attempt gives every error a chance to be recovered, even a port problem
 template <typename Op>
-FumisLink::Result FumisLink::retry(uint8_t attempts, bool reopenBetween, bool stopOnError, Op op)
+FumisLink::Result FumisLink::retry(uint8_t attempts, Op op)
 {
     Result res = Result::Error;
     for (uint8_t attempt = 0; attempt < attempts; attempt++) // (original: counted down)
     {
-        if (attempt > 0 && reopenBetween)
+        if (attempt > 0)
         {
             // (original: close, flush, sleep, open, sleep)
             reopen();
@@ -58,8 +62,6 @@ FumisLink::Result FumisLink::retry(uint8_t attempts, bool reopenBetween, bool st
 
         res = op();
         if (res == Result::Ok)
-            return res;
-        if (stopOnError && res == Result::Error)
             return res;
     }
     return res;
@@ -73,7 +75,7 @@ FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DAT
     FumisFrame request = FumisFrame::read(addr);
     FumisFrame response; // var_28
 
-    Result res = retry(4, true, true, [&]()
+    Result res = retry(4, [&]()
                        { return exchange(request, &response); });
     if (res == Result::Ok)
         memcpy(data, response.data(), FumisFrame::DATA_SIZE);
@@ -108,7 +110,7 @@ FumisLink::Result FumisLink::writeChecked(uint16_t addr, uint16_t value, bool wo
     FumisFrame lowRequest = FumisFrame::write(addr, value & 0xFF);  // var_2C
     FumisFrame highRequest = FumisFrame::write(addr + 1, value >> 8); // var_2C (second use)
 
-    return retry(2, false, false, [&]()
+    return retry(2, [&]()
                  {
         Result res = exchange(lowRequest);
         if (res == Result::Ok && wordMode)
@@ -130,7 +132,7 @@ FumisLink::Result FumisLink::setDateTime(uint8_t second, uint8_t minute, uint8_t
 {
     FumisFrame request = FumisFrame::setDateTime(second, minute, hour, weekDay, day, month, yearSince2000); // local_60
 
-    return retry(3, false, false, [&]()
+    return retry(3, [&]()
                  { return exchange(request); });
 }
 

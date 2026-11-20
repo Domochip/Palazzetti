@@ -1,6 +1,6 @@
 #include "Palazzetti.h"
 
-// The original SERIALCOM_* layer, the frame part of the fumis* functions and the retries of Read and SetDateTime are in FumisLink (serial layer)
+// The original SERIALCOM_* layer, the frame part of the fumis* functions and their retries are in FumisLink (serial layer)
 // the fumisCom* functions below add what the values mean: date checks, the value expected back after a write
 
 // FumisLink results as CommandResult: the bus errors (Timeout, BadFrame, Collision) are COMMUNICATION_ERROR

@@ -6,7 +6,7 @@
 
 // Fumis bus (38400 8N1, half-duplex polled bus, the stove is the master, see FumisFrame.h):
 // the only code that touches the serial port
-//  - Read, Write and SetDateTime of stove memory, with their retries
+//  - Read, Write and SetDateTime of stove memory, with their retries (one rule: reopen the port, then retry, whatever the error)
 //  - each attempt is one exchange: wait for the moment the stove listens (after its Poll), send one Request, read the Response
 //  - handles the V1 board loopback (RX receives back what TX sends), detected on the first successful Read
 // it knows nothing of what the registers mean
@@ -28,15 +28,15 @@ public:
         No
     };
 
-    // the results the serial layer can give (mapped to Palazzetti::CommandResult by its callers)
+    // the results the serial layer can give (mapped to Palazzetti::CommandResult by its callers), all of them are retried
     enum class Result : uint8_t
     {
         Ok,
-        Timeout,   // the expected frame (Poll, echo or Response) is not complete 250ms after the start: worth retrying
-        BadFrame,  // the Response has a wrong type or checksum: worth retrying
-        Collision, // V1 board: the echo differs from the Request sent, something else was on the bus: worth retrying
-        Mismatch,  // a write was read back with another value than expected: worth retrying
-        Error,     // port closed, or write error: read stops at once (setDateTime retries it, as in original)
+        Timeout,   // the expected frame (Poll, echo or Response) is not complete 250ms after the start
+        BadFrame,  // the Response has a wrong type or checksum
+        Collision, // V1 board: the echo differs from the Request sent, something else was on the bus
+        Mismatch,  // a write was read back with another value than expected
+        Error,     // port closed, or write error
     };
 
     // the stream to talk through, and the functions that open and close its serial port
@@ -48,21 +48,21 @@ public:
     void close();
 
     // Read the 8 bytes at addr into data (zeroed on failure)
-    // up to 4 attempts, the port is reopened before each new attempt; an Error is not retried
+    // up to 4 attempts
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
     // Read the word (little endian) at addr into value (unchanged on failure), as read
     Result readWord(uint16_t addr, uint16_t &value);
 
     // Write 1 byte at addr, then read it back: Mismatch if it is not expected
     // (expected differs from value for registers the stove changes at once, e.g. a command it clears once run)
-    // up to 2 attempts, any error is retried (each attempt includes its read-back)
+    // up to 2 attempts (each attempt includes its read-back)
     Result writeByte(uint16_t addr, uint8_t value, uint8_t expected);
     // Write the word (little endian) at addr, as low byte at addr then high byte at addr + 1, then read it back: Mismatch if it differs
-    // up to 2 attempts, any error is retried (each attempt includes its read-back)
+    // up to 2 attempts (each attempt includes its read-back)
     Result writeWord(uint16_t addr, uint16_t value);
 
     // Set the stove date and time (weekDay: 1 = Monday .. 7 = Sunday)
-    // up to 3 attempts, any error is retried
+    // up to 3 attempts
     Result setDateTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t weekDay, uint8_t day, uint8_t month, uint8_t yearSince2000);
 
     LoopBack loopBack() const { return m_loopBack; }
@@ -75,11 +75,10 @@ private:
 
     void reopen();
 
-    // The retry policy: run op up to attempts times until it gives Ok
-    //  - reopenBetween: close and reopen the port before each new attempt
-    //  - stopOnError: stop at once on an Error (port closed, write error), retry only the bus errors
+    // The retry policy: run op up to attempts times until it gives Ok, whatever the error,
+    // the port is closed and reopened before each new attempt
     template <typename Op>
-    Result retry(uint8_t attempts, bool reopenBetween, bool stopOnError, Op op);
+    Result retry(uint8_t attempts, Op op);
 
     // One exchange with the stove: wait for a Poll, send the Request (Read, Write or SetDateTime),
     // then if response is given, read the stove Response into it
