@@ -403,8 +403,6 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
 // (part of fumisWaitRequest in original, used when the state was 4)
 Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
 {
-    rxAligned = false;
-
     unsigned long startTime = millis(); // var_10 (instead of time())
     uint8_t bufPosition = 0;
     bzero(frame, FRAME_SIZE);
