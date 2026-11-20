@@ -5,7 +5,7 @@ It reads status, temperatures, setpoint, fan speeds, counters, etc. and can powe
 
 ## Usage
 
-The application gives a `Stream` connected to the stove bus (38400 8N1) and two board specific functions: one that opens the serial port (pins, UART swap...) and one that closes it (drive TX HIGH so the stove bus is not blocked).  
+The application opens the serial port connected to the stove bus at `Palazzetti::BAUDRATE` (38400), 8N1, with its own pins, then gives it to the library as a `Stream`.  
 The library does the rest: it waits for the stove Poll, sends the request and reads the response, with retries.
 
 ```cpp
@@ -13,23 +13,13 @@ The library does the rest: it waits for the stove Poll, sends the request and re
 
 Palazzetti myPala;
 
-// ESP8266: Serial is used for the stove, on its alternative pins
-void myOpenSerial(uint32_t baudrate)
-{
-    Serial.begin(baudrate);
-    Serial.pins(15, 13); // TX on GPIO15 (D8), RX on GPIO13 (D7)
-}
-
-void myCloseSerial()
-{
-    Serial.end();
-    pinMode(15, OUTPUT);
-    digitalWrite(15, HIGH); // keep TX HIGH to avoid blocking the stove bus
-}
-
 void setup()
 {
-    if (myPala.initialize(Serial, myOpenSerial, myCloseSerial) == Palazzetti::CommandResult::OK)
+    // ESP8266: Serial is used for the stove, on its alternative pins
+    Serial.begin(Palazzetti::BAUDRATE);
+    Serial.pins(15, 13); // TX on GPIO15 (D8), RX on GPIO13 (D7)
+
+    if (myPala.initialize(Serial) == Palazzetti::CommandResult::OK)
     {
         Palazzetti::StatusData status;
         myPala.getStatus(status);

@@ -6,25 +6,15 @@
 
 Palazzetti myPala;
 
-// Open and close the serial port connected to the stove (the library does the rest through the stream)
-void myOpenSerial(uint32_t baudrate)
-{
-    Serial2.begin(baudrate, SERIAL_8N1, 23, 5); // set ESP32 pins to match hat position (IO23(RX)/IO5(TX))
-}
-void myCloseSerial()
-{
-    Serial2.end();
-    // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
-    pinMode(5, OUTPUT);
-    digitalWrite(5, HIGH);
-}
-
 void setup()
 {
     Serial.begin(38400);
     Serial.println("Serial started");
 
-    if (myPala.initialize(Serial2, myOpenSerial, myCloseSerial) == Palazzetti::CommandResult::OK)
+    // open the serial port connected to the stove, the library does the rest through the stream
+    Serial2.begin(Palazzetti::BAUDRATE, SERIAL_8N1, 23, 5); // set ESP32 pins to match hat position (IO23(RX)/IO5(TX))
+
+    if (myPala.initialize(Serial2) == Palazzetti::CommandResult::OK)
         Serial.println("initialize OK");
     else
         Serial.println("initialize Failed");

@@ -1598,33 +1598,26 @@ Palazzetti::CommandResult Palazzetti::initialize()
     // (original: iChkMBType, which chose between a Micronova and a Fumis motherboard (_MBTYPE),
     //  and iInit, which only sized the static data buffers: see paramsBufferSize and hparamsBufferSize)
 
-    // open the serial port
-    m_link.open();
+    // (original: opened the serial port here, and closed it on failure: now opened once by the application)
 
     // check the stove answers by reading its STATUS (any failure gives ERROR, as in original)
     // this is also the first exchange, so the loopback is detected on 0x201C,
     // an address where the Response cannot look like the echo of the Request (see FumisLink::exchange)
     if (iGetStatusAtech() != CommandResult::OK)
-    {
-        m_link.close();
         return CommandResult::ERROR;
-    }
 
     // read the static data (serial number, firmware, parameters, configuration, limits)
     CommandResult cmdRes = iUpdateStaticData();
     if (cmdRes != CommandResult::OK)
-    {
-        m_link.close();
         return cmdRes;
-    }
 
     _isInitialized = true;
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(Stream &port, OpenSerialFn open, CloseSerialFn close)
+Palazzetti::CommandResult Palazzetti::initialize(Stream &port)
 {
-    m_link.setSerial(port, open, close);
+    m_link.setSerial(port);
     return initialize();
 }
 

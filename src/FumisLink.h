@@ -11,9 +11,8 @@
 class FumisLink
 {
 public:
-    // board specific: open the port at baudrate 8N1 (pins, UART swap...), close it (drive TX HIGH so the stove bus is not blocked)
-    using OpenFn = std::function<void(uint32_t baudrate)>;
-    using CloseFn = std::function<void()>;
+    // the port must be opened by the application at BAUDRATE, 8N1
+    static constexpr uint32_t BAUDRATE = 38400;
 
     // RX receives back what TX sends: Yes (V1 board) or No (V2 board), Unknown until the first successful Read
     enum class LoopBack : uint8_t
@@ -31,14 +30,12 @@ public:
         BadFrame,  // Response with a wrong type or checksum
         Collision, // V1 board: the echo differs from the Request, something else was on the bus
         Mismatch,  // a write read back with another value than expected
-        Error,     // port closed, or the Request could not be written to the stream
+        Error,     // the Request could not be written to the stream
     };
 
-    void setSerial(Stream &port, OpenFn open, CloseFn close);
-    bool hasSerial() const { return m_port && m_open && m_close; }
-
-    void open();
-    void close();
+    // the stream connected to the stove bus, already opened
+    void setSerial(Stream &port) { m_port = &port; }
+    bool hasSerial() const { return m_port != nullptr; }
 
     // Read the 8 bytes at addr (zeroed on failure), up to 3 attempts
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
@@ -59,7 +56,6 @@ public:
     LoopBack loopBack() const { return m_loopBack; }
 
 private:
-    static constexpr uint32_t BAUDRATE = 38400;
     // frame time limits (original: 3000ms for every frame in var_10, checked after each select of 2300ms, myData.4216 + myData.4220)
     // NOTE : the longest measured "select" is ~35ms
     // Poll: the stove sends one at least every ~67ms
@@ -81,13 +77,11 @@ private:
     void discardInput();
 
     Stream *m_port = nullptr;
-    OpenFn m_open;
-    CloseFn m_close;
     LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes, myData.4180)
-    // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" was tested)
-    //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received
-    //   the steps 1..5 are now the order of the code in exchange, waitPoll and readResponse
-    bool portOpen = false;
+    // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" was tested): not reproduced
+    //   0 closed: the port is opened once by the application and never closed
+    //   1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received:
+    //   now the order of the code in exchange, waitPoll and readResponse
     // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
     bool rxAligned = false;           // (not in original) a valid Response was just read: the next RX byte starts a stove frame
     unsigned long lastResponseMs = 0; // (not in original) millis() of that Response

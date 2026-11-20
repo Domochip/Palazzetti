@@ -1,38 +1,15 @@
 #include "FumisLink.h"
 
 // The original SERIALCOM_* layer and the frame and retry parts of the fumis* functions:
-//  - SERIALCOM_OpenComport, SERIALCOM_CloseComport: the open and close functions given by the application
-//    (open: always 8 data bits and 1 stop bit)
+//  - SERIALCOM_OpenComport, SERIALCOM_CloseComport, fumisOpenSerial, fumisCloseSerial: not reproduced,
+//    the application opens the port once at BAUDRATE, 8N1, and it is never closed
+//    (original: serialPortModel 1 also flushed the port when opening it)
 //  - SERIALCOM_Flush: discardInput
 //  - SERIALCOM_ReceiveBuf: readBytes
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of exchange
-//  - fumisOpenSerial, fumisCloseSerial: open, close
 //  - fumisWaitRequest: waitPoll and readResponse
 //  - fumisComRead (without and with wordMode): readByte, readWord
 //  - the retry loops of fumisComReadBuff, fumisComWrite and fumisComSetDateTime: read, writeByte/writeWord and setDateTime, with retry
-
-void FumisLink::setSerial(Stream &port, OpenFn open, CloseFn close)
-{
-    m_port = &port;
-    m_open = open;
-    m_close = close;
-}
-
-// (original: fumisOpenSerial, serialPortModel 1 also flushed the port here)
-void FumisLink::open()
-{
-    m_open(BAUDRATE);
-    portOpen = true;
-    rxAligned = false;
-}
-
-// (original: fumisCloseSerial)
-void FumisLink::close()
-{
-    m_close();
-    portOpen = false;
-    rxAligned = false;
-}
 
 // Run op up to attempts times until it gives Ok, on the same port (waitPoll discards the stale RX bytes)
 // (original: three different loops: Read closed, flushed and reopened the port and retried only the communication errors,
@@ -132,12 +109,9 @@ FumisLink::Result FumisLink::setDateTime(uint8_t second, uint8_t minute, uint8_t
 }
 
 // One exchange: wait for a Poll, send the Request, then read the Response into response if given
-// (not a separate function in original; the port was checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
+// (not a separate function in original; fumisComReadBuff, fumisComWrite and fumisComSetDateTime also checked the port was open)
 FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *response)
 {
-    if (!portOpen)
-        return Result::Error;
-
     // (original: skipped when _MBTYPE == 1, which this library never sets)
     Result res = waitPoll();
     if (res != Result::Ok)

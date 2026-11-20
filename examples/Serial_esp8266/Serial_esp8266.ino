@@ -6,26 +6,16 @@ SoftwareSerial swSer(D1, D4); // SoftwareSerial is used for log (Serial is used 
 
 Palazzetti myPala;
 
-// Open and close the serial port connected to the stove (the library does the rest through the stream)
-void myOpenSerial(uint32_t baudrate)
-{
-    Serial.begin(baudrate);
-    Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
-}
-void myCloseSerial()
-{
-    Serial.end();
-    // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
-    pinMode(15, OUTPUT);
-    digitalWrite(15, HIGH);
-}
-
 void setup()
 {
     swSer.begin(38400);
     swSer.println("swSer started");
 
-    if (myPala.initialize(Serial, myOpenSerial, myCloseSerial) == Palazzetti::CommandResult::OK)
+    // open the serial port connected to the stove, the library does the rest through the stream
+    Serial.begin(Palazzetti::BAUDRATE);
+    Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
+
+    if (myPala.initialize(Serial) == Palazzetti::CommandResult::OK)
         swSer.println("initialize OK");
     else
         swSer.println("initialize Failed");

@@ -19,9 +19,8 @@ public:
         OK                   // = 0
     };
 
-    // the serial port functions and the loopback state are defined by FumisLink (the serial layer)
-    using OpenSerialFn = FumisLink::OpenFn;
-    using CloseSerialFn = FumisLink::CloseFn;
+    // the speed of the stove bus (8N1) and the loopback state are defined by FumisLink (the serial layer)
+    static constexpr uint32_t BAUDRATE = FumisLink::BAUDRATE;
     using LoopBack = FumisLink::LoopBack;
 
 private:
@@ -449,10 +448,8 @@ public:
     };
 
     CommandResult initialize();
-    // port: the stream connected to the stove bus
-    // open: opens its serial port at the given baudrate, 8N1 (pins, UART swap...)
-    // close: closes it (drive TX HIGH so the stove bus is not blocked)
-    CommandResult initialize(Stream &port, OpenSerialFn open, CloseSerialFn close);
+    // port: the stream connected to the stove bus, already opened by the application at BAUDRATE, 8N1
+    CommandResult initialize(Stream &port);
     bool isInitialized() { return _isInitialized; };
     LoopBack getLoopBack() { return m_link.loopBack(); };
 
