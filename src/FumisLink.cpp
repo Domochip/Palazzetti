@@ -67,7 +67,7 @@ FumisLink::Result FumisLink::retry(uint8_t attempts, Op op)
     return res;
 }
 
-// (original: fumisComReadBuff, 4 attempts in local_2c)
+// (original: fumisComReadBuff, 4 attempts in local_2c, now 3)
 FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE])
 {
     memset(data, 0, FumisFrame::DATA_SIZE);
@@ -75,7 +75,7 @@ FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DAT
     FumisFrame request = FumisFrame::read(addr);
     FumisFrame response; // var_28
 
-    Result res = retry(4, [&]()
+    Result res = retry(3, [&]()
                        { return exchange(request, &response); });
     if (res == Result::Ok)
         memcpy(data, response.data(), FumisFrame::DATA_SIZE);

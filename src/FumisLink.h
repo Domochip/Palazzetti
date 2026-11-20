@@ -48,7 +48,7 @@ public:
     void close();
 
     // Read the 8 bytes at addr into data (zeroed on failure)
-    // up to 4 attempts
+    // up to 3 attempts
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
     // Read the word (little endian) at addr into value (unchanged on failure), as read
     Result readWord(uint16_t addr, uint16_t &value);
