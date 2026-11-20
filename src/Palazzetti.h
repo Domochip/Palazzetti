@@ -73,6 +73,8 @@ private:
         SetDateTime = 0x06, // box -> stove Request : set date and time
     };
     static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
+    // sum of bytes 0..9, the value expected in byte 10
+    static uint8_t frameChecksum(const uint8_t *frame);
     // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
     static bool hasValidChecksum(const uint8_t *frame);
     // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced fumisComStatus)

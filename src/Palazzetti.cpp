@@ -6,13 +6,17 @@
 //  - SERIALCOM_ReceiveBuf: fumisReceive
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of fumisExchange
 
-bool Palazzetti::hasValidChecksum(const uint8_t *frame)
+uint8_t Palazzetti::frameChecksum(const uint8_t *frame)
 {
-    uint8_t chk = 0; // var_10
+    uint8_t chk = 0; // var_10 (iChkSum)
     for (uint8_t i = 0; i < FRAME_CHECKSUM_POS; i++)
         chk += frame[i];
+    return chk;
+}
 
-    return chk == frame[FRAME_CHECKSUM_POS];
+bool Palazzetti::hasValidChecksum(const uint8_t *frame)
+{
+    return frameChecksum(frame) == frame[FRAME_CHECKSUM_POS];
 }
 
 void Palazzetti::buildFrame(uint8_t *frame, FrameType type, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7)
@@ -26,11 +30,7 @@ void Palazzetti::buildFrame(uint8_t *frame, FrameType type, uint8_t b1, uint8_t 
     frame[5] = b5;
     frame[6] = b6;
     frame[7] = b7;
-
-    uint8_t chk = 0;
-    for (uint8_t i = 0; i < FRAME_CHECKSUM_POS; i++)
-        chk += frame[i];
-    frame[FRAME_CHECKSUM_POS] = chk;
+    frame[FRAME_CHECKSUM_POS] = frameChecksum(frame);
 }
 
 int Palazzetti::isValidSerialNumber(char *SN)
