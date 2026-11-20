@@ -950,7 +950,7 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
         _SN[0] = 0;
         return cmdRes;
     }
-    if (buf[0] == -checkSum)
+    if (buf[0] == (uint8_t)-checkSum)
     {
         _SN[0] = 0;
         return CommandResult::ERROR;
