@@ -308,10 +308,11 @@ private:
     CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, int wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
+    CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);
     CommandResult fumisOpenSerial();
     CommandResult fumisReadResponse(uint8_t *frame);
     CommandResult fumisReopenSerial();
-    CommandResult fumisSendRequest(uint8_t *frame);
+    CommandResult fumisSendRequest(const uint8_t *frame);
     CommandResult fumisWaitPoll(uint8_t *frame);
 
     CommandResult iChkMBType();

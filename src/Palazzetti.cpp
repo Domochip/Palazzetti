@@ -184,9 +184,14 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
     if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
-    uint8_t var_28[32];
+    uint8_t readRequest[FRAME_SIZE];
+    buildFrame(readRequest, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
+
+    uint8_t var_28[FRAME_SIZE]; // Response
     CommandResult cmdRes;
 
+    // up to 4 attempts, the port is reopened before each new attempt
+    // only a COMMUNICATION_ERROR (timeout or invalid frame) is retried
     for (int i = 4; i > 0; i--)
     {
         if (i < 4)
@@ -198,28 +203,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
             m_serial.uSleep(1);
         }
 
-        if (_MBTYPE != 1)
-        {
-            cmdRes = fumisWaitPoll(var_28);
-            if (cmdRes != CommandResult::OK)
-            {
-                if (cmdRes == CommandResult::COMMUNICATION_ERROR)
-                    continue;
-                else
-                {
-                    // dword_433248 = cmdRes; // unused (sFumisComData.8)
-                    return cmdRes;
-                }
-            }
-        }
-
-        fumisComStatus = FumisComStatus::Polled;
-        buildFrame(var_28, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
-        cmdRes = fumisSendRequest(var_28);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-
-        cmdRes = fumisReadResponse(var_28);
+        cmdRes = fumisExchange(readRequest, var_28);
         if (cmdRes == CommandResult::OK)
         {
             memcpy(buf, var_28 + 1, count);
@@ -233,10 +217,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
         }
     }
 
-    if (cmdRes == CommandResult::OK)
-        memcpy(buf, var_28 + 1, count);
-    // else
-    //     dword_433248 = cmdRes; // unused (sFumisComData.8)
+    // dword_433248 = cmdRes; // unused (sFumisComData.8)
     return cmdRes;
 }
 
@@ -279,22 +260,18 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
     CommandResult cmdRes;    // local_88
     uint8_t buf[FRAME_SIZE]; // local_60
+    buildFrame(buf, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
 
+    // up to 3 attempts
     for (int i = 3; i > 0; i--) // i as local_6c
     {
         if (fumisComStatus == FumisComStatus::Closed)
             return CommandResult::ERROR;
 
-        cmdRes = fumisWaitPoll(buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            // dword_433248 = cmdRes; // unused (sFumisComData.8)
-            continue;
-        }
-        buildFrame(buf, FrameType::SetDateTime, second, minute, hour, weekDay, day, month, year - 2000);
-        cmdRes = fumisSendRequest(buf);
+        cmdRes = fumisExchange(buf);
         if (cmdRes == CommandResult::OK)
             break;
+        // dword_433248 = cmdRes; // unused (sFumisComData.8)
     }
 
     sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
@@ -308,52 +285,36 @@ Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16
     if (fumisComStatus == FumisComStatus::Closed)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes;    // var_38
-    uint8_t buf[FRAME_SIZE]; // var_2C
+    // a Write Request carries 1 byte: a word is written as low byte at addrToWrite then high byte at addrToWrite + 1
+    uint8_t lowRequest[FRAME_SIZE];  // var_2C
+    uint8_t highRequest[FRAME_SIZE]; // var_2C (second use)
+    buildFrame(lowRequest, FrameType::Write, addrToWrite & 0xFF, addrToWrite >> 8, data & 0xFF);
+    buildFrame(highRequest, FrameType::Write, (addrToWrite + 1) & 0xFF, (addrToWrite + 1) >> 8, data >> 8);
 
+    // Custom: a write is successful only if the read-back succeeds and matches (original was not checking this)
+    // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
+    uint16_t expected = wordMode ? data : ((addrToWrite == 0x2044) ? 0 : (data & 0xFF));
+
+    CommandResult cmdRes; // var_38
+
+    // up to 2 attempts
     for (int i = 2; i > 0; i--) // i as var_34
     {
-        cmdRes = fumisWaitPoll(buf);
+        cmdRes = fumisExchange(lowRequest);
+        if (cmdRes == CommandResult::OK && wordMode)
+            cmdRes = fumisExchange(highRequest);
         if (cmdRes != CommandResult::OK)
         {
             // dword_433248 = cmdRes; // unused (sFumisComData.8)
             continue;
         }
-        buildFrame(buf, FrameType::Write, addrToWrite & 0xFF, addrToWrite >> 8, data & 0xFF);
-        cmdRes = fumisSendRequest(buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-
-        if (!wordMode)
-        {
-            // Custom: a write is successful only if the read-back succeeds and matches (orignial was not checking this)
-            // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
-            uint16_t expected = (addrToWrite == 0x2044) ? 0 : (data & 0xFF);
-            uint16_t var_30 = 0;
-            CommandResult readRes = fumisComRead(addrToWrite, &var_30, 0);
-            if (readRes == CommandResult::OK && var_30 == expected)
-                return CommandResult::OK;
-            cmdRes = (readRes != CommandResult::OK) ? readRes : CommandResult::ERROR;
-            continue;
-        }
-
-        cmdRes = fumisWaitPoll(buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            // dword_433248 = cmdRes; // unused (sFumisComData.8)
-            return cmdRes;
-        }
-        buildFrame(buf, FrameType::Write, (addrToWrite + 1) & 0xFF, (addrToWrite + 1) >> 8, data >> 8);
-        cmdRes = fumisSendRequest(buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
 
         uint16_t var_30 = 0;
-        // NOTE (not in original): a write is successful only if the read-back succeeds and matches
-        CommandResult readRes = fumisComRead(addrToWrite, &var_30, 1);
-        if (readRes == CommandResult::OK && var_30 == data)
-            return CommandResult::OK;
-        cmdRes = (readRes != CommandResult::OK) ? readRes : CommandResult::ERROR;
+        cmdRes = fumisComRead(addrToWrite, &var_30, wordMode);
+        if (cmdRes == CommandResult::OK && var_30 != expected)
+            cmdRes = CommandResult::ERROR;
+        if (cmdRes == CommandResult::OK)
+            return cmdRes;
     }
     return cmdRes;
 }
@@ -390,21 +351,40 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 }
 
 // Send one Request frame (Read, Write or SetDateTime), only allowed right after a stove Poll
-Palazzetti::CommandResult Palazzetti::fumisSendRequest(uint8_t *frame)
+Palazzetti::CommandResult Palazzetti::fumisSendRequest(const uint8_t *frame)
 {
     if (fumisComStatus != FumisComStatus::Polled)
         return CommandResult::ERROR;
 
-    int totalSentBytes = 0; // var_18
-    int sentBytes = 0;      // dummy value for firstrun
-    while (totalSentBytes < FRAME_SIZE && sentBytes != -1)
+    // SERIALCOM_SendBuf sends the whole frame or fails (original looped on partial sends)
+    if (SERIALCOM_SendBuf(frame, FRAME_SIZE) < 0)
     {
-        sentBytes = SERIALCOM_SendBuf(frame + totalSentBytes, FRAME_SIZE - totalSentBytes);
-        totalSentBytes += sentBytes;
+        // dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
+        return CommandResult::ERROR;
     }
-    // if (sentBytes < 0)
-    //     dword_433248 = CommandResult::ERROR; // unused (sFumisComData.8)
-    return (sentBytes >= 0) ? CommandResult::OK : CommandResult::ERROR;
+    return CommandResult::OK;
+}
+
+// One exchange with the stove (not a separate function in original):
+// wait for a stove Poll, send the Request, then if response is given, read the stove Response into it
+Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint8_t *response)
+{
+    CommandResult cmdRes;
+
+    if (_MBTYPE != 1) // from original fumisComReadBuff (_MBTYPE is never 1 in this library)
+    {
+        uint8_t poll[FRAME_SIZE];
+        cmdRes = fumisWaitPoll(poll);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+    }
+    fumisComStatus = FumisComStatus::Polled;
+
+    cmdRes = fumisSendRequest(request);
+    if (cmdRes != CommandResult::OK || !response)
+        return cmdRes;
+
+    return fumisReadResponse(response);
 }
 
 // Close and reopen the port after a read error (not a separate function in original)
