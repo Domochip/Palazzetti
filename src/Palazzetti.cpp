@@ -92,9 +92,6 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, void
 
     bzero(buf, count);
 
-    if (fumisComStatus == FumisComStatus::Closed)
-        return CommandResult::ERROR;
-
     uint8_t readRequest[FRAME_SIZE];
     buildFrame(readRequest, FrameType::Read, addrToRead & 0xFF, addrToRead >> 8);
 
@@ -184,9 +181,6 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     // up to 3 attempts
     for (int i = 3; i > 0; i--) // i as local_6c
     {
-        if (fumisComStatus == FumisComStatus::Closed)
-            return CommandResult::ERROR;
-
         cmdRes = fumisExchange(request);
         if (cmdRes == CommandResult::OK)
             break;
@@ -201,9 +195,6 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 
 Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode)
 {
-    if (fumisComStatus == FumisComStatus::Closed)
-        return CommandResult::ERROR;
-
     // a Write Request carries 1 byte: a word is written as low byte at addrToWrite then high byte at addrToWrite + 1
     uint8_t lowRequest[FRAME_SIZE];  // var_2C
     uint8_t highRequest[FRAME_SIZE]; // var_2C (second use)
@@ -271,8 +262,12 @@ Palazzetti::CommandResult Palazzetti::fumisOpenSerial()
 
 // One exchange with the stove (not a separate function in original):
 // wait for a stove Poll, send the Request (Read, Write or SetDateTime), then if response is given, read the stove Response into it
+// returns ERROR if the port is closed (original: checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
 Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint8_t *response)
 {
+    if (fumisComStatus == FumisComStatus::Closed)
+        return CommandResult::ERROR;
+
     if (_MBTYPE != 1) // from original fumisComReadBuff (_MBTYPE is never 1 in this library)
     {
         uint8_t poll[FRAME_SIZE];
