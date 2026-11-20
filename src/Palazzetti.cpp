@@ -278,27 +278,43 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
     }
     m_serial.drain();
 
-    // loopBack: RX receives back what was just sent, read it to discard it
-    // (original: also tested _MBTYPE == 0, always true here)
-    if (m_loopBack)
+    // loopBack (V1 board): RX receives back what was just sent, read it and check it is our Request
+    // (original: read it without checking, only when comPortNumber == 0)
+    if (m_loopBack == LoopBack::Yes)
     {
         uint8_t echo[FRAME_SIZE];
-        size_t totalBytesRead = 0;
-        while (totalBytesRead < FRAME_SIZE)
-        {
-            if (m_serial.select(selectSerialTimeoutMs) <= 0)
-                return CommandResult::ERROR;
-            ssize_t bytesRead = m_serial.read(echo + totalBytesRead, FRAME_SIZE - totalBytesRead);
-            if (bytesRead < 0)
-                return CommandResult::ERROR;
-            totalBytesRead += bytesRead;
-        }
+        cmdRes = fumisReadFrame(echo);
+        if (cmdRes != CommandResult::OK)
+            return cmdRes;
+        if (memcmp(echo, request, FRAME_SIZE) != 0)
+            return CommandResult::COMMUNICATION_ERROR; // (not in original) echo differs: collision on the bus
     }
 
     if (!response)
         return CommandResult::OK;
 
-    return fumisReadResponse(response);
+    if (m_loopBack != LoopBack::Unknown)
+        return fumisReadResponse(response);
+
+    // (not in original) loopBack detection, on the first successful Read:
+    // the first frame received after the Request is either its echo (V1 board) or the stove Response (V2 board)
+    // a Response cannot be identical to the Request in practice (for 0x201C read first, it would need STATUS 28 among others)
+    cmdRes = fumisReadFrame(response);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+
+    if (memcmp(response, request, FRAME_SIZE) == 0)
+    {
+        cmdRes = fumisReadResponse(response);
+        if (cmdRes == CommandResult::OK)
+            m_loopBack = LoopBack::Yes;
+        return cmdRes;
+    }
+
+    cmdRes = fumisAcceptResponse(response);
+    if (cmdRes == CommandResult::OK)
+        m_loopBack = LoopBack::No;
+    return cmdRes;
 }
 
 // Receive the next bytes of the frame being read into frame[bufPosition..FRAME_SIZE-1]
@@ -388,9 +404,8 @@ Palazzetti::CommandResult Palazzetti::fumisWaitPoll()
     }
 }
 
-// Read the stove Response frame, which starts right after the Read Request sent by the box
-// (part of fumisWaitRequest in original, used when the state was 4)
-Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
+// Read the next FRAME_SIZE bytes, whatever they are (Response, or echo of the Request on the V1 board)
+Palazzetti::CommandResult Palazzetti::fumisReadFrame(uint8_t *frame)
 {
     unsigned long startTime = millis(); // var_10 (instead of time())
     uint8_t bufPosition = 0;
@@ -402,7 +417,12 @@ Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
         if (cmdRes != CommandResult::OK)
             return cmdRes;
     }
+    return CommandResult::OK;
+}
 
+// Check that a frame just read is a valid stove Response
+Palazzetti::CommandResult Palazzetti::fumisAcceptResponse(const uint8_t *frame)
+{
     if (!isValidFrame(frame, FrameType::Response))
         return CommandResult::COMMUNICATION_ERROR;
 
@@ -410,6 +430,16 @@ Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
     rxAligned = true;
     lastResponseMs = millis();
     return CommandResult::OK;
+}
+
+// Read the stove Response frame, which starts right after the Read Request sent by the box (or after its echo)
+// (part of fumisWaitRequest in original, used when the state was 4)
+Palazzetti::CommandResult Palazzetti::fumisReadResponse(uint8_t *frame)
+{
+    CommandResult cmdRes = fumisReadFrame(frame);
+    if (cmdRes != CommandResult::OK)
+        return cmdRes;
+    return fumisAcceptResponse(frame);
 }
 
 Palazzetti::CommandResult Palazzetti::iChkMBType()
@@ -1949,10 +1979,18 @@ Palazzetti::CommandResult Palazzetti::initialize()
     return CommandResult::OK;
 }
 
+Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial)
+{
+    m_serial = serial;
+    if (!_isInitialized)
+        m_loopBack = LoopBack::Unknown; // detected on the first exchange (kept if already known: the wiring does not change)
+    return initialize();
+}
+
 Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack)
 {
     m_serial = serial;
-    m_loopBack = loopBack;
+    m_loopBack = loopBack ? LoopBack::Yes : LoopBack::No;
     return initialize();
 }
 

@@ -47,6 +47,15 @@ public:
         USleepFn uSleep;
     };
 
+    // RX receives back what TX sends (V1 board): Yes, or not (V2 board): No
+    // Unknown until the first successful Read decides it (see fumisExchange)
+    enum class LoopBack : uint8_t
+    {
+        Unknown,
+        Yes,
+        No
+    };
+
 private:
     // Fumis bus: 38400 8N1, fixed size frames, half-duplex polled bus: the stove is the master
     //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
@@ -111,7 +120,7 @@ private:
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
     // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    bool m_loopBack = true; // (original: comPortNumber == 0) RX receives back what TX sends (V1 board)
+    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes) forced by initialize(serial, loopBack) or detected
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
@@ -304,6 +313,8 @@ private:
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);
     CommandResult fumisOpenSerial();
+    CommandResult fumisAcceptResponse(const uint8_t *frame);
+    CommandResult fumisReadFrame(uint8_t *frame);
     CommandResult fumisReadResponse(uint8_t *frame);
     CommandResult fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime);
     CommandResult fumisReopenSerial();
@@ -521,8 +532,12 @@ public:
     };
 
     CommandResult initialize();
+    // loopBack is detected on the first exchange with the stove
+    CommandResult initialize(SerialAdapter serial);
+    // loopBack is forced
     CommandResult initialize(SerialAdapter serial, bool loopBack);
     bool isInitialized() { return _isInitialized; };
+    LoopBack getLoopBack() { return m_loopBack; };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     CommandResult getAllParameters(uint8_t (*params)[0x6A]);
