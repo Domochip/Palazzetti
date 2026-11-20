@@ -296,7 +296,7 @@ Palazzetti::CommandResult Palazzetti::fumisExchange(const uint8_t *request, uint
         {
             if (m_serial.select(selectSerialTimeoutMs) <= 0)
                 return CommandResult::ERROR;
-            ssize_t bytesRead = m_serial.read(echo, FRAME_SIZE - totalBytesRead);
+            ssize_t bytesRead = m_serial.read(echo + totalBytesRead, FRAME_SIZE - totalBytesRead);
             if (bytesRead < 0)
                 return CommandResult::ERROR;
             totalBytesRead += bytesRead;
