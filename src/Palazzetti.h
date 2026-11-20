@@ -82,6 +82,11 @@ private:
     // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
     static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
 
+    // true if the date and time can be sent in a SetDateTime frame (years 2000..2099, real calendar date)
+    static bool isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
+    // day of the week of a valid date: 1 = Monday .. 7 = Sunday
+    static uint8_t isoWeekDay(uint16_t year, uint8_t month, uint8_t day);
+
     uint16_t wAddrFeederActiveTime = 0;
     // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" is still tested)
     //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received

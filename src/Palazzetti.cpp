@@ -33,6 +33,33 @@ void Palazzetti::buildFrame(uint8_t *frame, FrameType type, uint8_t b1, uint8_t 
     frame[FRAME_CHECKSUM_POS] = frameChecksum(frame);
 }
 
+bool Palazzetti::isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
+{
+    // basic control
+    if (year < 2000 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59)
+        return false;
+    // 30 days month control
+    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
+        return false;
+    // February leap year control
+    if (month == 2 && day > 29)
+        return false;
+    // February not leap year control
+    if (month == 2 && day == 29 && !(((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
+        return false;
+    return true;
+}
+
+uint8_t Palazzetti::isoWeekDay(uint16_t year, uint8_t month, uint8_t day)
+{
+    // Tomohiko Sakamoto's Algorithm (0 = Sunday), then Sunday is turned into 7
+    static const uint8_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    if (month < 3)
+        year -= 1;
+    uint8_t weekDay = (year + year / 4 - year / 100 + year / 400 + t[month - 1] + day) % 7;
+    return weekDay ? weekDay : 7;
+}
+
 int Palazzetti::isValidSerialNumber(char *SN)
 {
     if (!SN)
@@ -148,28 +175,10 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
 {
     // The content of this function does not match strictly the original one
 
-    // Check if date is valid
-    // basic control
-    if (year < 2000 || year > 2099 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59)
-        return CommandResult::ERROR;
-    // 30 days month control
-    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30)
-        return CommandResult::ERROR;
-    // February leap year control
-    if (month == 2 && day > 29)
-        return CommandResult::ERROR;
-    // February not leap year control
-    if (month == 2 && day == 29 && !(((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
+    if (!isValidDateTime(year, month, day, hour, minute, second))
         return CommandResult::ERROR;
 
-    // weekDay calculation (Tomohiko Sakamoto’s Algorithm)
-    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
-    uint16_t calcYear = year;
-    if (month < 3)
-        calcYear -= 1;
-    uint8_t weekDay = (calcYear + calcYear / 4 - calcYear / 100 + calcYear / 400 + t[month - 1] + day) % 7;
-    if (weekDay == 0)
-        weekDay = 7;
+    uint8_t weekDay = isoWeekDay(year, month, day);
 
     CommandResult cmdRes;        // local_88
     uint8_t request[FRAME_SIZE]; // local_60
