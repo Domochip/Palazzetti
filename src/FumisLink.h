@@ -32,8 +32,10 @@ public:
     enum class Result : uint8_t
     {
         Ok,
-        CommunicationError, // timeout, invalid frame or echo mismatch: worth retrying
-        Error,              // port closed, or write error
+        Timeout,   // the expected frame (Poll, echo or Response) is not complete 250ms after the start: worth retrying
+        BadFrame,  // the Response has a wrong type or checksum: worth retrying
+        Collision, // V1 board: the echo differs from the Request sent, something else was on the bus: worth retrying
+        Error,     // port closed, or write error: not retried
     };
 
     // the stream to talk through, and the functions that open and close its serial port
@@ -45,7 +47,7 @@ public:
     void close();
 
     // Read the 8 bytes at addr into data (zeroed on failure)
-    // up to 4 attempts, the port is reopened before each new attempt; only a CommunicationError is retried
+    // up to 4 attempts, the port is reopened before each new attempt; an Error is not retried
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
 
     // Write 1 byte at addr, one attempt
@@ -68,9 +70,9 @@ private:
 
     // The retry policy: run op up to attempts times until it gives Ok
     //  - reopenBetween: close and reopen the port before each new attempt
-    //  - onlyCommunicationError: stop at once on any other error
+    //  - stopOnError: stop at once on an Error (port closed, write error), retry only the bus errors
     template <typename Op>
-    Result retry(uint8_t attempts, bool reopenBetween, bool onlyCommunicationError, Op op);
+    Result retry(uint8_t attempts, bool reopenBetween, bool stopOnError, Op op);
 
     // One exchange with the stove: wait for a Poll, send the Request (Read, Write or SetDateTime),
     // then if response is given, read the stove Response into it
@@ -79,7 +81,7 @@ private:
     Result acceptResponse(const FumisFrame &frame);
     Result readFrame(FumisFrame &frame);
     Result readResponse(FumisFrame &frame);
-    Result receive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime);
+    Result readBytes(uint8_t *dst, uint8_t count, unsigned long startTime);
     Result waitPoll();
 
     // stream helpers (original: the select, read, drain and flush calls of the SERIALCOM_* layer)
