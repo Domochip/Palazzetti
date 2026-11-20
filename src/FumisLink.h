@@ -50,6 +50,9 @@ public:
     // Read the 8 bytes at addr into data (zeroed on failure)
     // up to 3 attempts
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
+    // Read the byte at addr into value (0..255, unchanged on failure), as read
+    // (value is a uint16_t like the one of readWord, to suit the uint16_t variables of Palazzetti)
+    Result readByte(uint16_t addr, uint16_t &value);
     // Read the word (little endian) at addr into value (unchanged on failure), as read
     Result readWord(uint16_t addr, uint16_t &value);
 

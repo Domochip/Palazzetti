@@ -82,6 +82,16 @@ FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DAT
     return res;
 }
 
+// (original: fumisComRead without wordMode: the same Read as for a word, only the low byte is kept)
+FumisLink::Result FumisLink::readByte(uint16_t addr, uint16_t &value)
+{
+    uint8_t data[FumisFrame::DATA_SIZE];
+    Result res = read(addr, data);
+    if (res == Result::Ok)
+        value = data[0];
+    return res;
+}
+
 // (original: fumisComRead with wordMode, var_10)
 FumisLink::Result FumisLink::readWord(uint16_t addr, uint16_t &value)
 {

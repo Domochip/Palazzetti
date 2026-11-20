@@ -92,15 +92,11 @@ Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, uint
     return fumisResult(m_link.read(addrToRead, buf));
 }
 
-// fumisComReadByte and fumisComReadWord read the first 1 or 2 bytes of the Response (little endian)
-// (original: both called fumisComRead(addr, data, wordMode), now removed)
-// the same Read is sent in both cases, so fumisComReadByte keeps only the low byte of the word
+// fumisComReadByte and fumisComReadWord read the first 1 or 2 bytes of the Response (little endian), data is unchanged on failure
+// (original: both called fumisComRead(addr, data, wordMode), now FumisLink::readByte and readWord)
 Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint16_t *data)
 {
-    CommandResult cmdRes = fumisComReadWord(addrToRead, data);
-    if (cmdRes == CommandResult::OK)
-        *data &= 0xFF;
-    return cmdRes;
+    return fumisResult(m_link.readByte(addrToRead, *data));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
