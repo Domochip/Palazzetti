@@ -1,7 +1,7 @@
 #include "Palazzetti.h"
 
 // The original SERIALCOM_* layer, the frame part of the fumis* functions and the retries of Read and SetDateTime are in FumisLink (serial layer)
-// the fumisCom* functions below add what the values mean: byte/word, date checks, write read-back
+// the fumisCom* functions below add what the values mean: date checks, the value expected back after a write
 
 // FumisLink results as CommandResult: the bus errors (Timeout, BadFrame, Collision) are COMMUNICATION_ERROR
 Palazzetti::CommandResult Palazzetti::fumisResult(FumisLink::Result res)
@@ -11,6 +11,7 @@ Palazzetti::CommandResult Palazzetti::fumisResult(FumisLink::Result res)
     case FumisLink::Result::Ok:
         return CommandResult::OK;
     case FumisLink::Result::Error:
+    case FumisLink::Result::Mismatch:
         return CommandResult::ERROR;
     default:
         return CommandResult::COMMUNICATION_ERROR;
@@ -106,11 +107,7 @@ Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint
 
 Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
 {
-    uint8_t responseData[FumisFrame::DATA_SIZE]; // var_10 (fumisComRead)
-    CommandResult cmdRes = fumisComReadBuff(addrToRead, responseData);
-    if (cmdRes == CommandResult::OK)
-        *data = responseData[0] | (responseData[1] << 8);
-    return cmdRes;
+    return fumisResult(m_link.readWord(addrToRead, *data));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
@@ -132,43 +129,17 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     return cmdRes;
 }
 
-Palazzetti::CommandResult Palazzetti::fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode)
-{
-    // a Write Request carries 1 byte: a word is written as low byte at addrToWrite then high byte at addrToWrite + 1
-
-    // Custom: a write is successful only if the read-back succeeds and matches (original was not checking this)
-    // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
-    uint16_t expected = wordMode ? data : ((addrToWrite == 0x2044) ? 0 : (data & 0xFF));
-
-    CommandResult cmdRes; // var_38
-
-    // up to 2 attempts, each with its read-back (so this retry stays here, not in FumisLink)
-    for (int attempt = 0; attempt < 2; attempt++) // var_34 (original: counted down from 2)
-    {
-        cmdRes = fumisResult(m_link.write(addrToWrite, data & 0xFF));
-        if (cmdRes == CommandResult::OK && wordMode)
-            cmdRes = fumisResult(m_link.write(addrToWrite + 1, data >> 8));
-        if (cmdRes != CommandResult::OK)
-            continue;
-
-        uint16_t readBack = 0; // var_30
-        cmdRes = wordMode ? fumisComReadWord(addrToWrite, &readBack) : fumisComReadByte(addrToWrite, &readBack);
-        if (cmdRes == CommandResult::OK && readBack != expected)
-            cmdRes = CommandResult::ERROR;
-        if (cmdRes == CommandResult::OK)
-            return cmdRes;
-    }
-    return cmdRes;
-}
-
+// (original: fumisComWrite, now FumisLink::writeByte and writeWord with their read-back and retries)
 Palazzetti::CommandResult Palazzetti::fumisComWriteByte(uint16_t addrToWrite, uint16_t data)
 {
-    return fumisComWrite(addrToWrite, data, false);
+    // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
+    uint8_t expected = (addrToWrite == 0x2044) ? 0 : (data & 0xFF);
+    return fumisResult(m_link.writeByte(addrToWrite, data & 0xFF, expected));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
 {
-    return fumisComWrite(addrToWrite, data, true);
+    return fumisResult(m_link.writeWord(addrToWrite, data));
 }
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)

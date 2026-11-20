@@ -35,7 +35,8 @@ public:
         Timeout,   // the expected frame (Poll, echo or Response) is not complete 250ms after the start: worth retrying
         BadFrame,  // the Response has a wrong type or checksum: worth retrying
         Collision, // V1 board: the echo differs from the Request sent, something else was on the bus: worth retrying
-        Error,     // port closed, or write error: not retried
+        Mismatch,  // a write was read back with another value than expected: worth retrying
+        Error,     // port closed, or write error: read stops at once (setDateTime retries it, as in original)
     };
 
     // the stream to talk through, and the functions that open and close its serial port
@@ -49,10 +50,16 @@ public:
     // Read the 8 bytes at addr into data (zeroed on failure)
     // up to 4 attempts, the port is reopened before each new attempt; an Error is not retried
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
+    // Read the word (little endian) at addr into value (unchanged on failure), as read
+    Result readWord(uint16_t addr, uint16_t &value);
 
-    // Write 1 byte at addr, one attempt
-    // (the retry belongs to the caller: it covers the read-back check, which is about what the stove does with the value)
-    Result write(uint16_t addr, uint8_t value);
+    // Write 1 byte at addr, then read it back: Mismatch if it is not expected
+    // (expected differs from value for registers the stove changes at once, e.g. a command it clears once run)
+    // up to 2 attempts, any error is retried (each attempt includes its read-back)
+    Result writeByte(uint16_t addr, uint8_t value, uint8_t expected);
+    // Write the word (little endian) at addr, as low byte at addr then high byte at addr + 1, then read it back: Mismatch if it differs
+    // up to 2 attempts, any error is retried (each attempt includes its read-back)
+    Result writeWord(uint16_t addr, uint16_t value);
 
     // Set the stove date and time (weekDay: 1 = Monday .. 7 = Sunday)
     // up to 3 attempts, any error is retried
@@ -78,13 +85,16 @@ private:
     // then if response is given, read the stove Response into it
     Result exchange(const FumisFrame &request, FumisFrame *response = nullptr);
 
+    // writeByte and writeWord: wordMode writes the high byte too, expected is compared with the byte or word read back
+    Result writeChecked(uint16_t addr, uint16_t value, bool wordMode, uint16_t expected);
+
     Result acceptResponse(const FumisFrame &frame);
     Result readFrame(FumisFrame &frame);
     Result readResponse(FumisFrame &frame);
     Result readBytes(uint8_t *dst, uint8_t count, unsigned long startTime);
     Result waitPoll();
 
-    // stream helpers (original: the select, read, drain and flush calls of the SERIALCOM_* layer)
+    // stream helpers (original: the select and tcflush calls of the SERIALCOM_* layer)
     bool waitAvailable(unsigned long timeoutMs);
     void discardInput();
 

@@ -237,7 +237,6 @@ private:
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
-    CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 

@@ -8,7 +8,7 @@
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of exchange
 //  - fumisOpenSerial, fumisCloseSerial: open, close
 //  - fumisWaitRequest: waitPoll (wait for the stove Poll) and readResponse (read the Response)
-//  - the retry loops of fumisComReadBuff and fumisComSetDateTime: read and setDateTime, with retry
+//  - the retry loops of fumisComReadBuff, fumisComWrite and fumisComSetDateTime: read, writeByte/writeWord and setDateTime, with retry
 
 void FumisLink::setSerial(Stream &port, OpenFn open, CloseFn close)
 {
@@ -34,9 +34,9 @@ void FumisLink::close()
     rxAligned = false;
 }
 
-// Close and reopen the port: after a read error (receive) and before each new Read attempt (retry)
+// Close and reopen the port before each new Read attempt (retry)
 // (not a separate function in original)
-// (original: also flushed the port, now left to waitPoll, which always flushes after a reopen since rxAligned is cleared)
+// (original: also flushed the port, now left to waitPoll, which always discards the RX buffer after a reopen since rxAligned is cleared)
 void FumisLink::reopen()
 {
     close();
@@ -80,11 +80,49 @@ FumisLink::Result FumisLink::read(uint16_t addr, uint8_t (&data)[FumisFrame::DAT
     return res;
 }
 
-// (original: one send of fumisComWrite; its 2 attempts (var_34) stay in Palazzetti::fumisComWrite, which adds the read-back check)
-FumisLink::Result FumisLink::write(uint16_t addr, uint8_t value)
+// (original: fumisComRead with wordMode, var_10)
+FumisLink::Result FumisLink::readWord(uint16_t addr, uint16_t &value)
 {
-    FumisFrame request = FumisFrame::write(addr, value); // var_2C
-    return exchange(request);
+    uint8_t data[FumisFrame::DATA_SIZE];
+    Result res = read(addr, data);
+    if (res == Result::Ok)
+        value = data[0] | (data[1] << 8);
+    return res;
+}
+
+FumisLink::Result FumisLink::writeByte(uint16_t addr, uint8_t value, uint8_t expected)
+{
+    return writeChecked(addr, value, false, expected);
+}
+
+FumisLink::Result FumisLink::writeWord(uint16_t addr, uint16_t value)
+{
+    return writeChecked(addr, value, true, value);
+}
+
+// (original: fumisComWrite, 2 attempts in var_34, result in var_38)
+// Custom: a write is successful only if the read-back succeeds and matches (original was not checking this)
+FumisLink::Result FumisLink::writeChecked(uint16_t addr, uint16_t value, bool wordMode, uint16_t expected)
+{
+    // a Write Request carries 1 byte: a word is written as low byte at addr then high byte at addr + 1
+    FumisFrame lowRequest = FumisFrame::write(addr, value & 0xFF);  // var_2C
+    FumisFrame highRequest = FumisFrame::write(addr + 1, value >> 8); // var_2C (second use)
+
+    return retry(2, false, false, [&]()
+                 {
+        Result res = exchange(lowRequest);
+        if (res == Result::Ok && wordMode)
+            res = exchange(highRequest);
+        if (res != Result::Ok)
+            return res;
+
+        uint16_t readBack = 0; // var_30
+        res = readWord(addr, readBack);
+        if (res != Result::Ok)
+            return res;
+        if (!wordMode)
+            readBack &= 0xFF;
+        return (readBack == expected) ? Result::Ok : Result::Mismatch; });
 }
 
 // (original: fumisComSetDateTime, 3 attempts in local_6c)
@@ -98,7 +136,7 @@ FumisLink::Result FumisLink::setDateTime(uint8_t second, uint8_t minute, uint8_t
 
 // One exchange with the stove (not a separate function in original):
 // wait for a stove Poll, send the Request (Read, Write or SetDateTime), then if response is given, read the stove Response into it
-// returns Error if the port is closed (original: checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
+// returns Error if the port is closed or the Request cannot be written (original: the port was checked by fumisComReadBuff, fumisComWrite and fumisComSetDateTime)
 FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *response)
 {
     if (!portOpen)
@@ -174,7 +212,7 @@ void FumisLink::discardInput()
 
 // Read exactly count bytes into dst
 // (original: SERIALCOM_ReceiveBuf and the receive loops of its callers)
-// returns Timeout if they are not all received 250ms after startTime (the start of the frame being waited for)
+// returns Timeout if they are not all received 250ms after startTime (when the caller started waiting)
 // (original: a select or read error reopened the port; a Stream has none)
 FumisLink::Result FumisLink::readBytes(uint8_t *dst, uint8_t count, unsigned long startTime)
 {
