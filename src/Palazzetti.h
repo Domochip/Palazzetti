@@ -60,7 +60,7 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    // myData.4216 + myData.4220: selectSerialTimeoutMs, see FumisLink
+    // myData.4216 + myData.4220: SELECT_TIMEOUT_MS, see FumisLink
     char _SN[33] = {0}; // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
@@ -240,7 +240,6 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
-    void iCloseUART();
     CommandResult iGetAllStatus(bool refreshStatus);
     CommandResult iGetChronoDataAtech();
     CommandResult iGetCountersAtech();

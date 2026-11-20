@@ -171,11 +171,6 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
     return fumisComWrite(addrToWrite, data, true);
 }
 
-void Palazzetti::iCloseUART()
-{
-    m_link.close();
-}
-
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
 {
     CommandResult cmdRes;
@@ -1642,7 +1637,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     CommandResult cmdRes = fumisResult(m_link.open());
     if (cmdRes != CommandResult::OK)
     {
-        iCloseUART();
+        m_link.close();
         return cmdRes;
     }
 
@@ -1651,7 +1646,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     // an address where the Response cannot look like the echo of the Request (see FumisLink::exchange)
     if (iGetStatusAtech() != CommandResult::OK)
     {
-        iCloseUART();
+        m_link.close();
         return CommandResult::ERROR;
     }
 
@@ -1659,7 +1654,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     cmdRes = iUpdateStaticData();
     if (cmdRes != CommandResult::OK)
     {
-        iCloseUART();
+        m_link.close();
         return cmdRes;
     }
 

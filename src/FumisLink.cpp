@@ -168,7 +168,7 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
 // Receive the next bytes of the frame being read into frame.bytes[bufPosition..FumisFrame::SIZE-1]
 // (original: SERIALCOM_ReceiveBuf, now with the timeout and the reopen on read error of its callers)
 // returns:
-//  - Ok: bufPosition is advanced by the bytes received (0 if nothing arrived within selectSerialTimeoutMs)
+//  - Ok: bufPosition is advanced by the bytes received (0 if nothing arrived within SELECT_TIMEOUT_MS)
 //  - CommunicationError: more than 250ms since startTime, or read error (the port is then reopened and the frame is lost)
 //  - Error: the port could not be reopened
 FumisLink::Result FumisLink::receive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime)
@@ -176,9 +176,9 @@ FumisLink::Result FumisLink::receive(FumisFrame &frame, uint8_t &bufPosition, un
     if (millis() - startTime > 250) // NOTE : the original value is 3000 but the stove sends a Poll at least every ~67ms
         return Result::CommunicationError;
 
-    int res = m_serial.select(selectSerialTimeoutMs);
+    int res = m_serial.select(SELECT_TIMEOUT_MS);
     if (res == 0)
-        return Result::Ok; // nothing received within selectSerialTimeoutMs
+        return Result::Ok; // nothing received within SELECT_TIMEOUT_MS
 
     if (res > 0)
         res = m_serial.read(frame.bytes + bufPosition, FumisFrame::SIZE - bufPosition); // var_18

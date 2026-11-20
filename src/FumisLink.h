@@ -83,6 +83,9 @@ public:
 
 private:
     static constexpr uint32_t BAUDRATE = 38400;
+    // myData.4216 + myData.4220 (timeval type originally), original: set by fumisOpenSerial
+    // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
+    static constexpr unsigned long SELECT_TIMEOUT_MS = 100;
 
     Result reopen();
 
@@ -109,10 +112,8 @@ private:
     //   the steps 1..5 are now the order of the code in exchange, waitPoll and readResponse
     bool portOpen = false;
     // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
-    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originally), original: set by fumisOpenSerial
-                                               // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
-    bool rxAligned = false;                    // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
-    unsigned long lastResponseMs = 0;          // (not in original) millis() when that Response was read
+    bool rxAligned = false;           // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
+    unsigned long lastResponseMs = 0; // (not in original) millis() when that Response was read
 };
 
 #endif
