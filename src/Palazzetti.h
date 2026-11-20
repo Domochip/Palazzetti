@@ -61,7 +61,7 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    // myData.4216 + myData.4220: SELECT_TIMEOUT_MS, see FumisLink
+    // myData.4216 + myData.4220: select timeout, see POLL_TIMEOUT_MS and FRAME_TIMEOUT_MS in FumisLink
     char _SN[33] = {0}; // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used

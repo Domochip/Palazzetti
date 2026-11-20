@@ -32,7 +32,7 @@ public:
     enum class Result : uint8_t
     {
         Ok,
-        Timeout,   // the expected frame (Poll, echo or Response) is not complete 250ms after the start
+        Timeout,   // the expected frame is not complete in time (Poll: POLL_TIMEOUT_MS, echo or Response: FRAME_TIMEOUT_MS)
         BadFrame,  // the Response has a wrong type or checksum
         Collision, // V1 board: the echo differs from the Request sent, something else was on the bus
         Mismatch,  // a write was read back with another value than expected
@@ -69,9 +69,14 @@ public:
 
 private:
     static constexpr uint32_t BAUDRATE = 38400;
-    // myData.4216 + myData.4220 (timeval type originally), original: set by fumisOpenSerial
-    // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
-    static constexpr unsigned long SELECT_TIMEOUT_MS = 100;
+    // Time limits to receive a frame (original: one 3000ms limit in var_10 for every frame,
+    // checked after each select whose own timeout was 2300ms, myData.4216 + myData.4220 set by fumisOpenSerial)
+    // NOTE : the longest measured "select" (wait for the next received bytes) is ~35ms
+    // Poll: the stove sends one at least every ~67ms, so 250ms leaves room for about 3 missed Polls
+    static constexpr unsigned long POLL_TIMEOUT_MS = 250;
+    // echo or Response: the echo is received while the Request is sent, the Response follows it at once (11 bytes: 2.9ms),
+    // so 30ms leaves a wide margin for the delay of the ESP in moving received bytes to the Stream buffer
+    static constexpr unsigned long FRAME_TIMEOUT_MS = 30;
 
     void reopen();
 
@@ -90,7 +95,7 @@ private:
     Result acceptResponse(const FumisFrame &frame);
     Result readFrame(FumisFrame &frame);
     Result readResponse(FumisFrame &frame);
-    Result readBytes(uint8_t *dst, uint8_t count, unsigned long startTime);
+    Result readBytes(uint8_t *dst, uint8_t count, unsigned long startTime, unsigned long limitMs);
     Result waitPoll();
 
     // stream helpers (original: the select and tcflush calls of the SERIALCOM_* layer)

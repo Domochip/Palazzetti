@@ -217,18 +217,17 @@ void FumisLink::discardInput()
 
 // Read exactly count bytes into dst
 // (original: SERIALCOM_ReceiveBuf and the receive loops of its callers)
-// returns Timeout if they are not all received 250ms after startTime (when the caller started waiting)
+// returns Timeout if they are not all received limitMs after startTime (when the caller started waiting)
 // (original: a select or read error reopened the port; a Stream has none)
-FumisLink::Result FumisLink::readBytes(uint8_t *dst, uint8_t count, unsigned long startTime)
+FumisLink::Result FumisLink::readBytes(uint8_t *dst, uint8_t count, unsigned long startTime, unsigned long limitMs)
 {
     uint8_t received = 0; // var_18
     while (received < count)
     {
-        if (millis() - startTime > 250) // NOTE : the original value is 3000 but the stove sends a Poll at least every ~67ms
+        // wait for the next bytes, only for the time left (original: select with a fixed timeout, then a check of the elapsed time)
+        unsigned long elapsed = millis() - startTime;
+        if (elapsed >= limitMs || !waitAvailable(limitMs - elapsed))
             return Result::Timeout;
-
-        if (!waitAvailable(SELECT_TIMEOUT_MS))
-            continue; // nothing received within SELECT_TIMEOUT_MS
 
         // read the bytes already received, up to count
         while (received < count && m_port->available() > 0)
@@ -255,7 +254,7 @@ FumisLink::Result FumisLink::waitPoll()
 
     unsigned long startTime = millis(); // var_10 (instead of time())
 
-    Result res = readBytes(frame.bytes, FumisFrame::SIZE, startTime);
+    Result res = readBytes(frame.bytes, FumisFrame::SIZE, startTime, POLL_TIMEOUT_MS);
     while (res == Result::Ok)
     {
         // Fast path (not in original): right after a valid Response, the buffer is aligned on the stove's next frame
@@ -271,12 +270,12 @@ FumisLink::Result FumisLink::waitPoll()
         {
             // a byte arriving within 13ms means this is not a Poll frame: slide by one byte (the new byte becomes the last one)
             memmove(frame.bytes, frame.bytes + 1, FumisFrame::SIZE - 1);
-            res = readBytes(frame.bytes + FumisFrame::SIZE - 1, 1, startTime);
+            res = readBytes(frame.bytes + FumisFrame::SIZE - 1, 1, startTime, POLL_TIMEOUT_MS);
         }
         else if (frame.isValid(FumisFrame::Type::Poll))
             return Result::Ok;
         else
-            res = readBytes(frame.bytes, FumisFrame::SIZE, startTime); // (not in original) full frame then silence but not a valid Poll: drop it, the next byte starts a new frame
+            res = readBytes(frame.bytes, FumisFrame::SIZE, startTime, POLL_TIMEOUT_MS); // (not in original) full frame then silence but not a valid Poll: drop it, the next byte starts a new frame
     }
     return res;
 }
@@ -285,7 +284,7 @@ FumisLink::Result FumisLink::waitPoll()
 FumisLink::Result FumisLink::readFrame(FumisFrame &frame)
 {
     frame = FumisFrame();
-    return readBytes(frame.bytes, FumisFrame::SIZE, millis()); // var_10 (instead of time())
+    return readBytes(frame.bytes, FumisFrame::SIZE, millis(), FRAME_TIMEOUT_MS); // var_10 (instead of time())
 }
 
 // Check that a frame just read is a valid stove Response
