@@ -1634,12 +1634,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     //  and iInit, which only sized the static data buffers: see paramsBufferSize and hparamsBufferSize)
 
     // open the serial port
-    CommandResult cmdRes = fumisResult(m_link.open());
-    if (cmdRes != CommandResult::OK)
-    {
-        m_link.close();
-        return cmdRes;
-    }
+    m_link.open();
 
     // check the stove answers by reading its STATUS (any failure gives ERROR, as in original)
     // this is also the first exchange, so the loopback is detected on 0x201C,
@@ -1651,7 +1646,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
     }
 
     // read the static data (serial number, firmware, parameters, configuration, limits)
-    cmdRes = iUpdateStaticData();
+    CommandResult cmdRes = iUpdateStaticData();
     if (cmdRes != CommandResult::OK)
     {
         m_link.close();
@@ -1662,9 +1657,9 @@ Palazzetti::CommandResult Palazzetti::initialize()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial)
+Palazzetti::CommandResult Palazzetti::initialize(Stream &port, OpenSerialFn open, CloseSerialFn close)
 {
-    m_link.setSerial(serial);
+    m_link.setSerial(port, open, close);
     return initialize();
 }
 

@@ -1,41 +1,35 @@
 #include "FumisLink.h"
 
 // The original SERIALCOM_* layer and the frame and retry parts of the fumis* functions:
-//  - SERIALCOM_OpenComport, SERIALCOM_CloseComport, SERIALCOM_Flush: m_serial.open/close/flush are called directly
+//  - SERIALCOM_OpenComport, SERIALCOM_CloseComport: the open and close functions given by the application
 //    (open: always 8 data bits and 1 stop bit)
+//  - SERIALCOM_Flush: discardInput
 //  - SERIALCOM_ReceiveBuf: receive
 //  - SERIALCOM_SendBuf (and fumisSendRequest): the send part of exchange
 //  - fumisOpenSerial, fumisCloseSerial: open, close
 //  - fumisWaitRequest: waitPoll (wait for the stove Poll) and readResponse (read the Response)
 //  - the retry loops of fumisComReadBuff and fumisComSetDateTime: read and setDateTime, with retry
 
-bool FumisLink::hasSerial() const
+void FumisLink::setSerial(Stream &port, OpenFn open, CloseFn close)
 {
-    return m_serial.open && m_serial.close && m_serial.select && m_serial.read &&
-           m_serial.write && m_serial.drain && m_serial.flush && m_serial.uSleep;
+    m_port = &port;
+    m_open = open;
+    m_close = close;
 }
 
 // (original: fumisOpenSerial)
-FumisLink::Result FumisLink::open()
+// (original: serialPortModel 1 also flushed the port here)
+void FumisLink::open()
 {
-    rxAligned = false;
-    int res = m_serial.open(BAUDRATE);
-
-    // (original: serialPortModel 1 also flushed the port here)
-    if (res < 0)
-    {
-        portOpen = false;
-        return Result::Error;
-    }
-
+    m_open(BAUDRATE);
     portOpen = true;
-    return Result::Ok;
+    rxAligned = false;
 }
 
 // (original: fumisCloseSerial)
 void FumisLink::close()
 {
-    m_serial.close();
+    m_close();
     portOpen = false;
     rxAligned = false;
 }
@@ -43,10 +37,10 @@ void FumisLink::close()
 // Close and reopen the port: after a read error (receive) and before each new Read attempt (retry)
 // (not a separate function in original)
 // (original: also flushed the port, now left to waitPoll, which always flushes after a reopen since rxAligned is cleared)
-FumisLink::Result FumisLink::reopen()
+void FumisLink::reopen()
 {
     close();
-    return open();
+    open();
 }
 
 template <typename Op>
@@ -59,7 +53,7 @@ FumisLink::Result FumisLink::retry(uint8_t attempts, bool reopenBetween, bool on
         {
             // (original: close, flush, sleep, open, sleep)
             reopen();
-            m_serial.uSleep(1);
+            delayMicroseconds(1);
         }
 
         res = op();
@@ -116,15 +110,9 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
         return res;
 
     // Send the Request (original: fumisSendRequest + SERIALCOM_SendBuf)
-    size_t totalBytesWritten = 0;
-    while (totalBytesWritten < FumisFrame::SIZE)
-    {
-        ssize_t bytesWritten = m_serial.write(request.bytes + totalBytesWritten, FumisFrame::SIZE - totalBytesWritten);
-        if (bytesWritten < 0)
-            return Result::Error;
-        totalBytesWritten += bytesWritten;
-    }
-    m_serial.drain();
+    if (m_port->write(request.bytes, FumisFrame::SIZE) != FumisFrame::SIZE)
+        return Result::Error;
+    m_port->flush(); // wait for the end of the transmission (original: tcdrain)
 
     // loopBack (V1 board): RX receives back what was just sent, read it and check it is our Request
     // (original: read it without checking, only when comPortNumber == 0)
@@ -165,33 +153,44 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
     return res;
 }
 
+// Wait up to timeoutMs for at least one received byte (original: the select call of SERIALCOM_ReceiveBuf)
+bool FumisLink::waitAvailable(unsigned long timeoutMs)
+{
+    unsigned long startTime = millis();
+    while (m_port->available() == 0)
+    {
+        if (millis() - startTime >= timeoutMs)
+            return false;
+    }
+    return true;
+}
+
+// Discard the received bytes not read yet (original: SERIALCOM_Flush, tcflush)
+void FumisLink::discardInput()
+{
+    while (m_port->read() != -1)
+        ;
+}
+
 // Receive the next bytes of the frame being read into frame.bytes[bufPosition..FumisFrame::SIZE-1]
-// (original: SERIALCOM_ReceiveBuf, now with the timeout and the reopen on read error of its callers)
+// (original: SERIALCOM_ReceiveBuf, now with the timeout of its callers)
 // returns:
 //  - Ok: bufPosition is advanced by the bytes received (0 if nothing arrived within SELECT_TIMEOUT_MS)
-//  - CommunicationError: more than 250ms since startTime, or read error (the port is then reopened and the frame is lost)
-//  - Error: the port could not be reopened
+//  - CommunicationError: more than 250ms since startTime
+// (original: a select or read error reopened the port; a Stream has none)
 FumisLink::Result FumisLink::receive(FumisFrame &frame, uint8_t &bufPosition, unsigned long startTime)
 {
     if (millis() - startTime > 250) // NOTE : the original value is 3000 but the stove sends a Poll at least every ~67ms
         return Result::CommunicationError;
 
-    int res = m_serial.select(SELECT_TIMEOUT_MS);
-    if (res == 0)
+    if (!waitAvailable(SELECT_TIMEOUT_MS))
         return Result::Ok; // nothing received within SELECT_TIMEOUT_MS
 
-    if (res > 0)
-        res = m_serial.read(frame.bytes + bufPosition, FumisFrame::SIZE - bufPosition); // var_18
+    // read the bytes already received, up to the end of the frame (var_18)
+    while (bufPosition < FumisFrame::SIZE && m_port->available() > 0)
+        frame.bytes[bufPosition++] = m_port->read();
 
-    // select error, read error, or nothing read although select reported data: reopen the port, the frame is lost
-    if (res <= 0)
-    {
-        Result reopenRes = reopen();
-        return (reopenRes != Result::Ok) ? reopenRes : Result::CommunicationError;
-    }
-
-    bufPosition += res;
-    m_serial.uSleep(1);
+    delayMicroseconds(1);
     return Result::Ok;
 }
 
@@ -205,8 +204,8 @@ FumisLink::Result FumisLink::waitPoll()
     // the stove sends its next frame ~0.1ms after a Response, so the RX buffer then holds the start of a fresh, aligned frame.
     // keep the buffer for 8ms at most.
     bool alignedFrame = rxAligned && (millis() - lastResponseMs) < 8; // (not in original) the next FumisFrame::SIZE RX bytes are exactly the stove's next frame
-    if (!alignedFrame && m_serial.flush() < 0)
-        return Result::CommunicationError;
+    if (!alignedFrame)
+        discardInput();
     rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
@@ -223,14 +222,14 @@ FumisLink::Result FumisLink::waitPoll()
             // Fast path (not in original): right after a valid Response, the buffer is aligned on the stove's next frame
             if (alignedFrame && frame.isValid(FumisFrame::Type::Poll))
             {
-                m_serial.uSleep(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll
+                delayMicroseconds(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll
                 return Result::Ok;
             }
             alignedFrame = false;
 
             // Otherwise rely on silence: a Poll is followed by ~28ms of silence, other frames by at most ~9ms.
             // A byte arriving within 13ms means this is not a Poll frame: slide by one byte and keep reading
-            if (m_serial.select(13))
+            if (waitAvailable(13))
             {
                 bufPosition--;
                 memmove(frame.bytes, frame.bytes + 1, bufPosition);
