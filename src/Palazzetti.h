@@ -48,7 +48,7 @@ public:
     };
 
     // RX receives back what TX sends (V1 board): Yes, or not (V2 board): No
-    // Unknown until the first successful Read decides it (see fumisExchange)
+    // Unknown until the first successful Read with the stove decides it (see fumisExchange)
     enum class LoopBack : uint8_t
     {
         Unknown,
@@ -120,7 +120,7 @@ private:
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
     // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes) forced by initialize(serial, loopBack) or detected
+    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes) detected on the first successful Read
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
@@ -532,10 +532,7 @@ public:
     };
 
     CommandResult initialize();
-    // loopBack is detected on the first exchange with the stove
     CommandResult initialize(SerialAdapter serial);
-    // loopBack is forced
-    CommandResult initialize(SerialAdapter serial, bool loopBack);
     bool isInitialized() { return _isInitialized; };
     LoopBack getLoopBack() { return m_loopBack; };
 

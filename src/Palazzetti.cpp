@@ -1982,15 +1982,6 @@ Palazzetti::CommandResult Palazzetti::initialize()
 Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial)
 {
     m_serial = serial;
-    if (!_isInitialized)
-        m_loopBack = LoopBack::Unknown; // detected on the first exchange (kept if already known: the wiring does not change)
-    return initialize();
-}
-
-Palazzetti::CommandResult Palazzetti::initialize(SerialAdapter serial, bool loopBack)
-{
-    m_serial = serial;
-    m_loopBack = loopBack ? LoopBack::Yes : LoopBack::No;
     return initialize();
 }
 
