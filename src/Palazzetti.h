@@ -240,16 +240,12 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
-    CommandResult iGetAllStatus(bool refreshStatus);
     CommandResult iGetChronoDataAtech();
-    CommandResult iGetCountersAtech();
     CommandResult iGetDateTimeAtech();
     CommandResult iGetDPressDataAtech();
     CommandResult iGetErrorFlagAtech();
     void iGetFanLimits();
-    CommandResult iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
     CommandResult iGetMBTypeAtech();
-    CommandResult iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
     CommandResult iGetPelletLevelAtech();
     CommandResult iGetPelletQtUsedAtech();
     CommandResult iGetPowerAtech();
@@ -259,34 +255,17 @@ private:
     CommandResult iGetSNAtech();
     CommandResult iGetStatusAtech();
     CommandResult iGetStoveConfigurationAtech();
-    CommandResult iReadDataAtech(uint16_t addrToRead, uint16_t *data, bool wordMode);
     CommandResult iReadFansAtech();
     CommandResult iReadIOAtech();
     CommandResult iReadTemperatureAtech();
-    CommandResult iSetChronoDayAtech(uint8_t dayNumber, uint8_t memoryNumber, uint8_t programNumber);
-    CommandResult iSetChronoPrgAtech(uint8_t prg[6]);
-    CommandResult iSetChronoSetpointAtech(uint8_t programNumber, uint8_t setPoint);
-    CommandResult iSetChronoStartHHAtech(uint8_t programNumber, uint8_t startHour);
-    CommandResult iSetChronoStartMMAtech(uint8_t programNumber, uint8_t startMinute);
-    CommandResult iSetChronoStatusAtech(bool chronoStatus);
-    CommandResult iSetChronoStopHHAtech(uint8_t programNumber, uint8_t stopHour);
-    CommandResult iSetChronoStopMMAtech(uint8_t programNumber, uint8_t stopMinute);
-    CommandResult iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue);
-    CommandResult iSetParameterAtech(uint8_t paramToWrite, uint8_t paramValue);
     CommandResult iSetPowerAtech(uint16_t powerLevel);
     CommandResult iSetRoomFan3Atech(uint16_t roomFan3Speed);
     CommandResult iSetRoomFan4Atech(uint16_t roomFan4Speed);
     CommandResult iSetRoomFanAtech(uint16_t roomFanSpeed);
     CommandResult iSetSetPointAtech(uint8_t setPoint);
     CommandResult iSetSetPointAtech(float setPoint);
-    CommandResult iSetSetPointFan3Atech(uint8_t setPoint);
-    CommandResult iSetSetPointFan4Atech(uint8_t setPoint);
-    CommandResult iSetSilentModeAtech(uint16_t silentMode);
-    CommandResult iSwitchOffAtech();
-    CommandResult iSwitchOnAtech();
     CommandResult iUpdateStaticData();
     CommandResult iUpdateStaticDataAtech();
-    CommandResult iWriteDataAtech(uint16_t addrToWrite, uint16_t data, bool wordMode);
 
     bool _isInitialized = false;
 
