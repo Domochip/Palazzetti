@@ -287,7 +287,7 @@ private:
     CommandResult iUpdateStaticDataAtech();
     CommandResult iWriteDataAtech(uint16_t addrToWrite, uint16_t data, bool wordMode);
 
-    bool _isInitialized;
+    bool _isInitialized = false;
 
 public:
     struct AllStatusData
