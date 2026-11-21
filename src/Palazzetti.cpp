@@ -1,5 +1,14 @@
 #include "Palazzetti.h"
 
+// evaluates a CommandResult expression and returns it from the calling function if it is not OK
+#define RETURN_IF_ERROR(expr)             \
+    do                                    \
+    {                                     \
+        CommandResult cmdRes_ = (expr);   \
+        if (cmdRes_ != CommandResult::OK) \
+            return cmdRes_;               \
+    } while (0)
+
 // The original SERIALCOM_* layer, the frame part of the fumis* functions and their retries are in FumisLink (serial layer)
 // the fumisCom* functions below add what the values mean: date checks, the value expected back after a write
 
@@ -138,59 +147,29 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
 {
-    CommandResult cmdRes;
-
     if (refreshStatus)
     {
-        cmdRes = iGetDateTimeAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetStatusAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetSetPointAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iReadFansAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetPowerAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetDPressDataAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iReadIOAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iReadTemperatureAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetPumpRateAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetPelletQtUsedAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetChronoDataAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetErrorFlagAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(iGetDateTimeAtech());
+        RETURN_IF_ERROR(iGetStatusAtech());
+        RETURN_IF_ERROR(iGetSetPointAtech());
+        RETURN_IF_ERROR(iReadFansAtech());
+        RETURN_IF_ERROR(iGetPowerAtech());
+        RETURN_IF_ERROR(iGetDPressDataAtech());
+        RETURN_IF_ERROR(iReadIOAtech());
+        RETURN_IF_ERROR(iReadTemperatureAtech());
+        RETURN_IF_ERROR(iGetPumpRateAtech());
+        RETURN_IF_ERROR(iGetPelletQtUsedAtech());
+        RETURN_IF_ERROR(iGetChronoDataAtech());
+        RETURN_IF_ERROR(iGetErrorFlagAtech());
         if (_PSENSTYPE)
         {
-            cmdRes = iGetPelletLevelAtech();
-            if (cmdRes != CommandResult::OK)
-                return cmdRes;
+            RETURN_IF_ERROR(iGetPelletLevelAtech());
         }
     }
 
     if (!_staticDataLoaded)
     {
-        cmdRes = iUpdateStaticData();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(iUpdateStaticData());
     }
 
     return CommandResult::OK;
@@ -199,17 +178,13 @@ Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
 Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
 {
     uint8_t CHRSETPList[8];
-    CommandResult cmdRes = fumisComReadBuff(0x802D, CHRSETPList);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x802D, CHRSETPList));
 
     uint16_t addrToRead = 0x8000;
     uint8_t programTimes[8];
     for (uint8_t i = 0; i < 6; i++)
     {
-        cmdRes = fumisComReadBuff(addrToRead, programTimes);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff(addrToRead, programTimes));
         _chronoDataPrograms[i].STARTH = programTimes[0];
         _chronoDataPrograms[i].STARTM = programTimes[1];
         _chronoDataPrograms[i].STOPH = programTimes[2];
@@ -225,9 +200,7 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
     uint8_t dayPrograms[8];
     for (uint8_t i = 0; i < 7; i++)
     {
-        cmdRes = fumisComReadBuff(addrToRead, dayPrograms);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff(addrToRead, dayPrograms));
 
         _chronoDataDays[i].M1 = dayPrograms[0];
         _chronoDataDays[i].M2 = dayPrograms[1];
@@ -236,9 +209,7 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
         addrToRead += 3;
     }
 
-    cmdRes = fumisComReadWord(0x207e, &_chronoDataStatus);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x207e, &_chronoDataStatus));
     _CHRSTATUS = _chronoDataStatus & 0x01;
 
     return CommandResult::OK;
@@ -248,9 +219,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
 {
 
     uint8_t var_18[8];
-    CommandResult cmdRes = fumisComReadBuff(0x2066, var_18);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x2066, var_18));
 
     _IGN = var_18[1];
     _IGN <<= 8;
@@ -264,9 +233,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
     _POWERTIMEH <<= 8;
     _POWERTIMEH += var_18[4];
 
-    cmdRes = fumisComReadBuff(0x206E, var_18);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x206E, var_18));
 
     _HEATTIMEM = var_18[1];
     _HEATTIMEM <<= 8;
@@ -280,9 +247,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
     _SERVICETIMEM <<= 8;
     _SERVICETIMEM += var_18[6];
 
-    cmdRes = fumisComReadBuff(0x2076, var_18);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x2076, var_18));
 
     _SERVICETIMEH = var_18[1];
     _SERVICETIMEH <<= 8;
@@ -296,9 +261,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
     _IGNERRORS <<= 8;
     _IGNERRORS += var_18[6];
 
-    cmdRes = fumisComReadBuff(0x2082, var_18);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x2082, var_18));
 
     _ONTIMEM = var_18[1];
     _ONTIMEM <<= 8;
@@ -310,9 +273,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
 
     uint16_t var_10;
 
-    cmdRes = fumisComReadWord(0x2002, &var_10);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2002, &var_10));
     _PQT = var_10;
 
     return CommandResult::OK;
@@ -321,9 +282,7 @@ Palazzetti::CommandResult Palazzetti::iGetCountersAtech()
 Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
 {
     uint8_t buf[8]; // var_14
-    CommandResult cmdRes = fumisComReadBuff(0x204E, buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x204E, buf));
 
     sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", ((uint16_t)buf[6] + 2000) % 10000u, buf[5] % 100u, buf[4] % 100u, buf[2] % 100u, buf[1] % 100u, buf[0] % 100u);
 
@@ -335,15 +294,11 @@ Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
 Palazzetti::CommandResult Palazzetti::iGetDPressDataAtech()
 {
     uint16_t buf; // var_10
-    CommandResult cmdRes = fumisComReadWord(0x2000, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2000, &buf));
 
     _DP_TARGET = buf;
 
-    cmdRes = fumisComReadWord(0x2020, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2020, &buf));
 
     _DP_PRESS = (int16_t)buf;
 
@@ -424,20 +379,13 @@ Palazzetti::CommandResult Palazzetti::iGetHiddenParameterAtech(uint16_t hParamTo
     if (hParamToRead > 0x6E)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComReadWord((hParamToRead + 0xF00) * 2, hParamValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComReadWord((hParamToRead + 0xF00) * 2, hParamValue);
 }
 
 Palazzetti::CommandResult Palazzetti::iGetMBTypeAtech()
 {
     uint16_t buf;         // var_C
-    CommandResult cmdRes; // var_10
-    cmdRes = fumisComReadWord(0x204C, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x204C, &buf));
 
     _HWTYPE = 6;
     if ((buf & 4) == 0)
@@ -455,38 +403,26 @@ Palazzetti::CommandResult Palazzetti::iGetParameterAtech(uint16_t paramToRead, u
     if (paramToRead > 0x69)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComReadByte(paramToRead + 0x1C00, paramValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComReadByte(paramToRead + 0x1C00, paramValue);
 }
 
 Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
 {
-    CommandResult cmdRes;
-
     if (_PSENSTYPE == 1)
     {
-        cmdRes = fumisComReadWord(0x203A, &_PLEVEL); // direct read to the variable...
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadWord(0x203A, &_PLEVEL)); // direct read to the variable...
     }
 
     if (_PSENSTYPE == 2)
     {
         uint16_t local_14;
-        cmdRes = fumisComReadByte(0x1E26, &local_14);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadByte(0x1E26, &local_14));
         _PSENSCSTA = (local_14 & 0x80) ? 0 : 1;
 
         if (_HWTYPE == 5)
         {
             uint16_t local_10;
-            cmdRes = fumisComReadByte(0x2030, &local_10);
-            if (cmdRes != CommandResult::OK)
-                return cmdRes;
+            RETURN_IF_ERROR(fumisComReadByte(0x2030, &local_10));
             if (/*local_10 < 0 || */ local_10 > 2)
                 _PSENSLEMP = 0;
             else
@@ -495,9 +431,7 @@ Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
         else
         {
             uint16_t local_10;
-            cmdRes = fumisComReadWord(0x2014, &local_10);
-            if (cmdRes != CommandResult::OK)
-                return cmdRes;
+            RETURN_IF_ERROR(fumisComReadWord(0x2014, &local_10));
             if (local_10 < 220 || local_10 > 512)
                 _PSENSLEMP = 0;
             else
@@ -511,9 +445,7 @@ Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
 Palazzetti::CommandResult Palazzetti::iGetPelletQtUsedAtech()
 {
     uint16_t var_10;
-    CommandResult cmdRes = fumisComReadWord(0x2002, &var_10);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2002, &var_10));
     _PQT = var_10;
     return CommandResult::OK;
 }
@@ -522,15 +454,11 @@ Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
 {
     uint16_t var_C;
 
-    CommandResult cmdRes = fumisComReadWord(0x202a, &var_C);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x202a, &var_C));
 
     _PWR = var_C & 0xFF;
 
-    cmdRes = fumisComReadWord(_wAddrFeederActiveTime, &var_C);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(_wAddrFeederActiveTime, &var_C));
 
     _FDR = var_C / 10.0f;
 
@@ -540,9 +468,7 @@ Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
 Palazzetti::CommandResult Palazzetti::iGetPumpRateAtech()
 {
     uint16_t buf;
-    CommandResult cmdRes = fumisComReadWord(0x2090, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2090, &buf));
 
     _PUMP = buf & 0xFF;
 
@@ -552,14 +478,10 @@ Palazzetti::CommandResult Palazzetti::iGetPumpRateAtech()
 Palazzetti::CommandResult Palazzetti::iGetRoomFanAtech()
 {
     uint16_t var_C;
-    CommandResult cmdRes = fumisComReadByte(0x2036, &var_C);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadByte(0x2036, &var_C));
     _F2L = var_C;
 
-    cmdRes = fumisComReadWord(0x2004, &var_C);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2004, &var_C));
 
     if (_FAN2TYPE == 4)
     {
@@ -594,9 +516,7 @@ Palazzetti::CommandResult Palazzetti::iGetSetPointAtech()
     else if (_FLUID < 2)
     {
         uint8_t buf[8]; // var_1c
-        CommandResult cmdRes = fumisComReadBuff(0x1C32, buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff(0x1C32, buf));
         _SECO = buf[0];
         _SETP = buf[1];
 
@@ -611,9 +531,7 @@ Palazzetti::CommandResult Palazzetti::iGetSetPointAtech()
     else if (_FLUID == 2)
     {
         uint16_t data;
-        CommandResult cmdRes = fumisComReadByte(0x1C54, &data);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadByte(0x1C54, &data));
         _SETP = (int16_t)data;
     }
 
@@ -674,26 +592,19 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
 
 Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
 {
-    CommandResult cmdRes;
-    cmdRes = fumisComReadByte(0x201C, &_STATUS);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadByte(0x201C, &_STATUS));
 
     _LSTATUS = _STATUS;
 
     if (200 < _STATUS)
     {
         _LSTATUS = _STATUS + 1000;
-        cmdRes = fumisComReadByte(0x2081, &_FSTATUS);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadByte(0x2081, &_FSTATUS));
     }
 
     if (_STOVETYPE == 3 || _STOVETYPE == 4)
     {
-        cmdRes = fumisComReadWord(0x2008, &_MFSTATUS);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadWord(0x2008, &_MFSTATUS));
         if (1 < _MFSTATUS)
         {
             _LSTATUS = _MFSTATUS + 500;
@@ -716,28 +627,19 @@ Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
 Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
 {
     uint16_t buf;         // local_20
-    CommandResult cmdRes; // var_24
-    cmdRes = fumisComReadByte(0x2006, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadByte(0x2006, &buf));
     _DSPFWVER = buf;
     if (_DSPFWVER > 0)
         _DSPTYPE = (double)buf / pow(10, (int)log10(buf));
 
-    cmdRes = iGetMBTypeAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetMBTypeAtech());
 
     _CHRONOTYPE = 2;
     _MAINTPROBE = 0;
 
-    cmdRes = fumisComReadWord(0x1ED4, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x1ED4, &buf));
     uint8_t buf2[8]; // local_28
-    cmdRes = fumisComReadBuff(0x1E25, buf2);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x1E25, buf2));
 
     _NOMINALPWR = buf2[0];
     if (buf2[1] & 2)
@@ -748,9 +650,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
     uint8_t bVar1 = _PARAMS[0x4C];
     _UICONFIG = bVar1;
 
-    cmdRes = fumisComReadBuff(((bVar1 - 1) * 4) + 0x1E36, buf2);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(((bVar1 - 1) * 4) + 0x1E36, buf2));
 
     bool bVar2 = ((buf2[0] & 0x20) != 0);
 
@@ -845,9 +745,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
 
     if (bVar1 < 3)
     {
-        cmdRes = fumisComReadBuff(0x1E36, buf2);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff(0x1E36, buf2));
 
         if (bVar1 == 2)
             buf2[1] = buf2[5];
@@ -966,9 +864,7 @@ Palazzetti::CommandResult Palazzetti::iReadFansAtech()
 Palazzetti::CommandResult Palazzetti::iReadIOAtech()
 {
     uint8_t buf[8];
-    CommandResult cmdRes = fumisComReadBuff(0x203c, buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x203c, buf));
 
     _IN_I01 = (buf[0] & 0x01);
     _IN_I02 = (buf[0] & 0x02) >> 1;
@@ -988,12 +884,9 @@ Palazzetti::CommandResult Palazzetti::iReadIOAtech()
 
 Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
 {
-    CommandResult cmdRes; // var_1C
     uint8_t buf[8];       // var_14
     uint16_t conv = 0;
-    cmdRes = fumisComReadBuff(0x200A, buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadBuff(0x200A, buf));
 
     conv = buf[1];
     conv <<= 8;
@@ -1018,9 +911,7 @@ Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
     _T2 /= 10.0f;
 
     uint16_t var_18;
-    cmdRes = fumisComReadWord(0x2012, &var_18);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x2012, &var_18));
 
     _T5 = (int16_t)var_18;
     _T5 /= 10.0f;
@@ -1038,11 +929,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoDayAtech(uint8_t dayNumber, uint
     if (!memoryNumber || memoryNumber > 3)
         return CommandResult::ERROR; // original is PARSER_ERROR
 
-    CommandResult cmdRes = fumisComWriteByte((dayNumber - 1) * 3 + memoryNumber + 0x8017, programNumber);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((dayNumber - 1) * 3 + memoryNumber + 0x8017, programNumber);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoPrgAtech(uint8_t prg[6])
@@ -1065,30 +952,18 @@ Palazzetti::CommandResult Palazzetti::iSetChronoPrgAtech(uint8_t prg[6])
     if (prg[3] >= 60 || prg[5] >= 60)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte(prg[0] + 0x802c, prg[1]);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte(prg[0] + 0x802c, prg[1]));
 
     if (!_FLUID)
         prg[1] /= 5;
 
-    cmdRes = fumisComWriteByte((prg[0] + 0x1fff) * 4, prg[2]);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte((prg[0] + 0x1fff) * 4, prg[2]));
 
-    cmdRes = fumisComWriteByte((prg[0] + 0x1fff) * 4 + 1, prg[3]);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte((prg[0] + 0x1fff) * 4 + 1, prg[3]));
 
-    cmdRes = fumisComWriteByte((prg[0] + 0x1fff) * 4 + 2, prg[4]);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte((prg[0] + 0x1fff) * 4 + 2, prg[4]));
 
-    cmdRes = fumisComWriteByte((prg[0] + 0x1fff) * 4 + 3, prg[5]);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((prg[0] + 0x1fff) * 4 + 3, prg[5]);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoSetpointAtech(uint8_t programNumber, uint8_t setPoint)
@@ -1105,11 +980,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoSetpointAtech(uint8_t programNum
     if (!_FLUID)
         setPoint *= 5;
 
-    CommandResult cmdRes = fumisComWriteByte(0x802C + programNumber, setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte(0x802C + programNumber, setPoint);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoStartHHAtech(uint8_t programNumber, uint8_t startHour)
@@ -1117,11 +988,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoStartHHAtech(uint8_t programNumb
     if (!programNumber || programNumber > 6 || startHour >= 24)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte((programNumber + 0x1FFF) * 4, startHour);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((programNumber + 0x1FFF) * 4, startHour);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoStartMMAtech(uint8_t programNumber, uint8_t startMinute)
@@ -1129,29 +996,19 @@ Palazzetti::CommandResult Palazzetti::iSetChronoStartMMAtech(uint8_t programNumb
     if (!programNumber || programNumber > 6 || startMinute >= 60)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 1, startMinute);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((programNumber + 0x1FFF) * 4 + 1, startMinute);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoStatusAtech(bool chronoStatus)
 {
     uint16_t buf;
-    CommandResult cmdRes = fumisComReadWord(0x207e, &buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComReadWord(0x207e, &buf));
     if (chronoStatus)
         buf |= 1;
     else
         buf &= 0xfffe;
 
-    cmdRes = fumisComWriteByte(0x207e, buf);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte(0x207e, buf);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoStopHHAtech(uint8_t programNumber, uint8_t stopHour)
@@ -1159,11 +1016,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoStopHHAtech(uint8_t programNumbe
     if (!programNumber || programNumber > 6 || stopHour >= 24)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 2, stopHour);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((programNumber + 0x1FFF) * 4 + 2, stopHour);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetChronoStopMMAtech(uint8_t programNumber, uint8_t stopMinute)
@@ -1171,11 +1024,7 @@ Palazzetti::CommandResult Palazzetti::iSetChronoStopMMAtech(uint8_t programNumbe
     if (!programNumber || programNumber > 6 || stopMinute >= 60)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte((programNumber + 0x1FFF) * 4 + 3, stopMinute);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte((programNumber + 0x1FFF) * 4 + 3, stopMinute);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue)
@@ -1183,11 +1032,7 @@ Palazzetti::CommandResult Palazzetti::iSetHiddenParameterAtech(uint16_t hParamTo
     if (hParamToWrite > 0x6E)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteWord((hParamToWrite + 0xF00) * 2, hParamValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteWord((hParamToWrite + 0xF00) * 2, hParamValue);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetParameterAtech(uint8_t paramToWrite, uint8_t paramValue)
@@ -1195,11 +1040,7 @@ Palazzetti::CommandResult Palazzetti::iSetParameterAtech(uint8_t paramToWrite, u
     if (paramToWrite >= 0x6A)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte(paramToWrite + 0x1C00, paramValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return fumisComWriteByte(paramToWrite + 0x1C00, paramValue);
 }
 
 Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
@@ -1207,9 +1048,7 @@ Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
     if (powerLevel < 1 || powerLevel > 5)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes = fumisComWriteByte(0x202a, powerLevel);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte(0x202a, powerLevel));
 
     _PWR = powerLevel;
 
@@ -1221,22 +1060,16 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
     if (/*roomFan3Speed < 0 || */ roomFan3Speed > 5)
         return CommandResult::ERROR;
 
-    CommandResult cmdRes;
-
     if (_FAN2TYPE == 4)
     {
-        cmdRes = fumisComWriteWord(0x2004, (!_F4L ? 0 : 2) | (0 < roomFan3Speed));
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!_F4L ? 0 : 2) | (0 < roomFan3Speed)));
         _F3L = (0 < roomFan3Speed);
     }
     else
     {
         if (_FAN2TYPE != 5)
             return CommandResult::ERROR;
-        cmdRes = fumisComWriteByte(0x2004, roomFan3Speed);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComWriteByte(0x2004, roomFan3Speed));
         _F3L = roomFan3Speed;
     }
 
@@ -1252,9 +1085,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 
     if (_FAN2TYPE == 4)
     {
-        cmdRes = fumisComWriteWord(0x2004, (!roomFan4Speed ? 0 : 2) | (0 < _F3L));
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!roomFan4Speed ? 0 : 2) | (0 < _F3L)));
         _F4L = (0 < roomFan4Speed);
     }
     else
@@ -1283,12 +1114,8 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 
     if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = iSetPowerAtech(3)) == CommandResult::OK)
     {
-        cmdRes = fumisComWriteByte(0x2036, roomFanSpeed);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iGetRoomFanAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComWriteByte(0x2036, roomFanSpeed));
+        RETURN_IF_ERROR(iGetRoomFanAtech());
         _F2L = roomFanSpeed;
         return CommandResult::OK;
     }
@@ -1302,8 +1129,6 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(uint8_t setPoint)
 
 Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
 {
-    CommandResult cmdRes; // var_10
-
     if (setPoint < _SPLMIN)
         setPoint = _SPLMIN;
 
@@ -1314,24 +1139,18 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
     {
         if (!_FLUID)
         {
-            cmdRes = fumisComWriteByte(0x1C33, setPoint * 5.0f);
-            if (cmdRes != CommandResult::OK)
-                return cmdRes;
+            RETURN_IF_ERROR(fumisComWriteByte(0x1C33, setPoint * 5.0f));
             _SETP = setPoint;
         }
         else
         {
-            cmdRes = fumisComWriteByte(0x1C33, setPoint);
-            if (cmdRes != CommandResult::OK)
-                return cmdRes;
+            RETURN_IF_ERROR(fumisComWriteByte(0x1C33, setPoint));
             _SETP = setPoint;
         }
     }
     else if (_FLUID == 2)
     {
-        cmdRes = fumisComWriteByte(0x1C54, setPoint);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComWriteByte(0x1C54, setPoint));
         _SETP = setPoint;
     }
 
@@ -1346,9 +1165,7 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointFan3Atech(uint8_t setPoint)
         setPoint = _SPLMIN;
     if (setPoint > _SPLMAX)
         setPoint = _SPLMAX;
-    CommandResult cmdRes = fumisComWriteByte(0x20A2, setPoint * 5);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte(0x20A2, setPoint * 5));
     _F3S = (float)setPoint;
     return CommandResult::OK;
 }
@@ -1361,9 +1178,7 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointFan4Atech(uint8_t setPoint)
         setPoint = _SPLMIN;
     if (setPoint > _SPLMAX)
         setPoint = _SPLMAX;
-    CommandResult cmdRes = fumisComWriteByte(0x20A3, setPoint * 5);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComWriteByte(0x20A3, setPoint * 5));
     _F4S = (float)setPoint;
     return CommandResult::OK;
 }
@@ -1372,15 +1187,9 @@ Palazzetti::CommandResult Palazzetti::iSetSilentModeAtech(uint16_t silentMode)
 {
     if (silentMode > 0)
     {
-        CommandResult cmdRes = iSetRoomFanAtech(7);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iSetRoomFan3Atech(0);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
-        cmdRes = iSetRoomFan4Atech(0);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(iSetRoomFanAtech(7));
+        RETURN_IF_ERROR(iSetRoomFan3Atech(0));
+        RETURN_IF_ERROR(iSetRoomFan4Atech(0));
     }
 
     return CommandResult::OK;
@@ -1440,13 +1249,10 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
 
     uint16_t nbTotalBytesReaded = 0; // var_838
     uint8_t buf[8];                  // var_820
-    CommandResult cmdRes;            // var_830
 
     while (nbTotalBytesReaded < _paramsBufferSize)
     {
-        cmdRes = fumisComReadBuff(0x1C00 + nbTotalBytesReaded, buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff(0x1C00 + nbTotalBytesReaded, buf));
 
         for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
@@ -1459,9 +1265,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < _hparamsBufferSize)
     {
-        cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf));
 
         for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _hparamsBufferSize; i += 2)
         {
@@ -1485,9 +1289,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     // pdword_471C80 = _HPARAMS[0x8C / 2]; //Not Used
     // pdword_471C84 = _HPARAMS[0x8E / 2]; //Not Used
 
-    cmdRes = iGetStoveConfigurationAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetStoveConfigurationAtech());
 
     // Custom: better feeder active time address based on Core and Version
     if (_CORE != 0 || _VER >= 40)
@@ -1508,9 +1310,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
         //     _wAddrFeederActiveTime = 0x209A;
 
         uint16_t var_18;
-        cmdRes = fumisComReadWord(0x203A, &var_18);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadWord(0x203A, &var_18));
 
         _PSENSTYPE = 0;
 
@@ -1526,9 +1326,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < _paramsBufferSize)
     {
-        cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf));
 
         for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
@@ -1540,9 +1338,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < _paramsBufferSize)
     {
-        cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0x810C), buf);
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0x810C), buf));
 
         for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
@@ -1607,9 +1403,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
         return CommandResult::ERROR;
 
     // read the static data (serial number, firmware, parameters, configuration, limits)
-    CommandResult cmdRes = iUpdateStaticData();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iUpdateStaticData());
 
     _isInitialized = true;
     return CommandResult::OK;
@@ -1623,13 +1417,9 @@ Palazzetti::CommandResult Palazzetti::initialize(Stream &port)
 
 Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F])
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iUpdateStaticDataAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iUpdateStaticDataAtech());
 
     memcpy(*hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
 
@@ -1638,13 +1428,9 @@ Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenPa
 
 Palazzetti::CommandResult Palazzetti::getAllParameters(uint8_t (*params)[0x6A])
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iUpdateStaticDataAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iUpdateStaticDataAtech());
 
     memcpy(*params, _PARAMS, 0x6A * sizeof(uint8_t));
 
@@ -1654,13 +1440,9 @@ Palazzetti::CommandResult Palazzetti::getAllParameters(uint8_t (*params)[0x6A])
 // refreshStatus shoud be true if last call is over ~15sec
 Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatusData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetAllStatus(refreshStatus);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetAllStatus(refreshStatus));
 
     out.MBTYPE = 0; // Fumis (Micronova is not supported)
     // MAC not needed
@@ -1747,13 +1529,9 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
 
 Palazzetti::CommandResult Palazzetti::getAllTemps(AllTempsData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iReadTemperatureAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iReadTemperatureAtech());
 
     out.T1 = _T1;
     out.T2 = _T2;
@@ -1766,13 +1544,9 @@ Palazzetti::CommandResult Palazzetti::getAllTemps(AllTempsData &out)
 
 Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetChronoDataAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetChronoDataAtech());
 
     out.CHRSTATUS = _CHRSTATUS; // original code should have been "_chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
     for (uint8_t i = 0; i < 6; i++)
@@ -1795,13 +1569,9 @@ Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
 
 Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetCountersAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetCountersAtech());
 
     out.IGN = _IGN;
     sprintf(out.POWERTIME, "%02d:%02d", _POWERTIMEH, _POWERTIMEM % 100);
@@ -1817,13 +1587,9 @@ Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
 
 Palazzetti::CommandResult Palazzetti::getDateTime(DateTimeData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetDateTimeAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetDateTimeAtech());
 
     strcpy(out.STOVE_DATETIME, _STOVE_DATETIME);
     out.STOVE_WDAY = _STOVE_WDAY;
@@ -1833,13 +1599,9 @@ Palazzetti::CommandResult Palazzetti::getDateTime(DateTimeData &out)
 
 Palazzetti::CommandResult Palazzetti::getDPressData(DPressData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetDPressDataAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetDPressDataAtech());
 
     out.DP_TARGET = _DP_TARGET;
     out.DP_PRESS = _DP_PRESS;
@@ -1849,13 +1611,9 @@ Palazzetti::CommandResult Palazzetti::getDPressData(DPressData &out)
 
 Palazzetti::CommandResult Palazzetti::getFanData(FanData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iReadFansAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iReadFansAtech());
 
     out.F1V = _F1V;
     out.F2V = _F2V;
@@ -1887,26 +1645,16 @@ Palazzetti::CommandResult Palazzetti::getFanData(FanData &out)
 
 Palazzetti::CommandResult Palazzetti::getHiddenParameter(uint8_t hParamNumber, uint16_t *hParamValue)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetHiddenParameterAtech(hParamNumber, hParamValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iGetHiddenParameterAtech(hParamNumber, hParamValue);
 }
 
 Palazzetti::CommandResult Palazzetti::getIO(IOData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iReadIOAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iReadIOAtech());
 
     out.IN_I01 = _IN_I01;
     out.IN_I02 = _IN_I02;
@@ -1925,9 +1673,7 @@ Palazzetti::CommandResult Palazzetti::getIO(IOData &out)
 
 Palazzetti::CommandResult Palazzetti::getModelVersion(ModelVersionData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     out.MOD = _MOD;
     out.VER = _VER;
@@ -1939,15 +1685,11 @@ Palazzetti::CommandResult Palazzetti::getModelVersion(ModelVersionData &out)
 
 Palazzetti::CommandResult Palazzetti::getParameter(uint8_t paramNumber, uint8_t *paramValue)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     uint16_t tmpValue;
 
-    cmdRes = iGetParameterAtech(paramNumber, &tmpValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetParameterAtech(paramNumber, &tmpValue));
 
     // convert uint16_t to uint8_t
     *paramValue = tmpValue;
@@ -1957,13 +1699,9 @@ Palazzetti::CommandResult Palazzetti::getParameter(uint8_t paramNumber, uint8_t 
 
 Palazzetti::CommandResult Palazzetti::getPelletQtUsed(uint16_t *PQT)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetPelletQtUsedAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetPelletQtUsedAtech());
 
     if (PQT)
         *PQT = _PQT;
@@ -1973,13 +1711,9 @@ Palazzetti::CommandResult Palazzetti::getPelletQtUsed(uint16_t *PQT)
 
 Palazzetti::CommandResult Palazzetti::getPower(PowerData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetPowerAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetPowerAtech());
 
     out.PWR = _PWR;
     out.FDR = _FDR;
@@ -1989,13 +1723,9 @@ Palazzetti::CommandResult Palazzetti::getPower(PowerData &out)
 
 Palazzetti::CommandResult Palazzetti::getSetPoint(SetPointData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetSetPointAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetSetPointAtech());
 
     out.SETP = _SETP;
     out.SECO = _SECO;
@@ -2005,9 +1735,7 @@ Palazzetti::CommandResult Palazzetti::getSetPoint(SetPointData &out)
 
 Palazzetti::CommandResult Palazzetti::getSN(char (*SN)[28])
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     if (SN)
         strcpy(*SN, _SN);
@@ -2016,15 +1744,11 @@ Palazzetti::CommandResult Palazzetti::getSN(char (*SN)[28])
 
 Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     if (!_staticDataLoaded)
     {
-        cmdRes = iUpdateStaticData();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(iUpdateStaticData());
     }
 
     // read LABEL : not needed
@@ -2068,13 +1792,9 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 
 Palazzetti::CommandResult Palazzetti::getStatus(StatusData &out)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetStatusAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetStatusAtech());
 
     out.STATUS = _STATUS;
     out.LSTATUS = _LSTATUS;
@@ -2085,88 +1805,52 @@ Palazzetti::CommandResult Palazzetti::getStatus(StatusData &out)
 
 Palazzetti::CommandResult Palazzetti::readData(uint16_t addrToRead, bool wordMode, uint16_t *ADDR_DATA)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     return iReadDataAtech(addrToRead, ADDR_DATA, wordMode);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoDay(uint8_t dayNumber, uint8_t memoryNumber, uint8_t programNumber)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoDayAtech(dayNumber, memoryNumber, programNumber);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoDayAtech(dayNumber, memoryNumber, programNumber);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoPrg(uint8_t programNumber, uint8_t setPoint, uint8_t startHour, uint8_t startMinute, uint8_t stopHour, uint8_t stopMinute)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     uint8_t prg[6] = {programNumber, setPoint, startHour, startMinute, stopHour, stopMinute};
-    cmdRes = iSetChronoPrgAtech(prg);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoPrgAtech(prg);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoSetpoint(uint8_t programNumber, uint8_t setPoint)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoSetpointAtech(programNumber, setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoSetpointAtech(programNumber, setPoint);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoStartHH(uint8_t programNumber, uint8_t startHour)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoStartHHAtech(programNumber, startHour);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoStartHHAtech(programNumber, startHour);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoStartMM(uint8_t programNumber, uint8_t startMinute)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoStartMMAtech(programNumber, startMinute);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoStartMMAtech(programNumber, startMinute);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t *CHRSTATUSResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoStatusAtech(chronoStatus);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetChronoStatusAtech(chronoStatus));
 
     if (CHRSTATUSResult)
         *CHRSTATUSResult = chronoStatus;
@@ -2176,39 +1860,23 @@ Palazzetti::CommandResult Palazzetti::setChronoStatus(bool chronoStatus, uint8_t
 
 Palazzetti::CommandResult Palazzetti::setChronoStopHH(uint8_t programNumber, uint8_t stopHour)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoStopHHAtech(programNumber, stopHour);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoStopHHAtech(programNumber, stopHour);
 }
 
 Palazzetti::CommandResult Palazzetti::setChronoStopMM(uint8_t programNumber, uint8_t stopMinute)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetChronoStopMMAtech(programNumber, stopMinute);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-
-    return CommandResult::OK;
+    return iSetChronoStopMMAtech(programNumber, stopMinute);
 }
 
 Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second, DateTimeData *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = fumisComSetDateTime(year, month, day, hour, minute, second);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(fumisComSetDateTime(year, month, day, hour, minute, second));
 
     if (result)
     {
@@ -2221,53 +1889,35 @@ Palazzetti::CommandResult Palazzetti::setDateTime(uint16_t year, uint8_t month, 
 
 Palazzetti::CommandResult Palazzetti::setHiddenParameter(uint8_t hParamNumber, uint16_t hParamValue)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetHiddenParameterAtech(hParamNumber, hParamValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-    else if (hParamNumber < _hparamsBufferSize)
-    {
+    RETURN_IF_ERROR(iSetHiddenParameterAtech(hParamNumber, hParamValue));
+    if (hParamNumber < _hparamsBufferSize)
         _HPARAMS[hParamNumber] = hParamValue;
-    }
 
     return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::setParameter(uint8_t paramNumber, uint8_t paramValue)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetParameterAtech(paramNumber, paramValue);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
-    else if (paramNumber < _paramsBufferSize)
-    {
+    RETURN_IF_ERROR(iSetParameterAtech(paramNumber, paramValue));
+    if (paramNumber < _paramsBufferSize)
         _PARAMS[paramNumber] = paramValue;
-    }
 
     return CommandResult::OK;
 }
 
 Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetPowerAtech(powerLevel);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetPowerAtech(powerLevel));
 
     if (byte_471CC2)
     {
-        cmdRes = iGetRoomFanAtech();
-        if (cmdRes != CommandResult::OK)
-            return cmdRes;
+        RETURN_IF_ERROR(iGetRoomFanAtech());
     }
 
     if (result)
@@ -2300,39 +1950,27 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
 
 Palazzetti::CommandResult Palazzetti::setPowerDown(SetPowerResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetPowerAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetPowerAtech());
 
     return setPower(_PWR - 1, result);
 }
 
 Palazzetti::CommandResult Palazzetti::setPowerUp(SetPowerResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetPowerAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetPowerAtech());
 
     return setPower(_PWR + 1, result);
 }
 
 Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFanResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0));
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0)));
 
     if (result)
     {
@@ -2353,13 +1991,9 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFa
 
 Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_t *F3LResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetRoomFan3Atech(roomFan3Speed);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetRoomFan3Atech(roomFan3Speed));
 
     if (F3LResult)
         *F3LResult = _F3L;
@@ -2369,13 +2003,9 @@ Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_
 
 Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_t *F4LResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetRoomFan4Atech(roomFan4Speed);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetRoomFan4Atech(roomFan4Speed));
 
     if (F4LResult)
         *F4LResult = _F4L;
@@ -2385,39 +2015,27 @@ Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_
 
 Palazzetti::CommandResult Palazzetti::setRoomFanDown(SetRoomFanResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iReadFansAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iReadFansAtech());
 
     return setRoomFan(transcodeRoomFanSpeed(_F2L, true) - 1, result);
 }
 
 Palazzetti::CommandResult Palazzetti::setRoomFanUp(SetRoomFanResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iReadFansAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iReadFansAtech());
 
     return setRoomFan(transcodeRoomFanSpeed(_F2L, true) + 1, result);
 }
 
 Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetSetPointAtech(setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetSetPointAtech(setPoint));
 
     if (SETPResult)
         *SETPResult = _SETP;
@@ -2426,13 +2044,9 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPR
 
 Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetSetPointAtech(setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetSetPointAtech(setPoint));
 
     if (SETPResult)
         *SETPResult = _SETP;
@@ -2441,29 +2055,21 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPRes
 
 Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetSetPointAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetSetPointAtech());
 
     return setSetpoint(_SETP - 1.0f, SETPResult);
 }
 
 Palazzetti::CommandResult Palazzetti::setSetPointFan3(uint8_t setPoint, float *F3SResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     if (_BLEMBMODE < 13)
         return CommandResult::UNSUPPORTED;
 
-    cmdRes = iSetSetPointFan3Atech(setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetSetPointFan3Atech(setPoint));
 
     if (F3SResult)
         *F3SResult = _F3S;
@@ -2472,16 +2078,12 @@ Palazzetti::CommandResult Palazzetti::setSetPointFan3(uint8_t setPoint, float *F
 
 Palazzetti::CommandResult Palazzetti::setSetPointFan4(uint8_t setPoint, float *F4SResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     if (_BLEMBMODE < 13)
         return CommandResult::UNSUPPORTED;
 
-    cmdRes = iSetSetPointFan4Atech(setPoint);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetSetPointFan4Atech(setPoint));
 
     if (F4SResult)
         *F4SResult = _F4S;
@@ -2490,26 +2092,18 @@ Palazzetti::CommandResult Palazzetti::setSetPointFan4(uint8_t setPoint, float *F
 
 Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPResult /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iGetSetPointAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iGetSetPointAtech());
 
     return setSetpoint(_SETP + 1.0f, SETPResult);
 }
 
 Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilentModeResult *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSetSilentModeAtech(silentMode);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSetSilentModeAtech(silentMode));
 
     if (result)
     {
@@ -2533,23 +2127,18 @@ Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilen
 
 Palazzetti::CommandResult Palazzetti::switchOff(StatusData *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     // STATUS before the command, to detect its change
     StatusData status;
-    cmdRes = getStatus(status);
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(getStatus(status));
     uint16_t statusBefore = status.STATUS;
 
-    cmdRes = iSwitchOffAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSwitchOffAtech());
 
     // poll STATUS for 400ms max while it succeeds and the stove was ON (statusBefore > 1) and hasn't changed yet
     unsigned long startTime = millis();
+    CommandResult cmdRes;
     do
     {
         yield();
@@ -2563,18 +2152,15 @@ Palazzetti::CommandResult Palazzetti::switchOff(StatusData *result /* = nullptr 
 
 Palazzetti::CommandResult Palazzetti::switchOn(StatusData *result /* = nullptr */)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
-    cmdRes = iSwitchOnAtech();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(iSwitchOnAtech());
 
     // poll STATUS for 1200ms max while it succeeds and remains in the start-up states 0-3
     // (if stove doens't need to heat up, it moves from STATUS=3 to 9 (ECO STOP) in 1.2s max)
     StatusData status;
     unsigned long startTime = millis();
+    CommandResult cmdRes;
     do
     {
         yield();
@@ -2588,9 +2174,7 @@ Palazzetti::CommandResult Palazzetti::switchOn(StatusData *result /* = nullptr *
 
 Palazzetti::CommandResult Palazzetti::writeData(uint16_t addrToWrite, uint16_t data, bool wordMode)
 {
-    CommandResult cmdRes = initialize();
-    if (cmdRes != CommandResult::OK)
-        return cmdRes;
+    RETURN_IF_ERROR(initialize());
 
     return iWriteDataAtech(addrToWrite, data, wordMode);
     // the original code return the data untouched (even if its value is over 255 and wordMode is false...)
