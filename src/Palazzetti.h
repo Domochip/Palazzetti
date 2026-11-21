@@ -160,7 +160,7 @@ private:
 
     // dword_471C5C // myData.4492 contains pointer from malloc(0x69) used to store Logs
 
-    uint8_t _staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
+    // myData.4496  (address in psStaticData) : indicates that Static Data are loaded (not needed: initialize() reads them)
 
     uint16_t _FWDATED = 0; // myData.4500 (psStaticData[4])
     uint16_t _FWDATEM = 0; // myData.4504 (psStaticData[8])
@@ -240,7 +240,6 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
-    CommandResult loadStaticData();
     CommandResult readChronoData();
     CommandResult readDPress();
     CommandResult readDateTime();

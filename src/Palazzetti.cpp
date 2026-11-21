@@ -942,33 +942,6 @@ Palazzetti::CommandResult Palazzetti::writeSetPoint(float setPoint)
     return CommandResult::OK;
 }
 
-// (original: iUpdateStaticData)
-Palazzetti::CommandResult Palazzetti::loadStaticData()
-{
-    // copy mac address in _MAC
-    // look for \n in _MAC
-    // then replace it by 0
-
-    // (original: only for Fumis, _MBTYPE < 2; Micronova returned UNSUPPORTED)
-    CommandResult cmdRes = readStaticData();
-    if (cmdRes != CommandResult::OK)
-        return CommandResult::ERROR;
-
-    // open /etc/appliancelabel
-    // if open /etc/appliancelabel is OK Then
-    //// _LABEL=0; //to empty current label
-    //// read 0x1F char from /etc/appliancelabel into &_LABEL
-    //// close etc/appliancelabel
-    // Else
-    //// run 'touch /etc/appliancelabel'
-
-    _staticDataLoaded = 1; // flag that indicates Static Data are loaded
-
-    // sendmsg 'GET STDT'
-
-    return CommandResult::OK;
-}
-
 // (original: iUpdateStaticDataAtech)
 Palazzetti::CommandResult Palazzetti::readStaticData()
 {
@@ -1111,8 +1084,11 @@ Palazzetti::CommandResult Palazzetti::initialize()
     if (readStatus() != CommandResult::OK)
         return CommandResult::ERROR;
 
-    // read the static data (serial number, firmware, parameters, configuration, limits)
-    RETURN_IF_ERROR(loadStaticData());
+    // read the static data (serial number, firmware, parameters, configuration, limits): any failure gives ERROR
+    // (original: iUpdateStaticData, only for Fumis (_MBTYPE < 2), which also copied the MAC address,
+    //  read /etc/appliancelabel and sent 'GET STDT': not needed here)
+    if (readStaticData() != CommandResult::OK)
+        return CommandResult::ERROR;
 
     _isInitialized = true;
     return CommandResult::OK;
@@ -1170,11 +1146,6 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
         {
             RETURN_IF_ERROR(readPelletLevel());
         }
-    }
-
-    if (!_staticDataLoaded)
-    {
-        RETURN_IF_ERROR(loadStaticData());
     }
 
     out.MBTYPE = 0; // Fumis (Micronova is not supported)
@@ -1542,11 +1513,6 @@ Palazzetti::CommandResult Palazzetti::getSN(char (*SN)[28])
 Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 {
     RETURN_IF_ERROR(initialize());
-
-    if (!_staticDataLoaded)
-    {
-        RETURN_IF_ERROR(loadStaticData());
-    }
 
     // read LABEL : not needed
     // get network infos by running "lua /www/cgi-bin/syscmd.lua \"netdata\" > /dev/null" : not needed
