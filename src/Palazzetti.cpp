@@ -89,19 +89,19 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
 // buf is zeroed on failure (original: buf was a void *)
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, uint8_t (&buf)[FumisFrame::DATA_SIZE])
 {
-    return fumisResult(m_link.read(addrToRead, buf));
+    return fumisResult(_link.read(addrToRead, buf));
 }
 
 // fumisComReadByte and fumisComReadWord read the first 1 or 2 bytes of the Response (little endian), data is unchanged on failure
 // (original: both called fumisComRead(addr, data, wordMode), now FumisLink::readByte and readWord)
 Palazzetti::CommandResult Palazzetti::fumisComReadByte(uint16_t addrToRead, uint16_t *data)
 {
-    return fumisResult(m_link.readByte(addrToRead, *data));
+    return fumisResult(_link.readByte(addrToRead, *data));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComReadWord(uint16_t addrToRead, uint16_t *data)
 {
-    return fumisResult(m_link.readWord(addrToRead, *data));
+    return fumisResult(_link.readWord(addrToRead, *data));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
@@ -114,7 +114,7 @@ Palazzetti::CommandResult Palazzetti::fumisComSetDateTime(uint16_t year, uint8_t
     uint8_t weekDay = isoWeekDay(year, month, day);
 
     // (the retries of the original are now in FumisLink::setDateTime)
-    CommandResult cmdRes = fumisResult(m_link.setDateTime(second, minute, hour, weekDay, day, month, year - 2000)); // local_88
+    CommandResult cmdRes = fumisResult(_link.setDateTime(second, minute, hour, weekDay, day, month, year - 2000)); // local_88
 
     // values are already checked by isValidDateTime; the modulos only let the compiler see that the text fits in 20 bytes
     sprintf(_STOVE_DATETIME, "%d-%02d-%02d %02d:%02d:%02d", year % 10000u, month % 100u, day % 100u, hour % 100u, minute % 100u, second % 100u);
@@ -128,12 +128,12 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteByte(uint16_t addrToWrite, ui
 {
     // Command ON/OFF (0x2044): the stove executes the command then clears the word, so a consumed command reads back as 0
     uint8_t expected = (addrToWrite == 0x2044) ? 0 : (data & 0xFF);
-    return fumisResult(m_link.writeByte(addrToWrite, data & 0xFF, expected));
+    return fumisResult(_link.writeByte(addrToWrite, data & 0xFF, expected));
 }
 
 Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, uint16_t data)
 {
-    return fumisResult(m_link.writeWord(addrToWrite, data));
+    return fumisResult(_link.writeWord(addrToWrite, data));
 }
 
 Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
@@ -186,7 +186,7 @@ Palazzetti::CommandResult Palazzetti::iGetAllStatus(bool refreshStatus)
         }
     }
 
-    if (!staticDataLoaded)
+    if (!_staticDataLoaded)
     {
         cmdRes = iUpdateStaticData();
         if (cmdRes != CommandResult::OK)
@@ -210,13 +210,13 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
         cmdRes = fumisComReadBuff(addrToRead, programTimes);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
-        chronoDataPrograms[i].STARTH = programTimes[0];
-        chronoDataPrograms[i].STARTM = programTimes[1];
-        chronoDataPrograms[i].STOPH = programTimes[2];
-        chronoDataPrograms[i].STOPM = programTimes[3];
-        chronoDataPrograms[i].CHRSETP = CHRSETPList[i];
+        _chronoDataPrograms[i].STARTH = programTimes[0];
+        _chronoDataPrograms[i].STARTM = programTimes[1];
+        _chronoDataPrograms[i].STOPH = programTimes[2];
+        _chronoDataPrograms[i].STOPM = programTimes[3];
+        _chronoDataPrograms[i].CHRSETP = CHRSETPList[i];
         if (!_FLUID)
-            chronoDataPrograms[i].CHRSETP /= 5.0;
+            _chronoDataPrograms[i].CHRSETP /= 5.0;
 
         addrToRead += 4;
     }
@@ -229,17 +229,17 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        chronoDataDays[i].M1 = dayPrograms[0];
-        chronoDataDays[i].M2 = dayPrograms[1];
-        chronoDataDays[i].M3 = dayPrograms[2];
+        _chronoDataDays[i].M1 = dayPrograms[0];
+        _chronoDataDays[i].M2 = dayPrograms[1];
+        _chronoDataDays[i].M3 = dayPrograms[2];
 
         addrToRead += 3;
     }
 
-    cmdRes = fumisComReadWord(0x207e, &chronoDataStatus);
+    cmdRes = fumisComReadWord(0x207e, &_chronoDataStatus);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-    _CHRSTATUS = chronoDataStatus & 0x01;
+    _CHRSTATUS = _chronoDataStatus & 0x01;
 
     return CommandResult::OK;
 }
@@ -528,7 +528,7 @@ Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
 
     _PWR = var_C & 0xFF;
 
-    cmdRes = fumisComReadWord(wAddrFeederActiveTime, &var_C);
+    cmdRes = fumisComReadWord(_wAddrFeederActiveTime, &var_C);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
@@ -1427,7 +1427,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticData()
     // Else
     //// run 'touch /etc/appliancelabel'
 
-    staticDataLoaded = 1; // flag that indicates Static Data are loaded
+    _staticDataLoaded = 1; // flag that indicates Static Data are loaded
 
     // sendmsg 'GET STDT'
 
@@ -1442,13 +1442,13 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     uint8_t buf[8];                  // var_820
     CommandResult cmdRes;            // var_830
 
-    while (nbTotalBytesReaded < paramsBufferSize)
+    while (nbTotalBytesReaded < _paramsBufferSize)
     {
         cmdRes = fumisComReadBuff(0x1C00 + nbTotalBytesReaded, buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
+        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
             _PARAMS[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
@@ -1457,13 +1457,13 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     ///*read all params OK*/
 
     nbTotalBytesReaded = 0; // var_838
-    while (nbTotalBytesReaded < hparamsBufferSize)
+    while (nbTotalBytesReaded < _hparamsBufferSize)
     {
         cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < hparamsBufferSize; i += 2)
+        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _hparamsBufferSize; i += 2)
         {
             // not nbTotalBytesReaded * 2 because _HPARAMS is uint16_t[] type
             _HPARAMS[nbTotalBytesReaded] = buf[i + 1];
@@ -1491,21 +1491,21 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
 
     // Custom: better feeder active time address based on Core and Version
     if (_CORE != 0 || _VER >= 40)
-        wAddrFeederActiveTime = 0x209A;
+        _wAddrFeederActiveTime = 0x209A;
     else if (_VER < 35)
-        wAddrFeederActiveTime = 0x1FAE;
+        _wAddrFeederActiveTime = 0x1FAE;
     else
-        wAddrFeederActiveTime = 0x1FAC;
+        _wAddrFeederActiveTime = 0x1FAC;
 
     if (_MOD < 500 || 599 < _MOD)
     {
         // Original: feeder active time address based on Model and Version
         // if (_VER < 0x1F)
-        //     wAddrFeederActiveTime = 0x1FAE;
+        //     _wAddrFeederActiveTime = 0x1FAE;
         // else if (_VER < 0x28)
-        //     wAddrFeederActiveTime = 0x1FAC;
+        //     _wAddrFeederActiveTime = 0x1FAC;
         // else
-        //     wAddrFeederActiveTime = 0x209A;
+        //     _wAddrFeederActiveTime = 0x209A;
 
         uint16_t var_18;
         cmdRes = fumisComReadWord(0x203A, &var_18);
@@ -1521,16 +1521,16 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     }
     // Original: feeder active time address based on Model and Version
     // else
-    //     wAddrFeederActiveTime = 0x209A;
+    //     _wAddrFeederActiveTime = 0x209A;
 
     nbTotalBytesReaded = 0; // var_838
-    while (nbTotalBytesReaded < paramsBufferSize)
+    while (nbTotalBytesReaded < _paramsBufferSize)
     {
         cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
+        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
             _LIMMIN[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
@@ -1538,13 +1538,13 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     }
 
     nbTotalBytesReaded = 0; // var_838
-    while (nbTotalBytesReaded < paramsBufferSize)
+    while (nbTotalBytesReaded < _paramsBufferSize)
     {
         cmdRes = fumisComReadBuff((nbTotalBytesReaded + 0x810C), buf);
         if (cmdRes != CommandResult::OK)
             return cmdRes;
 
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < paramsBufferSize; i++)
+        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
         {
             _LIMMAX[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
@@ -1589,14 +1589,14 @@ Palazzetti::CommandResult Palazzetti::iWriteDataAtech(uint16_t addrToWrite, uint
 
 Palazzetti::CommandResult Palazzetti::initialize()
 {
-    if (!m_link.hasSerial())
+    if (!_link.hasSerial())
         return CommandResult::ERROR;
 
     if (_isInitialized)
         return CommandResult::OK;
 
     // (original: iChkMBType, which chose between a Micronova and a Fumis motherboard (_MBTYPE),
-    //  and iInit, which only sized the static data buffers: see paramsBufferSize and hparamsBufferSize)
+    //  and iInit, which only sized the static data buffers: see _paramsBufferSize and _hparamsBufferSize)
 
     // (original: opened the serial port here, and closed it on failure: now opened once by the application)
 
@@ -1617,7 +1617,7 @@ Palazzetti::CommandResult Palazzetti::initialize()
 
 Palazzetti::CommandResult Palazzetti::initialize(Stream &port)
 {
-    m_link.setSerial(port);
+    _link.setSerial(port);
     return initialize();
 }
 
@@ -1774,20 +1774,20 @@ Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    out.CHRSTATUS = _CHRSTATUS; // original code should have been "chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
+    out.CHRSTATUS = _CHRSTATUS; // original code should have been "_chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
     for (uint8_t i = 0; i < 6; i++)
     {
-        out.PCHRSETP[i] = chronoDataPrograms[i].CHRSETP;
-        out.PSTART[i][0] = chronoDataPrograms[i].STARTH;
-        out.PSTART[i][1] = chronoDataPrograms[i].STARTM;
-        out.PSTOP[i][0] = chronoDataPrograms[i].STOPH;
-        out.PSTOP[i][1] = chronoDataPrograms[i].STOPM;
+        out.PCHRSETP[i] = _chronoDataPrograms[i].CHRSETP;
+        out.PSTART[i][0] = _chronoDataPrograms[i].STARTH;
+        out.PSTART[i][1] = _chronoDataPrograms[i].STARTM;
+        out.PSTOP[i][0] = _chronoDataPrograms[i].STOPH;
+        out.PSTOP[i][1] = _chronoDataPrograms[i].STOPM;
     }
     for (uint8_t i = 0; i < 7; i++)
     {
-        out.DM[i][0] = chronoDataDays[i].M1;
-        out.DM[i][1] = chronoDataDays[i].M2;
-        out.DM[i][2] = chronoDataDays[i].M3;
+        out.DM[i][0] = _chronoDataDays[i].M1;
+        out.DM[i][1] = _chronoDataDays[i].M2;
+        out.DM[i][2] = _chronoDataDays[i].M3;
     }
 
     return CommandResult::OK;
@@ -2020,7 +2020,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
     if (cmdRes != CommandResult::OK)
         return cmdRes;
 
-    if (!staticDataLoaded)
+    if (!_staticDataLoaded)
     {
         cmdRes = iUpdateStaticData();
         if (cmdRes != CommandResult::OK)
@@ -2228,7 +2228,7 @@ Palazzetti::CommandResult Palazzetti::setHiddenParameter(uint8_t hParamNumber, u
     cmdRes = iSetHiddenParameterAtech(hParamNumber, hParamValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-    else if (hParamNumber < hparamsBufferSize)
+    else if (hParamNumber < _hparamsBufferSize)
     {
         _HPARAMS[hParamNumber] = hParamValue;
     }
@@ -2245,7 +2245,7 @@ Palazzetti::CommandResult Palazzetti::setParameter(uint8_t paramNumber, uint8_t 
     cmdRes = iSetParameterAtech(paramNumber, paramValue);
     if (cmdRes != CommandResult::OK)
         return cmdRes;
-    else if (paramNumber < paramsBufferSize)
+    else if (paramNumber < _paramsBufferSize)
     {
         _PARAMS[paramNumber] = paramValue;
     }

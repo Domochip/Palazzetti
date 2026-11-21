@@ -31,7 +31,7 @@ private:
     // day of the week of a valid date: 1 = Monday .. 7 = Sunday
     static uint8_t isoWeekDay(uint16_t year, uint8_t month, uint8_t day);
 
-    uint16_t wAddrFeederActiveTime = 0;
+    uint16_t _wAddrFeederActiveTime = 0;
     // sFumisComData.4 and sFumisComData.8: see FumisLink
 
     // uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others (always 2 here: the model 2 code is kept, model 1 is removed)
@@ -134,7 +134,7 @@ private:
         uint8_t STOPH;  // chronoData[0->5 * 0x14 + 0x0C]
         uint8_t STOPM;  // chronoData[0->5 * 0x14 + 0x10]
     };
-    chronoDataProgram chronoDataPrograms[6];
+    chronoDataProgram _chronoDataPrograms[6];
     // 0->6 : D1->D7
     struct chronoDataDay
     {
@@ -142,8 +142,8 @@ private:
         uint8_t M2; // chronoData[0x78 + (0->6 * 3 + 1) * 4]
         uint8_t M3; // chronoData[0x78 + (0->6 * 3 + 2) * 4]
     };
-    chronoDataDay chronoDataDays[7];
-    uint16_t chronoDataStatus; // chronoData[0xCC]
+    chronoDataDay _chronoDataDays[7];
+    uint16_t _chronoDataStatus; // chronoData[0xCC]
 
     // space of 0x16 size reserved by malloc in iInit (original)
     uint16_t _IGN = 0;           // myData.4488[0]
@@ -160,7 +160,7 @@ private:
 
     // dword_471C5C // myData.4492 contains pointer from malloc(0x69) used to store Logs
 
-    uint8_t staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
+    uint8_t _staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
 
     uint16_t _FWDATED = 0; // myData.4500 (psStaticData[4])
     uint16_t _FWDATEM = 0; // myData.4504 (psStaticData[8])
@@ -187,12 +187,12 @@ private:
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
     // uint8_t _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    uint8_t paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    uint8_t _paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
     // myData.4552 contains pointer to malloc(0xDE) (set up in iInit in original by 0x6F * 2)
     uint16_t _HPARAMS[0x6F]; // myData.4552 (psStaticData[0x38])
 
-    uint8_t hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) set up in iInit in original for sizing HPARAMS malloc
+    uint8_t _hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) set up in iInit in original for sizing HPARAMS malloc
 
     uint16_t _FLUID = 0; // myData.4560 (psStaticData[0x40])
 
@@ -226,7 +226,7 @@ private:
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
-    FumisLink m_link; // serial layer
+    FumisLink _link; // serial layer
 
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
@@ -451,7 +451,7 @@ public:
     // port: the stream connected to the stove bus, already opened by the application at BAUDRATE, 8N1
     CommandResult initialize(Stream &port);
     bool isInitialized() { return _isInitialized; };
-    LoopBack getLoopBack() { return m_link.loopBack(); };
+    LoopBack getLoopBack() { return _link.loopBack(); };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     CommandResult getAllParameters(uint8_t (*params)[0x6A]);

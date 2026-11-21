@@ -118,12 +118,12 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
         return res;
 
     // (original: fumisSendRequest + SERIALCOM_SendBuf, then tcdrain)
-    if (m_port->write(request.bytes, FumisFrame::SIZE) != FumisFrame::SIZE)
+    if (_port->write(request.bytes, FumisFrame::SIZE) != FumisFrame::SIZE)
         return Result::Error;
-    m_port->flush();
+    _port->flush();
 
     // V1 board: RX receives back what was just sent (original: read without checking, only when comPortNumber == 0)
-    if (m_loopBack == LoopBack::Yes)
+    if (_loopBack == LoopBack::Yes)
     {
         FumisFrame echo;
         res = readFrame(echo);
@@ -136,7 +136,7 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
     if (!response)
         return Result::Ok;
 
-    if (m_loopBack != LoopBack::Unknown)
+    if (_loopBack != LoopBack::Unknown)
         return readResponse(*response);
 
     // (not in original) loopback detection, on the first successful Read:
@@ -150,13 +150,13 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
     {
         res = readResponse(*response);
         if (res == Result::Ok)
-            m_loopBack = LoopBack::Yes;
+            _loopBack = LoopBack::Yes;
         return res;
     }
 
     res = acceptResponse(*response);
     if (res == Result::Ok)
-        m_loopBack = LoopBack::No;
+        _loopBack = LoopBack::No;
     return res;
 }
 
@@ -164,7 +164,7 @@ FumisLink::Result FumisLink::exchange(const FumisFrame &request, FumisFrame *res
 bool FumisLink::waitAvailable(unsigned long timeoutMs)
 {
     unsigned long startTime = millis();
-    while (m_port->available() == 0)
+    while (_port->available() == 0)
     {
         if (millis() - startTime >= timeoutMs)
             return false;
@@ -175,7 +175,7 @@ bool FumisLink::waitAvailable(unsigned long timeoutMs)
 // (original: SERIALCOM_Flush, tcflush)
 void FumisLink::discardInput()
 {
-    while (m_port->read() != -1)
+    while (_port->read() != -1)
         ;
 }
 
@@ -191,8 +191,8 @@ FumisLink::Result FumisLink::readBytes(uint8_t *dst, uint8_t count, unsigned lon
         if (elapsed >= limitMs || !waitAvailable(limitMs - elapsed))
             return Result::Timeout;
 
-        while (received < count && m_port->available() > 0)
-            dst[received++] = m_port->read();
+        while (received < count && _port->available() > 0)
+            dst[received++] = _port->read();
 
         delayMicroseconds(1);
     }
@@ -207,10 +207,10 @@ FumisLink::Result FumisLink::waitPoll()
 
     // (not in original) keep the RX buffer for 8ms after a valid Response: the stove sends its next frame ~0.1ms after it,
     // so the buffer then starts exactly at that frame; otherwise discard it
-    bool alignedFrame = rxAligned && (millis() - lastResponseMs) < 8;
+    bool alignedFrame = _rxAligned && (millis() - _lastResponseMs) < 8;
     if (!alignedFrame)
         discardInput();
-    rxAligned = false;
+    _rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
 
@@ -253,8 +253,8 @@ FumisLink::Result FumisLink::acceptResponse(const FumisFrame &frame)
         return Result::BadFrame;
 
     // the next RX byte is the start of the stove's next frame (see waitPoll)
-    rxAligned = true;
-    lastResponseMs = millis();
+    _rxAligned = true;
+    _lastResponseMs = millis();
     return Result::Ok;
 }
 

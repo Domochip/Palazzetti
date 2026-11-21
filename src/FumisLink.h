@@ -34,8 +34,8 @@ public:
     };
 
     // the stream connected to the stove bus, already opened
-    void setSerial(Stream &port) { m_port = &port; }
-    bool hasSerial() const { return m_port != nullptr; }
+    void setSerial(Stream &port) { _port = &port; }
+    bool hasSerial() const { return _port != nullptr; }
 
     // Read the 8 bytes at addr (zeroed on failure), up to 3 attempts
     Result read(uint16_t addr, uint8_t (&data)[FumisFrame::DATA_SIZE]);
@@ -53,7 +53,7 @@ public:
     // weekDay: 1 = Monday .. 7 = Sunday, up to 3 attempts
     Result setDateTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t weekDay, uint8_t day, uint8_t month, uint8_t yearSince2000);
 
-    LoopBack loopBack() const { return m_loopBack; }
+    LoopBack loopBack() const { return _loopBack; }
 
 private:
     // frame time limits (original: 3000ms for every frame in var_10, checked after each select of 2300ms, myData.4216 + myData.4220)
@@ -76,15 +76,15 @@ private:
     bool waitAvailable(unsigned long timeoutMs);
     void discardInput();
 
-    Stream *m_port = nullptr;
-    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes, myData.4180)
+    Stream *_port = nullptr;
+    LoopBack _loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes, myData.4180)
     // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" was tested): not reproduced
     //   0 closed: the port is opened once by the application and never closed
     //   1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received:
     //   now the order of the code in exchange, waitPoll and readResponse
     // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
-    bool rxAligned = false;           // (not in original) a valid Response was just read: the next RX byte starts a stove frame
-    unsigned long lastResponseMs = 0; // (not in original) millis() of that Response
+    bool _rxAligned = false;           // (not in original) a valid Response was just read: the next RX byte starts a stove frame
+    unsigned long _lastResponseMs = 0; // (not in original) millis() of that Response
 };
 
 #endif
