@@ -179,9 +179,9 @@ private:
 
     // myData.4544 contains pointer to malloc(0x6A) (set up in iInit in original)
     uint8_t _PARAMS[0x6A]; // myData.4544 (psStaticData[0x30])
-    // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in iGetErrorFlagAtech)
+    // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in updateErrorFlags)
     // uint8_t _PARAMS[0x4C] = 0; // CONFIG
-    // uint8_t _PARAMS[0x59] = 0; // DP pressure sensor tolerance (value * 3%) (used in iGetErrorFlagAtech)
+    // uint8_t _PARAMS[0x59] = 0; // DP pressure sensor tolerance (value * 3%) (used in updateErrorFlags)
     // uint8_t _PARAMS[0x5C] = 0; // PELLETTYPE
     // uint8_t _PARAMS[0x62] = 0; // PSENSLMAX (Pellet Level max)
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
@@ -240,32 +240,32 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
-    CommandResult iGetChronoDataAtech();
-    CommandResult iGetDateTimeAtech();
-    CommandResult iGetDPressDataAtech();
-    CommandResult iGetErrorFlagAtech();
-    void iGetFanLimits();
-    CommandResult iGetMBTypeAtech();
-    CommandResult iGetPelletLevelAtech();
-    CommandResult iGetPelletQtUsedAtech();
-    CommandResult iGetPowerAtech();
-    CommandResult iGetPumpRateAtech();
-    CommandResult iGetRoomFanAtech();
-    CommandResult iGetSetPointAtech();
-    CommandResult iGetSNAtech();
-    CommandResult iGetStatusAtech();
-    CommandResult iGetStoveConfigurationAtech();
-    CommandResult iReadFansAtech();
-    CommandResult iReadIOAtech();
-    CommandResult iReadTemperatureAtech();
-    CommandResult iSetPowerAtech(uint16_t powerLevel);
-    CommandResult iSetRoomFan3Atech(uint16_t roomFan3Speed);
-    CommandResult iSetRoomFan4Atech(uint16_t roomFan4Speed);
-    CommandResult iSetRoomFanAtech(uint16_t roomFanSpeed);
-    CommandResult iSetSetPointAtech(uint8_t setPoint);
-    CommandResult iSetSetPointAtech(float setPoint);
-    CommandResult iUpdateStaticData();
-    CommandResult iUpdateStaticDataAtech();
+    CommandResult loadStaticData();
+    CommandResult readChronoData();
+    CommandResult readDPress();
+    CommandResult readDateTime();
+    CommandResult readFanLevels();
+    CommandResult readFans();
+    CommandResult readHwType();
+    CommandResult readIO();
+    CommandResult readPelletLevel();
+    CommandResult readPelletQtUsed();
+    CommandResult readPower();
+    CommandResult readPumpRate();
+    CommandResult readSN();
+    CommandResult readSetPoint();
+    CommandResult readStaticData();
+    CommandResult readStatus();
+    CommandResult readStoveConfiguration();
+    CommandResult readTemperatures();
+    CommandResult updateErrorFlags();
+    void updateFanLimits();
+    CommandResult writeFan3(uint16_t fan3Speed);
+    CommandResult writeFan4(uint16_t fan4Speed);
+    CommandResult writePower(uint16_t powerLevel);
+    CommandResult writeRoomFan(uint16_t roomFanSpeed);
+    CommandResult writeSetPoint(uint8_t setPoint);
+    CommandResult writeSetPoint(float setPoint);
 
     bool _isInitialized = false;
 

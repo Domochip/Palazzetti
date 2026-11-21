@@ -149,7 +149,8 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
     return fumisResult(_link.writeWord(addrToWrite, data));
 }
 
-Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
+// (original: iGetChronoDataAtech)
+Palazzetti::CommandResult Palazzetti::readChronoData()
 {
     uint8_t CHRSETPList[8];
     RETURN_IF_ERROR(fumisComReadBuff(0x802D, CHRSETPList));
@@ -189,7 +190,8 @@ Palazzetti::CommandResult Palazzetti::iGetChronoDataAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
+// (original: iGetDateTimeAtech)
+Palazzetti::CommandResult Palazzetti::readDateTime()
 {
     uint8_t buf[8]; // var_14
     RETURN_IF_ERROR(fumisComReadBuff(0x204E, buf));
@@ -201,7 +203,8 @@ Palazzetti::CommandResult Palazzetti::iGetDateTimeAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetDPressDataAtech()
+// (original: iGetDPressDataAtech)
+Palazzetti::CommandResult Palazzetti::readDPress()
 {
     uint16_t buf; // var_10
     RETURN_IF_ERROR(fumisComReadWord(0x2000, &buf));
@@ -215,7 +218,8 @@ Palazzetti::CommandResult Palazzetti::iGetDPressDataAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetErrorFlagAtech()
+// (original: iGetErrorFlagAtech)
+Palazzetti::CommandResult Palazzetti::updateErrorFlags()
 {
     uint8_t t1Err, t2Err, t3Err, t4Err, t5Err;
 
@@ -273,7 +277,8 @@ Palazzetti::CommandResult Palazzetti::iGetErrorFlagAtech()
     return CommandResult::OK;
 }
 
-void Palazzetti::iGetFanLimits()
+// (original: iGetFanLimits)
+void Palazzetti::updateFanLimits()
 {
     if (byte_471CC2)
     {
@@ -284,7 +289,8 @@ void Palazzetti::iGetFanLimits()
     }
 }
 
-Palazzetti::CommandResult Palazzetti::iGetMBTypeAtech()
+// (original: iGetMBTypeAtech)
+Palazzetti::CommandResult Palazzetti::readHwType()
 {
     uint16_t buf;         // var_C
     RETURN_IF_ERROR(fumisComReadWord(0x204C, &buf));
@@ -300,7 +306,8 @@ Palazzetti::CommandResult Palazzetti::iGetMBTypeAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
+// (original: iGetPelletLevelAtech)
+Palazzetti::CommandResult Palazzetti::readPelletLevel()
 {
     if (_PSENSTYPE == 1)
     {
@@ -336,7 +343,8 @@ Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetPelletQtUsedAtech()
+// (original: iGetPelletQtUsedAtech)
+Palazzetti::CommandResult Palazzetti::readPelletQtUsed()
 {
     uint16_t var_10;
     RETURN_IF_ERROR(fumisComReadWord(0x2002, &var_10));
@@ -344,7 +352,8 @@ Palazzetti::CommandResult Palazzetti::iGetPelletQtUsedAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
+// (original: iGetPowerAtech)
+Palazzetti::CommandResult Palazzetti::readPower()
 {
     uint16_t var_C;
 
@@ -359,7 +368,8 @@ Palazzetti::CommandResult Palazzetti::iGetPowerAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetPumpRateAtech()
+// (original: iGetPumpRateAtech)
+Palazzetti::CommandResult Palazzetti::readPumpRate()
 {
     uint16_t buf;
     RETURN_IF_ERROR(fumisComReadWord(0x2090, &buf));
@@ -369,7 +379,8 @@ Palazzetti::CommandResult Palazzetti::iGetPumpRateAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetRoomFanAtech()
+// (original: iGetRoomFanAtech)
+Palazzetti::CommandResult Palazzetti::readFanLevels()
 {
     uint16_t var_C;
     RETURN_IF_ERROR(fumisComReadByte(0x2036, &var_C));
@@ -401,7 +412,8 @@ Palazzetti::CommandResult Palazzetti::iGetRoomFanAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetSetPointAtech()
+// (original: iGetSetPointAtech)
+Palazzetti::CommandResult Palazzetti::readSetPoint()
 {
     if (_STOVETYPE == 1 && _PARAMS[0x4C] == 2)
     {
@@ -432,7 +444,8 @@ Palazzetti::CommandResult Palazzetti::iGetSetPointAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetSNAtech()
+// (original: iGetSNAtech)
+Palazzetti::CommandResult Palazzetti::readSN()
 {
     CommandResult cmdRes;
     int currentPosInSN = 0;   // var_24
@@ -484,7 +497,8 @@ Palazzetti::CommandResult Palazzetti::iGetSNAtech()
     return CommandResult::ERROR;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
+// (original: iGetStatusAtech)
+Palazzetti::CommandResult Palazzetti::readStatus()
 {
     RETURN_IF_ERROR(fumisComReadByte(0x201C, &_STATUS));
 
@@ -518,7 +532,8 @@ Palazzetti::CommandResult Palazzetti::iGetStatusAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
+// (original: iGetStoveConfigurationAtech)
+Palazzetti::CommandResult Palazzetti::readStoveConfiguration()
 {
     uint16_t buf;         // local_20
     RETURN_IF_ERROR(fumisComReadByte(0x2006, &buf));
@@ -526,7 +541,7 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
     if (_DSPFWVER > 0)
         _DSPTYPE = (double)buf / pow(10, (int)log10(buf));
 
-    RETURN_IF_ERROR(iGetMBTypeAtech());
+    RETURN_IF_ERROR(readHwType());
 
     _CHRONOTYPE = 2;
     _MAINTPROBE = 0;
@@ -690,7 +705,8 @@ Palazzetti::CommandResult Palazzetti::iGetStoveConfigurationAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iReadFansAtech()
+// (original: iReadFansAtech)
+Palazzetti::CommandResult Palazzetti::readFans()
 {
     uint8_t buf[8];
     CommandResult cmdRes = fumisComReadBuff(0x2024, buf);
@@ -715,7 +731,7 @@ Palazzetti::CommandResult Palazzetti::iReadFansAtech()
     _F1RPM <<= 8;
     _F1RPM += buf[4];
 
-    cmdRes = iGetRoomFanAtech();
+    cmdRes = readFanLevels();
     if (cmdRes != CommandResult::OK)
     {
         _F1V = 0xFFFF;
@@ -747,7 +763,8 @@ Palazzetti::CommandResult Palazzetti::iReadFansAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iReadIOAtech()
+// (original: iReadIOAtech)
+Palazzetti::CommandResult Palazzetti::readIO()
 {
     uint8_t buf[8];
     RETURN_IF_ERROR(fumisComReadBuff(0x203c, buf));
@@ -768,7 +785,8 @@ Palazzetti::CommandResult Palazzetti::iReadIOAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
+// (original: iReadTemperatureAtech)
+Palazzetti::CommandResult Palazzetti::readTemperatures()
 {
     uint8_t buf[8];       // var_14
     uint16_t conv = 0;
@@ -804,7 +822,8 @@ Palazzetti::CommandResult Palazzetti::iReadTemperatureAtech()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
+// (original: iSetPowerAtech)
+Palazzetti::CommandResult Palazzetti::writePower(uint16_t powerLevel)
 {
     if (powerLevel < 1 || powerLevel > 5)
         return CommandResult::ERROR;
@@ -816,79 +835,84 @@ Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
+// (original: iSetRoomFan3Atech)
+Palazzetti::CommandResult Palazzetti::writeFan3(uint16_t fan3Speed)
 {
-    if (roomFan3Speed > 5)
+    if (fan3Speed > 5)
         return CommandResult::ERROR;
 
     if (_FAN2TYPE == 4)
     {
-        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!_F4L ? 0 : 2) | (0 < roomFan3Speed)));
-        _F3L = (0 < roomFan3Speed);
+        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!_F4L ? 0 : 2) | (0 < fan3Speed)));
+        _F3L = (0 < fan3Speed);
     }
     else
     {
         if (_FAN2TYPE != 5)
             return CommandResult::ERROR;
-        RETURN_IF_ERROR(fumisComWriteByte(0x2004, roomFan3Speed));
-        _F3L = roomFan3Speed;
+        RETURN_IF_ERROR(fumisComWriteByte(0x2004, fan3Speed));
+        _F3L = fan3Speed;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
+// (original: iSetRoomFan4Atech)
+Palazzetti::CommandResult Palazzetti::writeFan4(uint16_t fan4Speed)
 {
-    if (roomFan4Speed > 5)
+    if (fan4Speed > 5)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
 
     if (_FAN2TYPE == 4)
     {
-        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!roomFan4Speed ? 0 : 2) | (0 < _F3L)));
-        _F4L = (0 < roomFan4Speed);
+        RETURN_IF_ERROR(fumisComWriteWord(0x2004, (!fan4Speed ? 0 : 2) | (0 < _F3L)));
+        _F4L = (0 < fan4Speed);
     }
     else
     {
         if (_FAN2TYPE == 5)
-            cmdRes = fumisComWriteByte(0x2005, roomFan4Speed);
+            cmdRes = fumisComWriteByte(0x2005, fan4Speed);
         else if (_FAN2TYPE == 3)
-            cmdRes = fumisComWriteWord(0x2004, roomFan4Speed);
+            cmdRes = fumisComWriteWord(0x2004, fan4Speed);
         else
             return CommandResult::ERROR;
 
         if (cmdRes != CommandResult::OK)
             return cmdRes;
-        _F4L = roomFan4Speed;
+        _F4L = fan4Speed;
     }
 
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
+// (original: iSetRoomFanAtech)
+Palazzetti::CommandResult Palazzetti::writeRoomFan(uint16_t roomFanSpeed)
 {
     if (roomFanSpeed > 7)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
 
-    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = iSetPowerAtech(3)) == CommandResult::OK)
+    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = writePower(3)) == CommandResult::OK)
     {
         RETURN_IF_ERROR(fumisComWriteByte(0x2036, roomFanSpeed));
-        RETURN_IF_ERROR(iGetRoomFanAtech());
+        RETURN_IF_ERROR(readFanLevels());
         _F2L = roomFanSpeed;
         return CommandResult::OK;
     }
     return cmdRes;
 }
 
-Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(uint8_t setPoint)
+// (original: iSetSetPointAtech)
+Palazzetti::CommandResult Palazzetti::writeSetPoint(uint8_t setPoint)
 {
-    return iSetSetPointAtech((float)setPoint);
+    return writeSetPoint((float)setPoint);
 }
 
-Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
+// (original: iSetSetPointAtech)
+Palazzetti::CommandResult Palazzetti::writeSetPoint(float setPoint)
 {
     if (setPoint < _SPLMIN)
         setPoint = _SPLMIN;
@@ -918,14 +942,15 @@ Palazzetti::CommandResult Palazzetti::iSetSetPointAtech(float setPoint)
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iUpdateStaticData()
+// (original: iUpdateStaticData)
+Palazzetti::CommandResult Palazzetti::loadStaticData()
 {
     // copy mac address in _MAC
     // look for \n in _MAC
     // then replace it by 0
 
     // (original: only for Fumis, _MBTYPE < 2; Micronova returned UNSUPPORTED)
-    CommandResult cmdRes = iUpdateStaticDataAtech();
+    CommandResult cmdRes = readStaticData();
     if (cmdRes != CommandResult::OK)
         return CommandResult::ERROR;
 
@@ -944,9 +969,10 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticData()
     return CommandResult::OK;
 }
 
-Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
+// (original: iUpdateStaticDataAtech)
+Palazzetti::CommandResult Palazzetti::readStaticData()
 {
-    iGetSNAtech();
+    readSN();
 
     uint16_t nbTotalBytesReaded = 0; // var_838
     uint8_t buf[8];                  // var_820
@@ -990,7 +1016,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     // pdword_471C80 = _HPARAMS[0x8C / 2]; //Not Used
     // pdword_471C84 = _HPARAMS[0x8E / 2]; //Not Used
 
-    RETURN_IF_ERROR(iGetStoveConfigurationAtech());
+    RETURN_IF_ERROR(readStoveConfiguration());
 
     // Custom: better feeder active time address based on Core and Version
     // (original: based on Model and Version: 0x209A for models 500-599, otherwise 0x1FAE if VER < 31, 0x1FAC if VER < 40, else 0x209A)
@@ -1082,11 +1108,11 @@ Palazzetti::CommandResult Palazzetti::initialize()
     // check the stove answers by reading its STATUS (any failure gives ERROR, as in original)
     // this is also the first exchange, so the loopback is detected on 0x201C,
     // an address where the Response cannot look like the echo of the Request (see FumisLink::exchange)
-    if (iGetStatusAtech() != CommandResult::OK)
+    if (readStatus() != CommandResult::OK)
         return CommandResult::ERROR;
 
     // read the static data (serial number, firmware, parameters, configuration, limits)
-    RETURN_IF_ERROR(iUpdateStaticData());
+    RETURN_IF_ERROR(loadStaticData());
 
     _isInitialized = true;
     return CommandResult::OK;
@@ -1102,7 +1128,7 @@ Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenPa
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iUpdateStaticDataAtech());
+    RETURN_IF_ERROR(readStaticData());
 
     memcpy(*hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
 
@@ -1113,7 +1139,7 @@ Palazzetti::CommandResult Palazzetti::getAllParameters(uint8_t (*params)[0x6A])
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iUpdateStaticDataAtech());
+    RETURN_IF_ERROR(readStaticData());
 
     memcpy(*params, _PARAMS, 0x6A * sizeof(uint8_t));
 
@@ -1128,27 +1154,27 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     // (original: iGetAllStatus)
     if (refreshStatus)
     {
-        RETURN_IF_ERROR(iGetDateTimeAtech());
-        RETURN_IF_ERROR(iGetStatusAtech());
-        RETURN_IF_ERROR(iGetSetPointAtech());
-        RETURN_IF_ERROR(iReadFansAtech());
-        RETURN_IF_ERROR(iGetPowerAtech());
-        RETURN_IF_ERROR(iGetDPressDataAtech());
-        RETURN_IF_ERROR(iReadIOAtech());
-        RETURN_IF_ERROR(iReadTemperatureAtech());
-        RETURN_IF_ERROR(iGetPumpRateAtech());
-        RETURN_IF_ERROR(iGetPelletQtUsedAtech());
-        RETURN_IF_ERROR(iGetChronoDataAtech());
-        RETURN_IF_ERROR(iGetErrorFlagAtech());
+        RETURN_IF_ERROR(readDateTime());
+        RETURN_IF_ERROR(readStatus());
+        RETURN_IF_ERROR(readSetPoint());
+        RETURN_IF_ERROR(readFans());
+        RETURN_IF_ERROR(readPower());
+        RETURN_IF_ERROR(readDPress());
+        RETURN_IF_ERROR(readIO());
+        RETURN_IF_ERROR(readTemperatures());
+        RETURN_IF_ERROR(readPumpRate());
+        RETURN_IF_ERROR(readPelletQtUsed());
+        RETURN_IF_ERROR(readChronoData());
+        RETURN_IF_ERROR(updateErrorFlags());
         if (_PSENSTYPE)
         {
-            RETURN_IF_ERROR(iGetPelletLevelAtech());
+            RETURN_IF_ERROR(readPelletLevel());
         }
     }
 
     if (!_staticDataLoaded)
     {
-        RETURN_IF_ERROR(iUpdateStaticData());
+        RETURN_IF_ERROR(loadStaticData());
     }
 
     out.MBTYPE = 0; // Fumis (Micronova is not supported)
@@ -1180,7 +1206,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.F2L = transcodeRoomFanSpeed(_F2L, true);
     uint16_t tmp = transcodeRoomFanSpeed(_F2L, true);
     out.F2LF = (tmp < 6) ? 0 : tmp - 5;
-    iGetFanLimits();
+    updateFanLimits();
     out.FANLMINMAX[0] = _FAN2LMIN;
     out.FANLMINMAX[1] = _FAN2LMAX;
     out.FANLMINMAX[2] = _FAN3LMIN;
@@ -1238,7 +1264,7 @@ Palazzetti::CommandResult Palazzetti::getAllTemps(AllTempsData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iReadTemperatureAtech());
+    RETURN_IF_ERROR(readTemperatures());
 
     out.T1 = _T1;
     out.T2 = _T2;
@@ -1253,7 +1279,7 @@ Palazzetti::CommandResult Palazzetti::getChronoData(ChronoData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetChronoDataAtech());
+    RETURN_IF_ERROR(readChronoData());
 
     out.CHRSTATUS = _CHRSTATUS; // original code should have been "_chronoDataStatus > 0 ? 1 : 0" but _CHRSTATUS is readily available...
     for (uint8_t i = 0; i < 6; i++)
@@ -1353,7 +1379,7 @@ Palazzetti::CommandResult Palazzetti::getDateTime(DateTimeData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetDateTimeAtech());
+    RETURN_IF_ERROR(readDateTime());
 
     strcpy(out.STOVE_DATETIME, _STOVE_DATETIME);
     out.STOVE_WDAY = _STOVE_WDAY;
@@ -1365,7 +1391,7 @@ Palazzetti::CommandResult Palazzetti::getDPressData(DPressData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetDPressDataAtech());
+    RETURN_IF_ERROR(readDPress());
 
     out.DP_TARGET = _DP_TARGET;
     out.DP_PRESS = _DP_PRESS;
@@ -1377,7 +1403,7 @@ Palazzetti::CommandResult Palazzetti::getFanData(FanData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iReadFansAtech());
+    RETURN_IF_ERROR(readFans());
 
     out.F1V = _F1V;
     out.F2V = _F2V;
@@ -1422,7 +1448,7 @@ Palazzetti::CommandResult Palazzetti::getIO(IOData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iReadIOAtech());
+    RETURN_IF_ERROR(readIO());
 
     out.IN_I01 = _IN_I01;
     out.IN_I02 = _IN_I02;
@@ -1472,7 +1498,7 @@ Palazzetti::CommandResult Palazzetti::getPelletQtUsed(uint16_t *PQT)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetPelletQtUsedAtech());
+    RETURN_IF_ERROR(readPelletQtUsed());
 
     if (PQT)
         *PQT = _PQT;
@@ -1484,7 +1510,7 @@ Palazzetti::CommandResult Palazzetti::getPower(PowerData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetPowerAtech());
+    RETURN_IF_ERROR(readPower());
 
     out.PWR = _PWR;
     out.FDR = _FDR;
@@ -1496,7 +1522,7 @@ Palazzetti::CommandResult Palazzetti::getSetPoint(SetPointData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetSetPointAtech());
+    RETURN_IF_ERROR(readSetPoint());
 
     out.SETP = _SETP;
     out.SECO = _SECO;
@@ -1519,7 +1545,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
 
     if (!_staticDataLoaded)
     {
-        RETURN_IF_ERROR(iUpdateStaticData());
+        RETURN_IF_ERROR(loadStaticData());
     }
 
     // read LABEL : not needed
@@ -1565,7 +1591,7 @@ Palazzetti::CommandResult Palazzetti::getStatus(StatusData &out)
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetStatusAtech());
+    RETURN_IF_ERROR(readStatus());
 
     out.STATUS = _STATUS;
     out.LSTATUS = _LSTATUS;
@@ -1769,11 +1795,11 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetPowerAtech(powerLevel));
+    RETURN_IF_ERROR(writePower(powerLevel));
 
     if (byte_471CC2)
     {
-        RETURN_IF_ERROR(iGetRoomFanAtech());
+        RETURN_IF_ERROR(readFanLevels());
     }
 
     if (result)
@@ -1789,7 +1815,7 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
     }
 
     // if (_MBTYPEMicronova != 0xB) //Micronova MBTYPE always equals 0
-    iGetFanLimits();
+    updateFanLimits();
 
     if (result)
     {
@@ -1808,7 +1834,7 @@ Palazzetti::CommandResult Palazzetti::setPowerDown(SetPowerResult *result /* = n
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetPowerAtech());
+    RETURN_IF_ERROR(readPower());
 
     return setPower(_PWR - 1, result);
 }
@@ -1817,7 +1843,7 @@ Palazzetti::CommandResult Palazzetti::setPowerUp(SetPowerResult *result /* = nul
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetPowerAtech());
+    RETURN_IF_ERROR(readPower());
 
     return setPower(_PWR + 1, result);
 }
@@ -1826,7 +1852,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFa
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetRoomFanAtech(transcodeRoomFanSpeed(roomFanSpeed, 0)));
+    RETURN_IF_ERROR(writeRoomFan(transcodeRoomFanSpeed(roomFanSpeed, 0)));
 
     if (result)
     {
@@ -1849,7 +1875,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan3(uint8_t roomFan3Speed, uint16_
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetRoomFan3Atech(roomFan3Speed));
+    RETURN_IF_ERROR(writeFan3(roomFan3Speed));
 
     if (F3LResult)
         *F3LResult = _F3L;
@@ -1861,7 +1887,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan4(uint8_t roomFan4Speed, uint16_
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetRoomFan4Atech(roomFan4Speed));
+    RETURN_IF_ERROR(writeFan4(roomFan4Speed));
 
     if (F4LResult)
         *F4LResult = _F4L;
@@ -1873,7 +1899,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFanDown(SetRoomFanResult *result /*
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iReadFansAtech());
+    RETURN_IF_ERROR(readFans());
 
     return setRoomFan(transcodeRoomFanSpeed(_F2L, true) - 1, result);
 }
@@ -1882,7 +1908,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFanUp(SetRoomFanResult *result /* =
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iReadFansAtech());
+    RETURN_IF_ERROR(readFans());
 
     return setRoomFan(transcodeRoomFanSpeed(_F2L, true) + 1, result);
 }
@@ -1891,7 +1917,7 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(uint8_t setPoint, float *SETPR
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetSetPointAtech(setPoint));
+    RETURN_IF_ERROR(writeSetPoint(setPoint));
 
     if (SETPResult)
         *SETPResult = _SETP;
@@ -1902,7 +1928,7 @@ Palazzetti::CommandResult Palazzetti::setSetpoint(float setPoint, float *SETPRes
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iSetSetPointAtech(setPoint));
+    RETURN_IF_ERROR(writeSetPoint(setPoint));
 
     if (SETPResult)
         *SETPResult = _SETP;
@@ -1913,7 +1939,7 @@ Palazzetti::CommandResult Palazzetti::setSetPointDown(float *SETPResult /* = nul
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetSetPointAtech());
+    RETURN_IF_ERROR(readSetPoint());
 
     return setSetpoint(_SETP - 1.0f, SETPResult);
 }
@@ -1966,7 +1992,7 @@ Palazzetti::CommandResult Palazzetti::setSetPointUp(float *SETPResult /* = nullp
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(iGetSetPointAtech());
+    RETURN_IF_ERROR(readSetPoint());
 
     return setSetpoint(_SETP + 1.0f, SETPResult);
 }
@@ -1978,9 +2004,9 @@ Palazzetti::CommandResult Palazzetti::setSilentMode(uint8_t silentMode, SetSilen
     // (original: iSetSilentModeAtech)
     if (silentMode > 0)
     {
-        RETURN_IF_ERROR(iSetRoomFanAtech(7));
-        RETURN_IF_ERROR(iSetRoomFan3Atech(0));
-        RETURN_IF_ERROR(iSetRoomFan4Atech(0));
+        RETURN_IF_ERROR(writeRoomFan(7));
+        RETURN_IF_ERROR(writeFan3(0));
+        RETURN_IF_ERROR(writeFan4(0));
     }
 
     if (result)
