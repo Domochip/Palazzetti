@@ -94,6 +94,12 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
     return roomFanSpeed;
 }
 
+// firmware date as "YYYY-MM-DD"
+void Palazzetti::fillFwDate(char (&FWDATE)[11])
+{
+    sprintf(FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+}
+
 // (the retries of the original are now in FumisLink::read)
 // buf is zeroed on failure (original: buf was a void *)
 Palazzetti::CommandResult Palazzetti::fumisComReadBuff(uint16_t addrToRead, uint8_t (&buf)[FumisFrame::DATA_SIZE])
@@ -1449,7 +1455,7 @@ Palazzetti::CommandResult Palazzetti::getAllStatus(bool refreshStatus, AllStatus
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    fillFwDate(out.FWDATE);
     strcpy(out.APLTS, _STOVE_DATETIME);
     out.APLWDAY = _STOVE_WDAY;
     out.CHRSTATUS = _CHRSTATUS;
@@ -1678,7 +1684,7 @@ Palazzetti::CommandResult Palazzetti::getModelVersion(ModelVersionData &out)
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    fillFwDate(out.FWDATE);
 
     return CommandResult::OK;
 }
@@ -1763,7 +1769,7 @@ Palazzetti::CommandResult Palazzetti::getStaticData(StaticData &out)
     out.MOD = _MOD;
     out.VER = _VER;
     out.CORE = _CORE;
-    sprintf(out.FWDATE, "%d-%02d-%02d", _FWDATEY % 10000u, _FWDATEM % 100u, _FWDATED % 100u);
+    fillFwDate(out.FWDATE);
     out.FLUID = _FLUID;
     out.SPLMIN = _SPLMIN;
     out.SPLMAX = _SPLMAX;

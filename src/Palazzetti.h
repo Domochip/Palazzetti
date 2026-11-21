@@ -230,6 +230,7 @@ private:
 
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
+    void fillFwDate(char (&FWDATE)[11]);
 
     static CommandResult fumisResult(FumisLink::Result res);
     CommandResult fumisComReadBuff(uint16_t addrToRead, uint8_t (&buf)[FumisFrame::DATA_SIZE]);
