@@ -942,11 +942,9 @@ Palazzetti::CommandResult Palazzetti::writeSetPoint(float setPoint)
     return CommandResult::OK;
 }
 
-// (original: iUpdateStaticDataAtech)
-Palazzetti::CommandResult Palazzetti::readStaticData()
+// all the parameters into _PARAMS (original: first step of iUpdateStaticDataAtech)
+Palazzetti::CommandResult Palazzetti::readParams()
 {
-    readSN();
-
     uint16_t nbTotalBytesReaded = 0; // var_838
     uint8_t buf[8];                  // var_820
 
@@ -962,7 +960,15 @@ Palazzetti::CommandResult Palazzetti::readStaticData()
     }
     ///*read all params OK*/
 
-    nbTotalBytesReaded = 0; // var_838
+    return CommandResult::OK;
+}
+
+// all the hidden parameters into _HPARAMS (original: second step of iUpdateStaticDataAtech)
+Palazzetti::CommandResult Palazzetti::readHiddenParams()
+{
+    uint16_t nbTotalBytesReaded = 0; // var_838
+    uint8_t buf[8];                  // var_820
+
     while (nbTotalBytesReaded < _hparamsBufferSize)
     {
         RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf));
@@ -977,6 +983,17 @@ Palazzetti::CommandResult Palazzetti::readStaticData()
         }
     }
     ///*read all hparams OK*/
+
+    return CommandResult::OK;
+}
+
+// (original: iUpdateStaticDataAtech)
+Palazzetti::CommandResult Palazzetti::readStaticData()
+{
+    readSN();
+
+    RETURN_IF_ERROR(readParams());
+    RETURN_IF_ERROR(readHiddenParams());
 
     _VER = _HPARAMS[4 / 2];
     _MOD = _HPARAMS[6 / 2];
@@ -1013,7 +1030,8 @@ Palazzetti::CommandResult Palazzetti::readStaticData()
             _PSENSTYPE = 1;
     }
 
-    nbTotalBytesReaded = 0; // var_838
+    uint16_t nbTotalBytesReaded = 0; // var_838
+    uint8_t buf[8];                  // var_820
     while (nbTotalBytesReaded < _paramsBufferSize)
     {
         RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf));
@@ -1104,7 +1122,8 @@ Palazzetti::CommandResult Palazzetti::getAllHiddenParameters(uint16_t (*hiddenPa
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(readStaticData());
+    // (not in original: plzbridge only exports them all through /tmp/appliance_params.json, written by iUpdateStaticDataAtech)
+    RETURN_IF_ERROR(readHiddenParams());
 
     memcpy(*hiddenParams, _HPARAMS, 0x6F * sizeof(uint16_t));
 
@@ -1115,7 +1134,8 @@ Palazzetti::CommandResult Palazzetti::getAllParameters(uint8_t (*params)[0x6A])
 {
     RETURN_IF_ERROR(initialize());
 
-    RETURN_IF_ERROR(readStaticData());
+    // (not in original: plzbridge only exports them all through /tmp/appliance_params.json, written by iUpdateStaticDataAtech)
+    RETURN_IF_ERROR(readParams());
 
     memcpy(*params, _PARAMS, 0x6A * sizeof(uint8_t));
 

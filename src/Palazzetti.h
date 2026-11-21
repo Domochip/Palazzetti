@@ -245,8 +245,10 @@ private:
     CommandResult readDateTime();
     CommandResult readFanLevels();
     CommandResult readFans();
+    CommandResult readHiddenParams();
     CommandResult readHwType();
     CommandResult readIO();
+    CommandResult readParams();
     CommandResult readPelletLevel();
     CommandResult readPelletQtUsed();
     CommandResult readPower();
