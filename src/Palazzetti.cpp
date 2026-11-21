@@ -88,8 +88,6 @@ uint16_t Palazzetti::transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode)
         return 7;
     if (roomFanSpeed == 7)
         return 0;
-    // if (roomFanSpeed == 6)
-    //     return 6;
 
     return roomFanSpeed;
 }
@@ -429,7 +427,7 @@ Palazzetti::CommandResult Palazzetti::iGetPelletLevelAtech()
         {
             uint16_t local_10;
             RETURN_IF_ERROR(fumisComReadByte(0x2030, &local_10));
-            if (/*local_10 < 0 || */ local_10 > 2)
+            if (local_10 > 2)
                 _PSENSLEMP = 0;
             else
                 _PSENSLEMP = 1;
@@ -1063,7 +1061,7 @@ Palazzetti::CommandResult Palazzetti::iSetPowerAtech(uint16_t powerLevel)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 {
-    if (/*roomFan3Speed < 0 || */ roomFan3Speed > 5)
+    if (roomFan3Speed > 5)
         return CommandResult::ERROR;
 
     if (_FAN2TYPE == 4)
@@ -1084,7 +1082,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan3Atech(uint16_t roomFan3Speed)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 {
-    if (/*roomFan4Speed < 0 || */ roomFan4Speed > 5)
+    if (roomFan4Speed > 5)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
@@ -1113,7 +1111,7 @@ Palazzetti::CommandResult Palazzetti::iSetRoomFan4Atech(uint16_t roomFan4Speed)
 
 Palazzetti::CommandResult Palazzetti::iSetRoomFanAtech(uint16_t roomFanSpeed)
 {
-    if (/*roomFanSpeed < 0 || */ roomFanSpeed > 7)
+    if (roomFanSpeed > 7)
         return CommandResult::ERROR;
 
     CommandResult cmdRes;
@@ -1298,6 +1296,7 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
     RETURN_IF_ERROR(iGetStoveConfigurationAtech());
 
     // Custom: better feeder active time address based on Core and Version
+    // (original: based on Model and Version: 0x209A for models 500-599, otherwise 0x1FAE if VER < 31, 0x1FAC if VER < 40, else 0x209A)
     if (_CORE != 0 || _VER >= 40)
         _wAddrFeederActiveTime = 0x209A;
     else if (_VER < 35)
@@ -1307,14 +1306,6 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
 
     if (_MOD < 500 || 599 < _MOD)
     {
-        // Original: feeder active time address based on Model and Version
-        // if (_VER < 0x1F)
-        //     _wAddrFeederActiveTime = 0x1FAE;
-        // else if (_VER < 0x28)
-        //     _wAddrFeederActiveTime = 0x1FAC;
-        // else
-        //     _wAddrFeederActiveTime = 0x209A;
-
         uint16_t var_18;
         RETURN_IF_ERROR(fumisComReadWord(0x203A, &var_18));
 
@@ -1325,9 +1316,6 @@ Palazzetti::CommandResult Palazzetti::iUpdateStaticDataAtech()
         else if (1 < var_18)
             _PSENSTYPE = 1;
     }
-    // Original: feeder active time address based on Model and Version
-    // else
-    //     _wAddrFeederActiveTime = 0x209A;
 
     nbTotalBytesReaded = 0; // var_838
     while (nbTotalBytesReaded < _paramsBufferSize)
