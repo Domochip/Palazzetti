@@ -906,7 +906,7 @@ Palazzetti::CommandResult Palazzetti::writeSetPoint(float setPoint)
 }
 
 // count bytes from addr into dst, 8 per Read
-// (original: the PARAMS, HPARAMS, LIMMIN and LIMMAX loops of iUpdateStaticDataAtech)
+// (original: the PARAMS, HPARAMS, LIMMIN and LIMMAX loops of iUpdateStaticDataAtech; LIMMIN and LIMMAX are no longer read in full)
 Palazzetti::CommandResult Palazzetti::readBytes(uint16_t addr, uint8_t *dst, uint16_t count)
 {
     uint16_t nbTotalBytesReaded = 0;    // var_838
@@ -983,23 +983,22 @@ Palazzetti::CommandResult Palazzetti::readStaticData()
             _PSENSTYPE = 1;
     }
 
-    RETURN_IF_ERROR(readBytes(0x80A2, _LIMMIN, _paramsBufferSize));
-    RETURN_IF_ERROR(readBytes(0x810C, _LIMMAX, _paramsBufferSize));
-
-    if (_FLUID < 2)
+    // Custom: only the setpoint limits are used: LIMMIN and LIMMAX byte 0x33 (FLUID 0 and 1) or 0x54 (FLUID 2), so 2 Reads
+    // (original: read the whole LIMMIN (0x80A2) and LIMMAX (0x810C) tables of _paramsBufferSize bytes each: 28 Reads)
+    if (_FLUID <= 2)
     {
-        _SPLMIN = _LIMMIN[0x33];
-        _SPLMAX = _LIMMAX[0x33];
+        uint16_t setpLimitIndex = (_FLUID == 2) ? 0x54 : 0x33;
+        uint16_t limMin, limMax;
+        RETURN_IF_ERROR(fumisComReadByte(0x80A2 + setpLimitIndex, &limMin));
+        RETURN_IF_ERROR(fumisComReadByte(0x810C + setpLimitIndex, &limMax));
+
+        _SPLMIN = limMin;
+        _SPLMAX = limMax;
         if (!_FLUID)
         {
-            _SPLMIN = (uint8_t)((double)_SPLMIN / 5.0);
-            _SPLMAX = (uint8_t)((double)_SPLMAX / 5.0);
+            _SPLMIN /= 5;
+            _SPLMAX /= 5;
         }
-    }
-    else if (_FLUID == 2)
-    {
-        _SPLMIN = _LIMMIN[0x54];
-        _SPLMAX = _LIMMAX[0x54];
     }
 
     ///*iGetLimitsAtech OK*/

@@ -187,7 +187,7 @@ private:
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
     // uint8_t _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    uint8_t _paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    uint8_t _paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS (and LIMMAX and LIMMIN) malloc
 
     // myData.4552 contains pointer to malloc(0xDE) (set up in iInit in original by 0x6F * 2)
     uint16_t _HPARAMS[0x6F]; // myData.4552 (psStaticData[0x38])
@@ -196,11 +196,8 @@ private:
 
     uint16_t _FLUID = 0; // myData.4560 (psStaticData[0x40])
 
-    uint8_t _LIMMAX[0x6A]; // mydata.4564 (psStaticData[0x44])
-    // uint8_t _LIMMAX[0x33] or _LIMMAX[0x54] contains SPLMAX
-
-    uint8_t _LIMMIN[0x6A]; // mydata.4568 (psStaticData[0x48])
-    // uint8_t _LIMMIN[0x33] or _LIMMIN[0x54] contains SPLMIN
+    // uint8_t _LIMMAX[0x6A]; // mydata.4564 (psStaticData[0x44]) not stored: only SPLMAX (byte 0x33 or 0x54) is read, see readStaticData
+    // uint8_t _LIMMIN[0x6A]; // mydata.4568 (psStaticData[0x48]) not stored: only SPLMIN (byte 0x33 or 0x54) is read, see readStaticData
 
     uint8_t _SPLMIN = 0;     // myData.4572 (psStaticData[0x4C])  (SetPointLimitMin)
     uint8_t _SPLMAX = 0;     // myData.4576 (psStaticData[0x50])  (SetPointLimitMax)
