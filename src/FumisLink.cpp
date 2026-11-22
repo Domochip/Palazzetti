@@ -59,7 +59,7 @@ FumisLink::Result FumisLink::readWord(uint16_t addr, uint16_t &value)
     uint8_t data[FumisFrame::DATA_SIZE];
     Result res = read(addr, data);
     if (res == Result::Ok)
-        value = data[0] | (data[1] << 8);
+        value = FumisFrame::wordAt(data, 0);
     return res;
 }
 
@@ -93,7 +93,7 @@ FumisLink::Result FumisLink::writeChecked(uint16_t addr, uint16_t value, bool wo
         res = exchange(readBackRequest, &readBackResponse);
         if (res != Result::Ok)
             return res;
-        uint16_t readBack = readBackResponse.data()[0] | (readBackResponse.data()[1] << 8); // var_30
+        uint16_t readBack = FumisFrame::wordAt(readBackResponse.data(), 0); // var_30
         if (!wordMode)
             readBack &= 0xFF;
         return (readBack == expected) ? Result::Ok : Result::Mismatch; });

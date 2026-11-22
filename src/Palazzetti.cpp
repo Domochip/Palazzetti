@@ -704,17 +704,9 @@ Palazzetti::CommandResult Palazzetti::readFans()
         _F4S = -1;
         return cmdRes;
     }
-    _F1V = buf[1];
-    _F1V <<= 8;
-    _F1V += buf[0];
-
-    _F2V = buf[3];
-    _F2V <<= 8;
-    _F2V += buf[2];
-
-    _F1RPM = buf[5];
-    _F1RPM <<= 8;
-    _F1RPM += buf[4];
+    _F1V = FumisFrame::wordAt(buf, 0);
+    _F2V = FumisFrame::wordAt(buf, 2);
+    _F1RPM = FumisFrame::wordAt(buf, 4);
 
     cmdRes = readFanLevels();
     if (cmdRes != CommandResult::OK)
@@ -773,30 +765,16 @@ Palazzetti::CommandResult Palazzetti::readIO()
 // (original: iReadTemperatureAtech)
 Palazzetti::CommandResult Palazzetti::readTemperatures()
 {
-    uint8_t buf[8];       // var_14
-    uint16_t conv = 0;
+    uint8_t buf[8]; // var_14
     RETURN_IF_ERROR(fumisComReadBuff(0x200A, buf));
 
-    conv = buf[1];
-    conv <<= 8;
-    conv += buf[0];
-    _T3 = (int16_t)conv;
+    _T3 = (int16_t)FumisFrame::wordAt(buf, 0);
+    _T4 = (int16_t)FumisFrame::wordAt(buf, 2);
 
-    conv = buf[3];
-    conv <<= 8;
-    conv += buf[2];
-    _T4 = (int16_t)conv;
-
-    conv = buf[5];
-    conv <<= 8;
-    conv += buf[4];
-    _T1 = (int16_t)conv;
+    _T1 = (int16_t)FumisFrame::wordAt(buf, 4);
     _T1 /= 10.0f;
 
-    conv = buf[7];
-    conv <<= 8;
-    conv += buf[6];
-    _T2 = (int16_t)conv;
+    _T2 = (int16_t)FumisFrame::wordAt(buf, 6);
     _T2 /= 10.0f;
 
     uint16_t var_18;
@@ -1252,55 +1230,26 @@ Palazzetti::CommandResult Palazzetti::getCounters(CountersData &out)
     uint8_t var_18[8];
     RETURN_IF_ERROR(fumisComReadBuff(0x2066, var_18));
 
-    _IGN = var_18[1];
-    _IGN <<= 8;
-    _IGN += var_18[0];
-
-    _POWERTIMEM = var_18[3];
-    _POWERTIMEM <<= 8;
-    _POWERTIMEM += var_18[2];
-
-    _POWERTIMEH = var_18[5];
-    _POWERTIMEH <<= 8;
-    _POWERTIMEH += var_18[4];
+    _IGN = FumisFrame::wordAt(var_18, 0);
+    _POWERTIMEM = FumisFrame::wordAt(var_18, 2);
+    _POWERTIMEH = FumisFrame::wordAt(var_18, 4);
 
     RETURN_IF_ERROR(fumisComReadBuff(0x206E, var_18));
 
-    _HEATTIMEM = var_18[1];
-    _HEATTIMEM <<= 8;
-    _HEATTIMEM += var_18[0];
-
-    _HEATTIMEH = var_18[3];
-    _HEATTIMEH <<= 8;
-    _HEATTIMEH += var_18[2];
-
-    _SERVICETIMEM = var_18[7];
-    _SERVICETIMEM <<= 8;
-    _SERVICETIMEM += var_18[6];
+    _HEATTIMEM = FumisFrame::wordAt(var_18, 0);
+    _HEATTIMEH = FumisFrame::wordAt(var_18, 2);
+    _SERVICETIMEM = FumisFrame::wordAt(var_18, 6);
 
     RETURN_IF_ERROR(fumisComReadBuff(0x2076, var_18));
 
-    _SERVICETIMEH = var_18[1];
-    _SERVICETIMEH <<= 8;
-    _SERVICETIMEH += var_18[0];
-
-    _OVERTMPERRORS = var_18[5];
-    _OVERTMPERRORS <<= 8;
-    _OVERTMPERRORS += var_18[4];
-
-    _IGNERRORS = var_18[7];
-    _IGNERRORS <<= 8;
-    _IGNERRORS += var_18[6];
+    _SERVICETIMEH = FumisFrame::wordAt(var_18, 0);
+    _OVERTMPERRORS = FumisFrame::wordAt(var_18, 4);
+    _IGNERRORS = FumisFrame::wordAt(var_18, 6);
 
     RETURN_IF_ERROR(fumisComReadBuff(0x2082, var_18));
 
-    _ONTIMEM = var_18[1];
-    _ONTIMEM <<= 8;
-    _ONTIMEM += var_18[0];
-
-    _ONTIMEH = var_18[3];
-    _ONTIMEH <<= 8;
-    _ONTIMEH += var_18[2];
+    _ONTIMEM = FumisFrame::wordAt(var_18, 0);
+    _ONTIMEH = FumisFrame::wordAt(var_18, 2);
 
     uint16_t var_10;
 

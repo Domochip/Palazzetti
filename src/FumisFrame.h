@@ -35,6 +35,10 @@ struct FumisFrame
     // the 8 data bytes (bytes 1..8)
     const uint8_t *data() const { return bytes + 1; }
 
+    // the word at bytes[i], low byte first (the stove byte order)
+    // (not named word: Arduino defines a word() macro)
+    static uint16_t wordAt(const uint8_t *bytes, uint8_t i) { return bytes[i] | (bytes[i + 1] << 8); }
+
     // sum of bytes 0..9, the value expected in byte 10 (original: iChkSum, var_10)
     uint8_t checksum() const
     {
