@@ -447,41 +447,30 @@ Palazzetti::CommandResult Palazzetti::readSetPoint()
 // (original: iGetSNAtech)
 Palazzetti::CommandResult Palazzetti::readSN()
 {
-    CommandResult cmdRes;
-    int currentPosInSN = 0;   // var_24
-    uint8_t buf[8];           // var_14
-    char *pSN = (char *)&_SN; // var_18
-    int8_t checkSum = 0;      // must be signed
-    while (currentPosInSN < 0xE)
-    {
-        cmdRes = fumisComReadBuff(0x2100 + currentPosInSN, buf);
-        if (cmdRes != CommandResult::OK)
-        {
-            _SN[0] = 0;
-            return cmdRes;
-        }
-        for (uint8_t i = 0; i < 8; i++)
-        {
-            sprintf(pSN, "%02X", buf[i]);
-            pSN += 2;
-            checkSum += buf[i];
-        }
-        currentPosInSN += 8;
-    }
-
-    _SN[27] = 0;
-    cmdRes = fumisComReadBuff(0x2100 + currentPosInSN, buf);
+    // 16 serial number bytes at 0x2100, then the checksum byte and the 'U' marker at 0x2110: 3 Reads
+    // (original: two Reads of 8 bytes in a loop, then a third Read for the checksum and the marker)
+    uint8_t raw[18];
+    CommandResult cmdRes = readBytes(0x2100, raw, sizeof(raw));
     if (cmdRes != CommandResult::OK)
     {
         _SN[0] = 0;
         return cmdRes;
     }
-    if (buf[0] == (uint8_t)-checkSum)
+
+    int8_t checkSum = 0; // must be signed
+    for (uint8_t i = 0; i < 16; i++)
+    {
+        sprintf(_SN + i * 2, "%02X", raw[i]); // up to _SN[32]
+        checkSum += raw[i];
+    }
+    _SN[27] = 0;
+
+    if (raw[16] == (uint8_t)-checkSum)
     {
         _SN[0] = 0;
         return CommandResult::ERROR;
     }
-    if (buf[1] != 'U')
+    if (raw[17] != 'U')
     {
         if (strncmp(_SN, "7684", 4) == 0)
         {
