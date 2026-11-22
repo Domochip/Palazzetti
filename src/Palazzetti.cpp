@@ -152,36 +152,32 @@ Palazzetti::CommandResult Palazzetti::fumisComWriteWord(uint16_t addrToWrite, ui
 // (original: iGetChronoDataAtech)
 Palazzetti::CommandResult Palazzetti::readChronoData()
 {
-    uint8_t CHRSETPList[8];
-    RETURN_IF_ERROR(fumisComReadBuff(0x802D, CHRSETPList));
+    // the chrono data are one block of 0x33 bytes, read in 7 Reads:
+    //  0x8000: 6 programs of 4 bytes (start hour, start minute, stop hour, stop minute)
+    //  0x8018: 7 days of 3 bytes (program of the memories M1, M2, M3)
+    //  0x802D: the setpoints of the 6 programs
+    // (original: 14 Reads, one for the setpoints, then one per program and one per day)
+    uint8_t chrono[0x33];
+    RETURN_IF_ERROR(readBytes(0x8000, chrono, sizeof(chrono)));
 
-    uint16_t addrToRead = 0x8000;
-    uint8_t programTimes[8];
     for (uint8_t i = 0; i < 6; i++)
     {
-        RETURN_IF_ERROR(fumisComReadBuff(addrToRead, programTimes));
+        const uint8_t *programTimes = chrono + i * 4;
         _chronoDataPrograms[i].STARTH = programTimes[0];
         _chronoDataPrograms[i].STARTM = programTimes[1];
         _chronoDataPrograms[i].STOPH = programTimes[2];
         _chronoDataPrograms[i].STOPM = programTimes[3];
-        _chronoDataPrograms[i].CHRSETP = CHRSETPList[i];
+        _chronoDataPrograms[i].CHRSETP = chrono[0x2D + i];
         if (!_FLUID)
             _chronoDataPrograms[i].CHRSETP /= 5.0;
-
-        addrToRead += 4;
     }
 
-    addrToRead = 0x8018;
-    uint8_t dayPrograms[8];
     for (uint8_t i = 0; i < 7; i++)
     {
-        RETURN_IF_ERROR(fumisComReadBuff(addrToRead, dayPrograms));
-
+        const uint8_t *dayPrograms = chrono + 0x18 + i * 3;
         _chronoDataDays[i].M1 = dayPrograms[0];
         _chronoDataDays[i].M2 = dayPrograms[1];
         _chronoDataDays[i].M3 = dayPrograms[2];
-
-        addrToRead += 3;
     }
 
     RETURN_IF_ERROR(fumisComReadWord(0x207e, &_chronoDataStatus));
@@ -457,7 +453,7 @@ Palazzetti::CommandResult Palazzetti::readSN()
         return cmdRes;
     }
 
-    int8_t checkSum = 0; // must be signed
+    int8_t checkSum = 0;
     for (uint8_t i = 0; i < 16; i++)
     {
         sprintf(_SN + i * 2, "%02X", raw[i]); // up to _SN[32]
