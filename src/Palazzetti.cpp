@@ -1027,22 +1027,21 @@ Palazzetti::CommandResult Palazzetti::initialize()
 
     // (original: opened the serial port here, and closed it on failure: now opened once by the application)
 
-    // check the stove answers by reading its STATUS (any failure gives ERROR, as in original)
+    // any failure is returned as is (original: any failure gave ERROR)
+
+    // check the stove answers by reading its STATUS
     // this is also the first exchange, so the loopback is detected on 0x201C,
     // an address where the Response cannot look like the echo of the Request (see FumisLink::exchange)
     // (original: iGetStatusAtech, but its LSTATUS computation needs STOVETYPE and UICONFIG, not read yet)
-    if (fumisComReadByte(0x201C, &_STATUS) != CommandResult::OK)
-        return CommandResult::ERROR;
+    RETURN_IF_ERROR(fumisComReadByte(0x201C, &_STATUS));
 
-    // read the static data (serial number, firmware, parameters, configuration, limits): any failure gives ERROR
+    // read the static data (serial number, firmware, parameters, configuration, limits)
     // (original: iUpdateStaticData, only for Fumis (_MBTYPE < 2), which also copied the MAC address,
     //  read /etc/appliancelabel and sent 'GET STDT': not needed here)
-    if (readStaticData() != CommandResult::OK)
-        return CommandResult::ERROR;
+    RETURN_IF_ERROR(readStaticData());
 
     // compute the full status now that STOVETYPE and UICONFIG are known (not in original)
-    if (readStatus() != CommandResult::OK)
-        return CommandResult::ERROR;
+    RETURN_IF_ERROR(readStatus());
 
     _isInitialized = true;
     return CommandResult::OK;
