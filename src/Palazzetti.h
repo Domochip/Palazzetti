@@ -240,6 +240,7 @@ private:
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
 
+    CommandResult readBytes(uint16_t addr, uint8_t *dst, uint16_t count);
     CommandResult readChronoData();
     CommandResult readDPress();
     CommandResult readDateTime();

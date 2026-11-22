@@ -942,49 +942,39 @@ Palazzetti::CommandResult Palazzetti::writeSetPoint(float setPoint)
     return CommandResult::OK;
 }
 
-// all the parameters into _PARAMS (original: first step of iUpdateStaticDataAtech)
-Palazzetti::CommandResult Palazzetti::readParams()
+// count bytes from addr into dst, 8 per Read
+// (original: the PARAMS, HPARAMS, LIMMIN and LIMMAX loops of iUpdateStaticDataAtech)
+Palazzetti::CommandResult Palazzetti::readBytes(uint16_t addr, uint8_t *dst, uint16_t count)
 {
-    uint16_t nbTotalBytesReaded = 0; // var_838
-    uint8_t buf[8];                  // var_820
+    uint16_t nbTotalBytesReaded = 0;    // var_838
+    uint8_t buf[FumisFrame::DATA_SIZE]; // var_820
 
-    while (nbTotalBytesReaded < _paramsBufferSize)
+    while (nbTotalBytesReaded < count)
     {
-        RETURN_IF_ERROR(fumisComReadBuff(0x1C00 + nbTotalBytesReaded, buf));
+        RETURN_IF_ERROR(fumisComReadBuff(addr + nbTotalBytesReaded, buf));
 
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
+        for (uint8_t i = 0; i < FumisFrame::DATA_SIZE && nbTotalBytesReaded < count; i++)
         {
-            _PARAMS[nbTotalBytesReaded] = buf[i];
+            dst[nbTotalBytesReaded] = buf[i];
             nbTotalBytesReaded++;
         }
     }
-    ///*read all params OK*/
 
     return CommandResult::OK;
 }
 
-// all the hidden parameters into _HPARAMS (original: second step of iUpdateStaticDataAtech)
+// all the parameters into _PARAMS (original: first step of iUpdateStaticDataAtech, up to /*read all params OK*/)
+Palazzetti::CommandResult Palazzetti::readParams()
+{
+    return readBytes(0x1C00, _PARAMS, _paramsBufferSize);
+}
+
+// all the hidden parameters into _HPARAMS (original: second step of iUpdateStaticDataAtech, up to /*read all hparams OK*/)
+// the stove sends each word low byte first, which is how _HPARAMS is stored on ESP8266/ESP32 (little-endian)
 Palazzetti::CommandResult Palazzetti::readHiddenParams()
 {
-    uint16_t nbTotalBytesReaded = 0; // var_838
-    uint8_t buf[8];                  // var_820
-
-    while (nbTotalBytesReaded < _hparamsBufferSize)
-    {
-        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0xF00) * 2, buf));
-
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _hparamsBufferSize; i += 2)
-        {
-            // not nbTotalBytesReaded * 2 because _HPARAMS is uint16_t[] type
-            _HPARAMS[nbTotalBytesReaded] = buf[i + 1];
-            _HPARAMS[nbTotalBytesReaded] <<= 8;
-            _HPARAMS[nbTotalBytesReaded] |= buf[i];
-            nbTotalBytesReaded++;
-        }
-    }
-    ///*read all hparams OK*/
-
-    return CommandResult::OK;
+    static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "_HPARAMS is filled byte by byte, low byte first");
+    return readBytes(0x1E00, (uint8_t *)_HPARAMS, _hparamsBufferSize * 2);
 }
 
 // (original: iUpdateStaticDataAtech)
@@ -1030,30 +1020,8 @@ Palazzetti::CommandResult Palazzetti::readStaticData()
             _PSENSTYPE = 1;
     }
 
-    uint16_t nbTotalBytesReaded = 0; // var_838
-    uint8_t buf[8];                  // var_820
-    while (nbTotalBytesReaded < _paramsBufferSize)
-    {
-        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0x80A2), buf));
-
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
-        {
-            _LIMMIN[nbTotalBytesReaded] = buf[i];
-            nbTotalBytesReaded++;
-        }
-    }
-
-    nbTotalBytesReaded = 0; // var_838
-    while (nbTotalBytesReaded < _paramsBufferSize)
-    {
-        RETURN_IF_ERROR(fumisComReadBuff((nbTotalBytesReaded + 0x810C), buf));
-
-        for (uint8_t i = 0; i < 8 && nbTotalBytesReaded < _paramsBufferSize; i++)
-        {
-            _LIMMAX[nbTotalBytesReaded] = buf[i];
-            nbTotalBytesReaded++;
-        }
-    }
+    RETURN_IF_ERROR(readBytes(0x80A2, _LIMMIN, _paramsBufferSize));
+    RETURN_IF_ERROR(readBytes(0x810C, _LIMMAX, _paramsBufferSize));
 
     if (_FLUID < 2)
     {
