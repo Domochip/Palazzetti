@@ -276,10 +276,10 @@ Palazzetti::CommandResult Palazzetti::updateErrorFlags()
 // (original: iGetFanLimits)
 void Palazzetti::updateFanLimits()
 {
-    if (byte_471CC2)
+    if (_FAN2PWROFFSET)
     {
-        if (byte_471CC2 < _PWR)
-            _FAN2LMIN = _PWR - byte_471CC2;
+        if (_FAN2PWROFFSET < _PWR)
+            _FAN2LMIN = _PWR - _FAN2PWROFFSET;
         else
             _FAN2LMIN = 0;
     }
@@ -572,10 +572,10 @@ Palazzetti::CommandResult Palazzetti::readStoveConfiguration()
         }
     }
 
-    byte_471CC2 = 0;
+    _FAN2PWROFFSET = 0;
 
     if (_PARAMS[0x69] != 0 && _PARAMS[0x69] < 6)
-        byte_471CC2 = _PARAMS[0x69];
+        _FAN2PWROFFSET = _PARAMS[0x69];
 
     _FAN2LMIN = 1;
     _FAN2LMAX = 5;
@@ -858,7 +858,7 @@ Palazzetti::CommandResult Palazzetti::writeRoomFan(uint16_t roomFanSpeed)
 
     CommandResult cmdRes;
 
-    if (byte_471CC2 == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = writePower(3)) == CommandResult::OK)
+    if (_FAN2PWROFFSET == 0 || _PWR < 4 || roomFanSpeed != 7 || (cmdRes = writePower(3)) == CommandResult::OK)
     {
         RETURN_IF_ERROR(fumisComWriteByte(0x2036, roomFanSpeed));
         RETURN_IF_ERROR(readFanLevels());
@@ -1689,7 +1689,7 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
 
     RETURN_IF_ERROR(writePower(powerLevel));
 
-    if (byte_471CC2)
+    if (_FAN2PWROFFSET)
     {
         RETURN_IF_ERROR(readFanLevels());
     }
@@ -1697,7 +1697,7 @@ Palazzetti::CommandResult Palazzetti::setPower(uint8_t powerLevel, SetPowerResul
     if (result)
     {
         result->PWR = _PWR;
-        if (byte_471CC2)
+        if (_FAN2PWROFFSET)
         {
             result->isF2LValid = true;
             result->F2L = transcodeRoomFanSpeed(_F2L, true);
@@ -1748,7 +1748,7 @@ Palazzetti::CommandResult Palazzetti::setRoomFan(uint8_t roomFanSpeed, SetRoomFa
 
     if (result)
     {
-        if (byte_471CC2)
+        if (_FAN2PWROFFSET)
         {
             result->isPWRValid = true;
             result->PWR = _PWR;

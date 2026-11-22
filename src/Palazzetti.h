@@ -216,7 +216,7 @@ private:
     uint8_t _CHRONOTYPE = 0;   // myData.4591 (psStaticData[0x5F])
     uint8_t _AUTONOMYTYPE = 0; // myData.4592 (psStaticData[0x60])
     uint8_t _NOMINALPWR = 0;   // myData.4593 (psStaticData[0x61])
-    uint8_t byte_471CC2 = 0;   // myData.4594 (psStaticData[0x62]) Fan related value used for calculation...
+    uint8_t _FAN2PWROFFSET = 0; // myData.4594 (psStaticData[0x62]) byte_471CC2: _PARAMS[0x69] when 1..5, room fan min level = power - this value
     uint8_t _FAN2LMIN = 0;     // myData.4595 (psStaticData[0x63]) FANLMINMAX[0]
     uint8_t _FAN2LMAX = 0;     // myData.4596 (psStaticData[0x64]) FANLMINMAX[1]
     uint8_t _FAN3LMIN = 0;     // myData.4597 (psStaticData[0x65]) FANLMINMAX[2]
