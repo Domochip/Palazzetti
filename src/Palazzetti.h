@@ -2,6 +2,7 @@
 #define Palazzetti_h
 
 #include <Arduino.h>
+#include "FumisLink.h"
 
 // Based on version 2.2.1 2024-11-06 15:47:08
 
@@ -18,90 +19,20 @@ public:
         OK                   // = 0
     };
 
-    using OpenSerialFn = std::function<int(uint32_t baudrate)>;
-    using CloseSerialFn = std::function<void()>;
-    using SelectSerialFn = std::function<int(unsigned long timeout)>;
-    using ReadSerialFn = std::function<ssize_t(void *buf, size_t count)>;
-    using WriteSerialFn = std::function<ssize_t(const void *buf, size_t count)>;
-    using DrainSerialFn = std::function<int()>;
-    using FlushSerialFn = std::function<int()>;
-    using USleepFn = std::function<void(unsigned long usec)>;
-
-    struct SerialAdapter
-    {
-        // Open a Serial. Returns 0 on success, -1 on error.
-        OpenSerialFn open;
-        // Close Serial.
-        CloseSerialFn close;
-        // Returns 1 if data available, 0 if none, -1 on error.
-        SelectSerialFn select;
-        // Returns bytes read (>= 0) or -1 on error.
-        ReadSerialFn read;
-        // Returns bytes written (>= 0) or -1 on error.
-        WriteSerialFn write;
-        // Wait for transmission. Returns 0 on success, -1 on error.
-        DrainSerialFn drain;
-        // Flush pending I/O. Returns 0 on success, -1 on error.
-        FlushSerialFn flush;
-        // Suspend execution for usec microseconds.
-        USleepFn uSleep;
-    };
-
-    // RX receives back what TX sends (V1 board): Yes, or not (V2 board): No
-    // Unknown until the first successful Read with the stove decides it (see fumisExchange)
-    enum class LoopBack : uint8_t
-    {
-        Unknown,
-        Yes,
-        No
-    };
+    // the speed of the stove bus (8N1) and the loopback state are defined by FumisLink (the serial layer)
+    static constexpr uint32_t BAUDRATE = FumisLink::BAUDRATE;
+    using LoopBack = FumisLink::LoopBack;
 
 private:
-    // Fumis bus: 38400 8N1, fixed size frames, half-duplex polled bus: the stove is the master
-    //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
-    //   a Read is answered by a Response frame right after it
-    //   (plzbridge only names the Poll, as "Request" in fumisWaitRequest; its states are bare numbers, see portOpen)
-    // frame (11 bytes):
-    //   byte 0      type (FrameType)
-    //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
-    //   byte 9      not used by this library (0 in frames sent, ignored in frames received)
-    //   byte 10     checksum = sum of bytes 0..9
-
-    static constexpr uint32_t FUMIS_BAUDRATE = 38400;
-    static constexpr uint8_t FRAME_SIZE = 11;
-    static constexpr uint8_t FRAME_CHECKSUM_POS = FRAME_SIZE - 1;
-    static constexpr uint8_t FRAME_DATA_SIZE = 8; // data bytes of a Response frame (bytes 1..8)
-
-    // Frame type (byte 0 of a frame)
-    enum class FrameType : uint8_t
-    {
-        Poll = 0x00,        // stove -> box : the stove listens, the box may send one Request (plzbridge: "Request" in fumisWaitRequest)
-        Write = 0x01,       // box -> stove Request : write 1 byte (lo, hi, value)
-        Read = 0x02,        // box -> stove Request : read 8 bytes (lo, hi)
-        Response = 0x02,    // stove -> box : response to a Read (8 data bytes)
-        SetDateTime = 0x06, // box -> stove Request : set date and time
-    };
-    static FrameType frameType(const uint8_t *frame) { return static_cast<FrameType>(frame[0]); }
-    // sum of bytes 0..9, the value expected in byte 10
-    static uint8_t frameChecksum(const uint8_t *frame);
-    // true if the checksum (byte 10) matches bytes 0..9 (original: iChkSum, returning 0 or -508)
-    static bool hasValidChecksum(const uint8_t *frame);
-    // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced the state of the exchange)
-    static bool isValidFrame(const uint8_t *frame, FrameType type);
-    // fill a frame to send: type, data bytes 1..7 (others are 0) and checksum
-    static void buildFrame(uint8_t *frame, FrameType type, uint8_t b1 = 0, uint8_t b2 = 0, uint8_t b3 = 0, uint8_t b4 = 0, uint8_t b5 = 0, uint8_t b6 = 0, uint8_t b7 = 0);
+    // Fumis bus: see FumisFrame.h for the frames, FumisLink.h for the serial layer
 
     // true if the date and time can be sent in a SetDateTime frame (years 2000..2099, real calendar date)
     static bool isValidDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
     // day of the week of a valid date: 1 = Monday .. 7 = Sunday
     static uint8_t isoWeekDay(uint16_t year, uint8_t month, uint8_t day);
 
-    uint16_t wAddrFeederActiveTime = 0;
-    // sFumisComData.4 (original: fumisComStatus, a state machine where only "closed" is still tested)
-    //   0 closed, 1 open and idle, 2 waiting for a Poll, 3 Poll received, 4 waiting for a Response, 5 Response received
-    //   the steps 1..5 are now the order of the code in fumisExchange, fumisWaitPoll and fumisReadResponse
-    bool portOpen = false;
-    // CommandResult dword_433248 = CommandResult::OK;      // sFumisComData.8 last error of the serial layer : always set but never get (not reproduced)
+    uint16_t _wAddrFeederActiveTime = 0;
+    // sFumisComData.4 and sFumisComData.8: see FumisLink
 
     // uint16_t serialPortModel = 2; // myData.32  depend of board name : 1=omni-emb; 2=others (always 2 here: the model 2 code is kept, model 1 is removed)
     // time_t lastGetAllStatusTime;  // myData.36  keep track of last iGetAllStatus
@@ -120,7 +51,7 @@ private:
     // char path[31] = "/tmp";     // myData.4144  file path to generate msgkey
     // uint16_t verboseLevel = 0;  // myData.4176
     // uint16_t comPortNumber = 0; // myData.4180  COM Port path selector (0=>myData.4184; 1=>myData.4188; etc.)
-    LoopBack m_loopBack = LoopBack::Unknown; // (original: comPortNumber == 0 for Yes) detected on the first successful Read
+    // (comPortNumber is replaced by the loopback state of FumisLink)
     // myData.4184  pointer to string "/dev/ttyS0"
     // myData.4188  pointer to string "/dev/ttyUSB0"
     // myData.4192  pointer to string "/dev/ttyUSB1"
@@ -129,11 +60,8 @@ private:
     // uint16_t _MBTYPEMicronova = 0; // myData.4204  MBTYPE Micronova Only
     uint8_t _HWTYPE = 0; // myData.4208
     // myData.4212
-    unsigned long selectSerialTimeoutMs = 100; // myData.4216 + myData.4220 (timeval type originially), original: set by fumisOpenSerial
-                                               // NOTE : the original value is 2300 but the longest measured "select" is ~35ms
-    bool rxAligned = false;                    // (not in original) a valid stove Response was just read: RX buffer starts at the next stove frame
-    unsigned long lastResponseMs = 0;          // (not in original) millis() when that Response was read
-    char _SN[33] = {0};                        // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
+    // myData.4216 + myData.4220: select timeout, see POLL_TIMEOUT_MS and FRAME_TIMEOUT_MS in FumisLink
+    char _SN[33] = {0}; // myData.4224 (originally 28 but the iGetSNAtech algorithm writes up to 33)
 
     // char _LABEL[32]; //myData.4280  Not Used
 
@@ -206,7 +134,7 @@ private:
         uint8_t STOPH;  // chronoData[0->5 * 0x14 + 0x0C]
         uint8_t STOPM;  // chronoData[0->5 * 0x14 + 0x10]
     };
-    chronoDataProgram chronoDataPrograms[6];
+    chronoDataProgram _chronoDataPrograms[6];
     // 0->6 : D1->D7
     struct chronoDataDay
     {
@@ -214,10 +142,10 @@ private:
         uint8_t M2; // chronoData[0x78 + (0->6 * 3 + 1) * 4]
         uint8_t M3; // chronoData[0x78 + (0->6 * 3 + 2) * 4]
     };
-    chronoDataDay chronoDataDays[7];
-    uint16_t chronoDataStatus; // chronoData[0xCC]
+    chronoDataDay _chronoDataDays[7];
+    uint16_t _chronoDataStatus; // chronoData[0xCC]
 
-    // space of 0x16 size reserved by malloc in iInit
+    // space of 0x16 size reserved by malloc in iInit (original)
     uint16_t _IGN = 0;           // myData.4488[0]
     uint16_t _POWERTIMEH = 0;    // myData.4488[1]
     uint16_t _POWERTIMEM = 0;    // myData.4488[2]
@@ -232,7 +160,7 @@ private:
 
     // dword_471C5C // myData.4492 contains pointer from malloc(0x69) used to store Logs
 
-    uint8_t staticDataLoaded = 0; // myData.4496  (address in psStaticData) : indicates that Static Data are loaded
+    // myData.4496  (address in psStaticData) : indicates that Static Data are loaded (not needed: initialize() reads them)
 
     uint16_t _FWDATED = 0; // myData.4500 (psStaticData[4])
     uint16_t _FWDATEM = 0; // myData.4504 (psStaticData[8])
@@ -249,22 +177,22 @@ private:
     uint8_t _DSPFWVER = 0; // myData.4540 (psStaticData[0x2C])
     uint8_t _DSPTYPE = 0;  // myData.4541 (psStaticData[0x2D])
 
-    // myData.4544 contains pointer to malloc(0x6A) (setted up in iInit)
+    // myData.4544 contains pointer to malloc(0x6A) (set up in iInit in original)
     uint8_t _PARAMS[0x6A]; // myData.4544 (psStaticData[0x30])
-    // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in iGetErrorFlagAtech)
+    // uint8_t _PARAMS[0x37] = 0; // T3 probe max threshold (used in updateErrorFlags)
     // uint8_t _PARAMS[0x4C] = 0; // CONFIG
-    // uint8_t _PARAMS[0x59] = 0; // DP pressure sensor tolerance (value * 3%) (used in iGetErrorFlagAtech)
+    // uint8_t _PARAMS[0x59] = 0; // DP pressure sensor tolerance (value * 3%) (used in updateErrorFlags)
     // uint8_t _PARAMS[0x5C] = 0; // PELLETTYPE
     // uint8_t _PARAMS[0x62] = 0; // PSENSLMAX (Pellet Level max)
     // uint8_t _PARAMS[0x63] = 0; // PSENSLTSH (Pellet Level threshold)
     // uint8_t _PARAMS[0x64] = 0; // PSENSLMIN (Pellet Level min)
 
-    uint8_t paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) setted up in iInit for sizing PARAMS, _LIMMAX and _LIMMIN malloc
+    uint8_t _paramsBufferSize = 0x6A; // myData.4548 (psStaticData[0x34]) set up in iInit in original for sizing PARAMS, _LIMMAX and _LIMMIN malloc
 
-    // myData.4552 contains pointer to malloc(0xDE) (setted up in iInit by 0x6F * 2)
+    // myData.4552 contains pointer to malloc(0xDE) (set up in iInit in original by 0x6F * 2)
     uint16_t _HPARAMS[0x6F]; // myData.4552 (psStaticData[0x38])
 
-    uint8_t hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) setted up in iInit for sizing HPARAMS malloc
+    uint8_t _hparamsBufferSize = 0x6F; // myData.4556 (psStaticData[0x3C]) set up in iInit in original for sizing HPARAMS malloc
 
     uint16_t _FLUID = 0; // myData.4560 (psStaticData[0x40])
 
@@ -298,80 +226,50 @@ private:
 
     // char _MAC[19]; // myData.4601 (psStaticData[0x69])
 
-    SerialAdapter m_serial;
+    FumisLink _link; // serial layer
 
     int isValidSerialNumber(char *SN);
     uint16_t transcodeRoomFanSpeed(uint16_t roomFanSpeed, bool decode);
+    void fillFwDate(char (&FWDATE)[11]);
 
-    void fumisCloseSerial();
-    CommandResult fumisComReadBuff(uint16_t addrToRead, void *buf);
+    static CommandResult fumisResult(FumisLink::Result res);
+    CommandResult fumisComReadBuff(uint16_t addrToRead, uint8_t (&buf)[FumisFrame::DATA_SIZE]);
     CommandResult fumisComReadByte(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComReadWord(uint16_t addrToRead, uint16_t *data);
     CommandResult fumisComSetDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
-    CommandResult fumisComWrite(uint16_t addrToWrite, uint16_t data, bool wordMode);
     CommandResult fumisComWriteByte(uint16_t addrToWrite, uint16_t data);
     CommandResult fumisComWriteWord(uint16_t addrToWrite, uint16_t data);
-    CommandResult fumisExchange(const uint8_t *request, uint8_t *response = nullptr);
-    CommandResult fumisOpenSerial();
-    CommandResult fumisAcceptResponse(const uint8_t *frame);
-    CommandResult fumisReadFrame(uint8_t *frame);
-    CommandResult fumisReadResponse(uint8_t *frame);
-    CommandResult fumisReceive(uint8_t *frame, uint8_t &bufPosition, unsigned long startTime);
-    CommandResult fumisReopenSerial();
-    CommandResult fumisWaitPoll();
 
-    CommandResult iChkMBType();
-    void iCloseUART();
-    CommandResult iGetAllStatus(bool refreshStatus);
-    CommandResult iGetChronoDataAtech();
-    CommandResult iGetCountersAtech();
-    CommandResult iGetDateTimeAtech();
-    CommandResult iGetDPressDataAtech();
-    CommandResult iGetErrorFlagAtech();
-    void iGetFanLimits();
-    CommandResult iGetHiddenParameterAtech(uint16_t hParamToRead, uint16_t *hParamValue);
-    CommandResult iGetMBTypeAtech();
-    CommandResult iGetParameterAtech(uint16_t paramToRead, uint16_t *paramValue);
-    CommandResult iGetPelletLevelAtech();
-    CommandResult iGetPelletQtUsedAtech();
-    CommandResult iGetPowerAtech();
-    CommandResult iGetPumpRateAtech();
-    CommandResult iGetRoomFanAtech();
-    CommandResult iGetSetPointAtech();
-    CommandResult iGetSNAtech();
-    CommandResult iGetStatusAtech();
-    CommandResult iGetStoveConfigurationAtech();
-    CommandResult iInit();
-    CommandResult iReadDataAtech(uint16_t addrToRead, uint16_t *data, bool wordMode);
-    CommandResult iReadFansAtech();
-    CommandResult iReadIOAtech();
-    CommandResult iReadTemperatureAtech();
-    CommandResult iSetChronoDayAtech(uint8_t dayNumber, uint8_t memoryNumber, uint8_t programNumber);
-    CommandResult iSetChronoPrgAtech(uint8_t prg[6]);
-    CommandResult iSetChronoSetpointAtech(uint8_t programNumber, uint8_t setPoint);
-    CommandResult iSetChronoStartHHAtech(uint8_t programNumber, uint8_t startHour);
-    CommandResult iSetChronoStartMMAtech(uint8_t programNumber, uint8_t startMinute);
-    CommandResult iSetChronoStatusAtech(bool chronoStatus);
-    CommandResult iSetChronoStopHHAtech(uint8_t programNumber, uint8_t stopHour);
-    CommandResult iSetChronoStopMMAtech(uint8_t programNumber, uint8_t stopMinute);
-    CommandResult iSetHiddenParameterAtech(uint16_t hParamToWrite, uint16_t hParamValue);
-    CommandResult iSetParameterAtech(uint8_t paramToWrite, uint8_t paramValue);
-    CommandResult iSetPowerAtech(uint16_t powerLevel);
-    CommandResult iSetRoomFan3Atech(uint16_t roomFan3Speed);
-    CommandResult iSetRoomFan4Atech(uint16_t roomFan4Speed);
-    CommandResult iSetRoomFanAtech(uint16_t roomFanSpeed);
-    CommandResult iSetSetPointAtech(uint8_t setPoint);
-    CommandResult iSetSetPointAtech(float setPoint);
-    CommandResult iSetSetPointFan3Atech(uint8_t setPoint);
-    CommandResult iSetSetPointFan4Atech(uint8_t setPoint);
-    CommandResult iSetSilentModeAtech(uint16_t silentMode);
-    CommandResult iSwitchOffAtech();
-    CommandResult iSwitchOnAtech();
-    CommandResult iUpdateStaticData();
-    CommandResult iUpdateStaticDataAtech();
-    CommandResult iWriteDataAtech(uint16_t addrToWrite, uint16_t data, bool wordMode);
+    CommandResult readBytes(uint16_t addr, uint8_t *dst, uint16_t count);
+    CommandResult readChronoData();
+    CommandResult readDPress();
+    CommandResult readDateTime();
+    CommandResult readFanLevels();
+    CommandResult readFans();
+    CommandResult readHiddenParams();
+    CommandResult readHwType();
+    CommandResult readIO();
+    CommandResult readParams();
+    CommandResult readPelletLevel();
+    CommandResult readPelletQtUsed();
+    CommandResult readPower();
+    CommandResult readPumpRate();
+    CommandResult readSN();
+    CommandResult readSetPoint();
+    CommandResult readStaticData();
+    CommandResult readStatus();
+    CommandResult readStoveConfiguration();
+    CommandResult readTemperatures();
+    CommandResult updateErrorFlags();
+    void updateFanLimits();
+    CommandResult writeFan3(uint16_t fan3Speed);
+    CommandResult writeFan4(uint16_t fan4Speed);
+    CommandResult writePower(uint16_t powerLevel);
+    CommandResult writeRoomFan(uint16_t roomFanSpeed);
+    CommandResult writeSetPoint(uint8_t setPoint);
+    CommandResult writeSetPoint(float setPoint);
 
-    bool _isInitialized;
+    bool _isInitialized = false;
 
 public:
     struct AllStatusData
@@ -532,9 +430,10 @@ public:
     };
 
     CommandResult initialize();
-    CommandResult initialize(SerialAdapter serial);
+    // port: the stream connected to the stove bus, already opened by the application at BAUDRATE, 8N1
+    CommandResult initialize(Stream &port);
     bool isInitialized() { return _isInitialized; };
-    LoopBack getLoopBack() { return m_loopBack; };
+    LoopBack getLoopBack() { return _link.loopBack(); };
 
     CommandResult getAllHiddenParameters(uint16_t (*hiddenParams)[0x6F]);
     CommandResult getAllParameters(uint8_t (*params)[0x6A]);

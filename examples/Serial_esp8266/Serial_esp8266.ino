@@ -6,61 +6,16 @@ SoftwareSerial swSer(D1, D4); // SoftwareSerial is used for log (Serial is used 
 
 Palazzetti myPala;
 
-// Serial management functions
-int myOpenSerial(uint32_t baudrate)
-{
-    Serial.begin(baudrate);
-    Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
-    return 0;
-}
-void myCloseSerial()
-{
-    Serial.end();
-    // set TX PIN to OUTPUT HIGH to avoid stove bus blocking
-    pinMode(15, OUTPUT);
-    digitalWrite(15, HIGH);
-}
-int mySelectSerial(unsigned long timeout)
-{
-    size_t avail;
-    unsigned long startmillis = millis();
-    while ((avail = Serial.available()) == 0 && (startmillis + timeout) > millis())
-        ;
-
-    return avail;
-}
-ssize_t myReadSerial(void *buf, size_t count) { return Serial.read((char *)buf, count); }
-ssize_t myWriteSerial(const void *buf, size_t count) { return Serial.write((const uint8_t *)buf, count); }
-int myDrainSerial()
-{
-    Serial.flush(); // On ESP, Serial.flush() is drain
-    return 0;
-}
-int myFlushSerial()
-{
-    Serial.flush();
-    while (Serial.read() != -1)
-        ; // flush RX buffer
-    return 0;
-}
-void myUSleep(unsigned long usecond) { delayMicroseconds(usecond); }
-
 void setup()
 {
     swSer.begin(38400);
     swSer.println("swSer started");
 
-    Palazzetti::SerialAdapter serial = {
-        .open = myOpenSerial,
-        .close = myCloseSerial,
-        .select = mySelectSerial,
-        .read = myReadSerial,
-        .write = myWriteSerial,
-        .drain = myDrainSerial,
-        .flush = myFlushSerial,
-        .uSleep = myUSleep};
+    // open the serial port connected to the stove, the library does the rest through the stream
+    Serial.begin(Palazzetti::BAUDRATE);
+    Serial.pins(15, 13); // swap ESP8266 pins to alternative positions (GPIO15 as TX and GPIO13 as RX)
 
-    if (myPala.initialize(serial) == Palazzetti::CommandResult::OK)
+    if (myPala.initialize(Serial) == Palazzetti::CommandResult::OK)
         swSer.println("initialize OK");
     else
         swSer.println("initialize Failed");
