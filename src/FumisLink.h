@@ -6,7 +6,7 @@
 
 // Fumis bus (38400 8N1, half-duplex, the stove is the master, see FumisFrame.h): the only code that touches the serial port.
 // Each attempt of a Read, Write or SetDateTime is one exchange: wait for a stove Poll, send the Request, read the Response.
-// Every error is retried. The V1 board loopback is detected on the first successful Read.
+// Every error is retried, except NoPoll. The V1 board loopback is detected on the first successful Read.
 // (original: the SERIALCOM_* layer and the frame and retry parts of the fumis* functions, see FumisLink.cpp)
 class FumisLink
 {
@@ -26,7 +26,8 @@ public:
     enum class Result : uint8_t
     {
         Ok,
-        Timeout,   // frame not complete in time (Poll: POLL_TIMEOUT_MS, echo or Response: FRAME_TIMEOUT_MS)
+        NoPoll,    // no Poll within POLL_TIMEOUT_MS: no stove connected, or not polling; not retried
+        Timeout,   // echo or Response not complete within FRAME_TIMEOUT_MS
         BadFrame,  // Response with a wrong type or checksum
         Collision, // V1 board: the echo differs from the Request, something else was on the bus
         Mismatch,  // a write read back with another value than expected
@@ -58,7 +59,8 @@ public:
 private:
     // frame time limits (original: 3000ms for every frame in var_10, checked after each select of 2300ms, myData.4216 + myData.4220)
     // NOTE : the longest measured "select" is ~35ms
-    // Poll: the stove sends one at least every ~67ms
+    // Poll: the stove sends one at least every ~69ms, so waitPoll finds one within ~85ms;
+    // no Poll within this time means no stove is connected, or it is not polling: not retried
     static constexpr unsigned long POLL_TIMEOUT_MS = 250;
     // echo or Response: received during the Request or right after it (11 bytes: 2.9ms), plus the ESP delay to make them available
     static constexpr unsigned long FRAME_TIMEOUT_MS = 30;

@@ -12,6 +12,7 @@
 //  - the retry loops of fumisComReadBuff, fumisComWrite and fumisComSetDateTime: read, writeByte/writeWord and setDateTime, with retry
 
 // Run op up to attempts times until it gives Ok, on the same port (waitPoll discards the stale RX bytes)
+// (not in original) NoPoll stops at once: waitPoll already waited for several Polls
 // (original: three different loops: Read closed, flushed and reopened the port and retried only the communication errors,
 //  Write and SetDateTime retried any error without reopening the port;
 //  reopening the port is likely meant for a Linux tty (e.g. a USB adapter), it does not help with the built-in UART of an ESP)
@@ -22,7 +23,7 @@ FumisLink::Result FumisLink::retry(uint8_t attempts, Op op)
     for (uint8_t attempt = 0; attempt < attempts; attempt++) // (original: counted down)
     {
         res = op();
-        if (res == Result::Ok)
+        if (res == Result::Ok || res == Result::NoPoll)
             return res;
     }
     return res;
@@ -251,7 +252,7 @@ FumisLink::Result FumisLink::waitPoll()
         else
             res = readBytes(frame.bytes, FumisFrame::SIZE, startTime, POLL_TIMEOUT_MS); // (not in original) full frame then silence but not a Poll: drop it
     }
-    return res;
+    return Result::NoPoll; // readBytes only fails with Timeout, here after POLL_TIMEOUT_MS
 }
 
 // Read the next frame, whatever it is (Response, or echo of the Request on the V1 board)
