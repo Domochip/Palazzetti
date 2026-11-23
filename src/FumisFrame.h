@@ -7,6 +7,10 @@
 // Fumis bus frame: 38400 8N1, half-duplex polled bus, the stove is the master
 //   the stove sends a Poll frame, then the box may send one Request frame (Read, Write or SetDateTime)
 //   a Read is answered by a Response frame right after it
+//   the stove also talks to its display on the same bus (from the stove firmware), each of these frames followed by a short break:
+//     0x04 display content (the display answers with a 0x04 carrying the key pressed)
+//     0x07 Poll for the display (it may then send a 0x08 Write or a 0x09 Read)
+//     0x09 Response to a Read sent by the display
 // frame (11 bytes):
 //   byte 0      type (Type)
 //   bytes 1..8  data (Response: 8 data bytes ; Read/Write: address lo, hi ; Write: + value ; SetDateTime: s, m, h, weekday, d, M, y-2000)
@@ -51,6 +55,8 @@ struct FumisFrame
     bool hasValidChecksum() const { return checksum() == bytes[CHECKSUM_POS]; }
     // true if the frame has this type and a valid checksum (original: parseRxBuffer, which also advanced the state of the exchange)
     bool isValid(Type t) const { return type() == t && hasValidChecksum(); }
+    // (not in original) true for a valid frame the stove sends to its display, ignored by the box
+    bool isDisplay() const { return (bytes[0] == 0x04 || bytes[0] == 0x07 || bytes[0] == 0x09) && hasValidChecksum(); }
 
     bool operator==(const FumisFrame &other) const { return memcmp(bytes, other.bytes, SIZE) == 0; }
     bool operator!=(const FumisFrame &other) const { return !(*this == other); }

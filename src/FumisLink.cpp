@@ -207,24 +207,38 @@ FumisLink::Result FumisLink::waitPoll()
 
     // (not in original) keep the RX buffer for 8ms after a valid Response: the stove sends its next frame ~0.1ms after it,
     // so the buffer then starts exactly at that frame; otherwise discard it
-    bool alignedFrame = _rxAligned && (millis() - _lastResponseMs) < 8;
-    if (!alignedFrame)
+    bool aligned = _rxAligned && (millis() - _lastResponseMs) < 8;
+    if (!aligned)
         discardInput();
     _rxAligned = false;
 
     unsigned long startTime = millis(); // var_10 (instead of time())
 
     Result res = readBytes(frame.bytes, FumisFrame::SIZE, startTime, POLL_TIMEOUT_MS);
-    while (res == Result::Ok)
+
+    // (not in original) fast path on the aligned buffer, frame by frame: the Poll may come right away,
+    // or after up to 4 display frames (mostly the display Poll 0x07 then the Response 0x09 to the display Read, ~14ms after the Response;
+    // at most 0x04, 0x07, 0x09, 0x04 seen, ~36ms)
+    for (uint8_t skipped = 0; aligned && res == Result::Ok; skipped++)
     {
-        // (not in original) fast path on the aligned buffer
-        if (alignedFrame && frame.isValid(FumisFrame::Type::Poll))
+        if (frame.isValid(FumisFrame::Type::Poll))
         {
             delayMicroseconds(2000); // 2ms guard: the stove listens ~0.2ms after the end of its Poll
             return Result::Ok;
         }
-        alignedFrame = false;
+        if (skipped == 4 || !frame.isDisplay())
+            break; // unexpected frame, or too many display frames: use the silence below
 
+        // the stove sends a break after its frames to the display, received as one 0x00 byte (ESP8266 and ESP32);
+        // with any other UART behavior the next frame is not valid and the silence below is used
+        uint8_t breakByte;
+        res = readBytes(&breakByte, 1, startTime, POLL_TIMEOUT_MS);
+        if (res == Result::Ok)
+            res = readBytes(frame.bytes, FumisFrame::SIZE, startTime, POLL_TIMEOUT_MS);
+    }
+
+    while (res == Result::Ok)
+    {
         // otherwise rely on silence: a Poll is followed by ~28ms of silence, other frames by at most ~9ms,
         // so a byte arriving within 13ms means this is not a Poll: slide by one byte
         if (waitAvailable(13))
